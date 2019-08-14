@@ -1,0 +1,4 @@
+[submodule "deps/wasm-semantics"]
+	path = deps/wasm-semantics
+	url = https://github.com/kframework/wasm-semantics
+	ignore = untracked
