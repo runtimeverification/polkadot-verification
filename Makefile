@@ -42,7 +42,7 @@ deps:
 # --------------
 
 POLKADOT_SUBMODULE := $(DEPS_DIR)/substrate
-POLKADOT_RUNTIME_WASM := $(POLKADOT_SUBMODULE)/target/debug/wbuild/target/wasm32-unknown-unknown/debug/node_runtime.wasm
+POLKADOT_RUNTIME_WASM := $(POLKADOT_SUBMODULE)/target/release/wbuild/node-template-runtime/node_template_runtime.compact.wasm
 
 deps-polkadot:
 	curl https://sh.rustup.rs -sSf | sh -s -- -y
@@ -58,7 +58,7 @@ polkadot-runtime.wat: $(POLKADOT_RUNTIME_WASM)
 
 $(POLKADOT_RUNTIME_WASM):
 	git submodule update --init -- $(POLKADOT_SUBMODULE)
-	cd $(POLKADOT_SUBMODULE) && cargo build
+	cd $(POLKADOT_SUBMODULE) && cargo build --package node-template --release
 
 # Useful Builds
 # -------------
