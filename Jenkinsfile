@@ -17,24 +17,39 @@ pipeline {
       }
     }
     stage('Dependencies') {
-      steps {
-        sh '''
-          make deps deps-polkadot -j2
-        '''
+      parallel {
+        stage('KWasm') {
+          steps {
+            sh '''
+              make deps
+            '''
+          }
+        }
+        stage('Polkadot') {
+          steps {
+            sh '''
+              make deps-polkadot
+            '''
+          }
+        }
       }
     }
     stage('Build') {
-      steps {
-        sh '''
-          make build -j4
-        '''
-      }
-    }
-    stage('Polkadot Runtime') {
-      steps {
-        sh '''
-          make polkadot-runtime
-        '''
+      parallel {
+        stage('KWasm') {
+          steps {
+            sh '''
+              make build -j4
+            '''
+          }
+        }
+        stage('Polkadot') {
+          steps {
+            sh '''
+              make polkadot-runtime
+            '''
+          }
+        }
       }
     }
   }
