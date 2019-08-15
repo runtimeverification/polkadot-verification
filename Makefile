@@ -45,7 +45,7 @@ POLKADOT_SUBMODULE := $(DEPS_DIR)/substrate
 POLKADOT_RUNTIME_WASM := $(POLKADOT_SUBMODULE)/target/debug/wbuild/target/wasm32-unknown-unknown/debug/node_runtime.wasm
 
 deps-polkadot:
-	curl https://sh.rustup.rs -sSf | sh
+	curl https://sh.rustup.rs -sSf | sh -s -- -y
 	rustup update nightly
 	rustup target add wasm32-unknown-unknown --toolchain nightly
 	rustup update stable
