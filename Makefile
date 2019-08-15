@@ -1,5 +1,5 @@
 
-.PHONY: clean distclean deps build
+.PHONY: clean distclean deps deps-polkadot build
 
 # Settings
 # --------
@@ -37,6 +37,19 @@ distclean: clean
 deps:
 	git submodule update --init --recursive
 	$(KWASM_MAKE) deps
+
+# Polkadot Setup
+# --------------
+
+POLKADOT_SUBMODULE := $(DEPS_DIR)/substrate
+
+deps-polkadot:
+	curl https://sh.rustup.rs -sSf | sh
+	rustup update nightly
+	rustup target add wasm32-unknown-unknown --toolchain nightly
+	rustup update stable
+	cargo install --git https://github.com/alexcrichton/wasm-gc
+	cd $(POLKADOT_SUBMODULE) && cargo build
 
 # Useful Builds
 # -------------
