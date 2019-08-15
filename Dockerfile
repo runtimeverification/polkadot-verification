@@ -24,3 +24,5 @@ ADD --chown=user:user deps/wasm-semantics/deps/k/haskell-backend/src/main/native
 ADD --chown=user:user deps/wasm-semantics/deps/k/haskell-backend/src/main/native/haskell-backend/kore/package.yaml /home/user/.tmp-haskell/kore/
 RUN    cd /home/user/.tmp-haskell \
     && stack build --only-snapshot
+
+ENV PATH=/home/user/.local/bin:/home/user/.cargo/bin:$PATH
