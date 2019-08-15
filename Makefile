@@ -1,5 +1,5 @@
 
-.PHONY: clean distclean deps deps-polkadot build
+.PHONY: clean distclean deps deps-polkadot polkadot-runtime build
 
 # Settings
 # --------
@@ -42,6 +42,7 @@ deps:
 # --------------
 
 POLKADOT_SUBMODULE := $(DEPS_DIR)/substrate
+POLKADOT_RUNTIME_WASM := $(POLKADOT_SUBMODULE)/target/debug/wbuild/target/wasm32-unknown-unknown/debug/node_runtime.wasm
 
 deps-polkadot:
 	curl https://sh.rustup.rs -sSf | sh
@@ -49,6 +50,14 @@ deps-polkadot:
 	rustup target add wasm32-unknown-unknown --toolchain nightly
 	rustup update stable
 	cargo install --git https://github.com/alexcrichton/wasm-gc
+
+polkadot-runtime: polkadot-runtime.wat
+
+polkadot-runtime.wat: $(POLKADOT_RUNTIME_WASM)
+	wasm2wat $< > $@
+
+$(POLKADOT_RUNTIME_WASM):
+	git submodule update --init -- $(POLKADOT_SUBMODULE)
 	cd $(POLKADOT_SUBMODULE) && cargo build
 
 # Useful Builds
