@@ -2,3 +2,7 @@
 	path = deps/wasm-semantics
 	url = https://github.com/kframework/wasm-semantics
 	ignore = untracked
+[submodule "deps/substrate"]
+	path = deps/substrate
+	url = https://github.com/paritytech/substrate
+	ignore = untracked

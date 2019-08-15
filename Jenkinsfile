@@ -17,17 +17,32 @@ pipeline {
       }
     }
     stage('Dependencies') {
-      steps {
-        sh '''
-          make deps
-        '''
+      parallel {
+        stage('KWasm') {
+          steps {
+            sh '''
+              make deps
+            '''
+          }
+        }
+        stage('Polkadot') {
+          steps {
+            sh '''
+              make deps-polkadot
+            '''
+          }
+        }
       }
     }
     stage('Build') {
-      steps {
-        sh '''
-          make build -j4
-        '''
+      parallel {
+        stage('KWasm') {
+          steps {
+            sh '''
+              make build -j4
+            '''
+          }
+        }
       }
     }
   }
