@@ -19,7 +19,7 @@ pipeline {
     stage('Dependencies') {
       steps {
         sh '''
-          make deps
+          make deps deps-polkadot -j2
         '''
       }
     }
@@ -27,6 +27,13 @@ pipeline {
       steps {
         sh '''
           make build -j4
+        '''
+      }
+    }
+    stage('Polkadot Runtime') {
+      steps {
+        sh '''
+          make polkadot-runtime
         '''
       }
     }
