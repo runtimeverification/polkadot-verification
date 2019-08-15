@@ -43,6 +43,13 @@ pipeline {
             '''
           }
         }
+        stage('Polkadot') {
+          steps {
+            sh '''
+              make polkadot-runtime
+            '''
+          }
+        }
       }
     }
   }
