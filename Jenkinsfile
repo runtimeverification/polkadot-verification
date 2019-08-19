@@ -54,17 +54,10 @@ pipeline {
     }
     stage('Test') {
       parallel {
-        stage('Polkadot Runtime Generate') {
+        stage('Polkadot Runtime Generated Files') {
           steps {
             sh '''
-              make test-polkadot-runtime
-            '''
-          }
-        }
-        stage('Polkadot Runtime Parse') {
-          steps {
-            sh '''
-              make test-parse
+              make test-build-products -j2
             '''
           }
         }
