@@ -92,7 +92,7 @@ test-build-products: test-polkadot-runtime test-parse
 test-polkadot-runtime: tests/polkadot-runtime.wat.out
 	$(CHECK) tests/polkadot-runtime.wat $<
 
-test-parse: tests/polkadot-runtime.wat tests/polkadot-runtime.wat.json
+test-parse: tests/polkadot-runtime.wat tests/polkadot-runtime.wat.json build-kwasm-$(TEST_CONCRETE_BACKEND)
 	$(TEST) kast --backend $(TEST_CONCRETE_BACKEND) $< json > $<.json.out
 	$(CHECK) $<.json $<.json.out
 	rm -rf $<.json.out
