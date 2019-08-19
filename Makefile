@@ -43,7 +43,7 @@ deps:
 # Polkadot Setup
 # --------------
 
-POLKADOT_SUBMODULE := $(DEPS_DIR)/substrate
+POLKADOT_SUBMODULE    := $(DEPS_DIR)/substrate
 POLKADOT_RUNTIME_WASM := $(POLKADOT_SUBMODULE)/target/release/wbuild/node-template-runtime/node_template_runtime.compact.wasm
 
 deps-polkadot:
@@ -53,10 +53,7 @@ deps-polkadot:
 	rustup update stable
 	cargo install --git https://github.com/alexcrichton/wasm-gc
 
-polkadot-runtime: tests/polkadot-runtime.wat.out
-
-tests/polkadot-runtime.wat.out: $(POLKADOT_RUNTIME_WASM)
-	wasm2wat $< > $@
+polkadot-runtime: $(POLKADOT_RUNTIME_WASM)
 
 $(POLKADOT_RUNTIME_WASM):
 	git submodule update --init -- $(POLKADOT_SUBMODULE)
@@ -89,8 +86,10 @@ test: test-build-products
 
 test-build-products: test-polkadot-runtime test-parse
 
-test-polkadot-runtime: tests/polkadot-runtime.wat.out
-	$(CHECK) tests/polkadot-runtime.wat $<
+test-polkadot-runtime: $(POLKADOT_RUNTIME_WASM)
+	wasm2wat $< > tests/polkadot-runtime.wat.out
+	$(CHECK) tests/polkadot-runtime.wat tests/polkadot-runtime.wat.out
+	rm -rf tests/polkadot-runtime.wat.out
 
 test-parse: tests/polkadot-runtime.wat tests/polkadot-runtime.wat.json build-kwasm-$(TEST_CONCRETE_BACKEND)
 	$(TEST) kast --backend $(TEST_CONCRETE_BACKEND) $< json > $<.json.out
