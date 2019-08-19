@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+export KWASM_DIR=$(pwd)
+export KWASM_DEFN_DIR=$(pwd)/.build/defn/kwasm
+deps/wasm-semantics/kwasm "$@"
