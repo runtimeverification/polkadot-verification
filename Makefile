@@ -51,9 +51,9 @@ deps-polkadot:
 	rustup update stable
 	cargo install --git https://github.com/alexcrichton/wasm-gc
 
-polkadot-runtime: polkadot-runtime.wat
+polkadot-runtime: tests/polkadot-runtime.wat.out
 
-polkadot-runtime.wat: $(POLKADOT_RUNTIME_WASM)
+tests/polkadot-runtime.wat.out: $(POLKADOT_RUNTIME_WASM)
 	wasm2wat $< > $@
 
 $(POLKADOT_RUNTIME_WASM):
@@ -78,15 +78,16 @@ TEST                  := ./kpol
 CHECK                 := git --no-pager diff --no-index --ignore-all-space
 TEST_CONCRETE_BACKEND := llvm
 
-test: test-parse
+test: test-polkadot-runtime test-parse
 
 ### Generic test harnesses
 
-%.parse: %
-	$(TEST) kast --backend $(TEST_CONCRETE_BACKEND) $< kast > $@-out
-	$(CHECK) $@-expected $@-out
-	rm -rf $@-out
+%.parse: % build-kwasm-$(TEST_CONCRETE_BACKEND)
+	$(TEST) kast --backend $(TEST_CONCRETE_BACKEND) $< json > $@.json.out
 
-### Parsing Polkadot Runtime
+### Polkadot Runtime
 
-test-parse: polkadot-runtime.wat.parse
+test-polkadot-runtime: tests/polkadot-runtime.wat.out
+	$(CHECK) tests/polkadot-runtime.wat $<
+
+test-parse: tests/polkadot-runtime.wat.parse
