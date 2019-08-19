@@ -1,7 +1,7 @@
 
 .PHONY: clean distclean deps deps-polkadot \
         polkadot-runtime build \
-        test test-polkadot-runtime test-parse
+        test test-build-products test-polkadot-runtime test-parse
 
 # Settings
 # --------
@@ -31,7 +31,7 @@ export TANGLER
 export LUA_PATH
 
 clean:
-	rm -rf $(DEFN_DIR)
+	rm -rf $(DEFN_DIR) tests/*.out
 
 distclean: clean
 	rm -rf $(BUILD_DIR)
@@ -80,9 +80,14 @@ TEST                  := ./kpol
 CHECK                 := git --no-pager diff --no-index --ignore-all-space
 TEST_CONCRETE_BACKEND := llvm
 
-test: test-polkadot-runtime test-parse
+test: test-build-products
 
-### Polkadot Runtime
+### Polkadot Runtime Build Products
+
+# The files `tests/polkadot-runtime.{wat,wat.json}` take a lot of resources to produce.
+# They are committed to the repository, and on CI we check that their generation process produces the same files.
+
+test-build-products: test-polkadot-runtime test-parse
 
 test-polkadot-runtime: tests/polkadot-runtime.wat.out
 	$(CHECK) tests/polkadot-runtime.wat $<
