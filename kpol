@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+export K_OPTS=-Xmx18G
 export KWASM_DIR=$(pwd)
 export KWASM_DEFN_DIR=$(pwd)/.build/defn/kwasm
 deps/wasm-semantics/kwasm "$@"
