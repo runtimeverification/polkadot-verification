@@ -84,12 +84,14 @@ test: test-polkadot-runtime test-parse
 
 ### Generic test harnesses
 
-%.parse: % build-kwasm-$(TEST_CONCRETE_BACKEND)
-	$(TEST) kast --backend $(TEST_CONCRETE_BACKEND) $< json > $@.json.out
+%.wat.json: %.wat build-kwasm-$(TEST_CONCRETE_BACKEND)
+	$(TEST) kast --backend $(TEST_CONCRETE_BACKEND) $< json > $@.out
+	$(CHECK) $@ $@.out
+	rm -rf $@.out
 
 ### Polkadot Runtime
 
 test-polkadot-runtime: tests/polkadot-runtime.wat.out
 	$(CHECK) tests/polkadot-runtime.wat $<
 
-test-parse: tests/polkadot-runtime.wat.parse
+test-parse: tests/polkadot-runtime.wat.json.out
