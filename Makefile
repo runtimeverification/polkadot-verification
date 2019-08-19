@@ -1,5 +1,7 @@
 
-.PHONY: clean distclean deps deps-polkadot polkadot-runtime build test test-parse
+.PHONY: clean distclean deps deps-polkadot \
+        polkadot-runtime build \
+        test test-polkadot-runtime test-parse
 
 # Settings
 # --------
