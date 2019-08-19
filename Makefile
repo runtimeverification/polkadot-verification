@@ -1,5 +1,5 @@
 
-.PHONY: clean distclean deps deps-polkadot polkadot-runtime build
+.PHONY: clean distclean deps deps-polkadot polkadot-runtime build test test-parse
 
 # Settings
 # --------
@@ -70,3 +70,23 @@ build: build-kwasm-java build-kwasm-haskell
 
 build-kwasm-%:
 	$(KWASM_MAKE) build-$* DEFN_DIR=../../$(BUILD_DIR)/defn/kwasm
+
+# Testing
+# -------
+
+TEST                  := ./kpol
+CHECK                 := git --no-pager diff --no-index --ignore-all-space
+TEST_CONCRETE_BACKEND := llvm
+
+test: test-parse
+
+### Generic test harnesses
+
+%.parse: %
+	$(TEST) kast --backend $(TEST_CONCRETE_BACKEND) $< kast > $@-out
+	$(CHECK) $@-expected $@-out
+	rm -rf $@-out
+
+### Parsing Polkadot Runtime
+
+test-parse: polkadot-runtime.wat.parse
