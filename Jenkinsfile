@@ -52,5 +52,16 @@ pipeline {
         }
       }
     }
+    stage('Test') {
+      parallel {
+        stage('Polkadot Runtime Parse') {
+          steps {
+            sh '''
+              make test-parse
+            '''
+          }
+        }
+      }
+    }
   }
 }
