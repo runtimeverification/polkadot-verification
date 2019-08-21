@@ -62,7 +62,7 @@ $(POLKADOT_RUNTIME_WASM):
 # Useful Builds
 # -------------
 
-build: build-kwasm-java build-kwasm-haskell
+build: build-kwasm-java build-kwasm-haskell build-kwasm-llvm build-kwasm-ocaml
 
 # Regular Semantics Build
 # -----------------------
