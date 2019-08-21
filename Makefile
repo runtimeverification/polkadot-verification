@@ -56,7 +56,7 @@ deps-polkadot:
 polkadot-runtime: $(POLKADOT_RUNTIME_WASM)
 
 $(POLKADOT_RUNTIME_WASM):
-	git submodule update --init -- $(POLKADOT_SUBMODULE)
+	git submodule update --init --recursive -- $(POLKADOT_SUBMODULE)
 	cd $(POLKADOT_SUBMODULE) && cargo build --package node-template --release
 
 # Useful Builds
