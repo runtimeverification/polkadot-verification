@@ -11,7 +11,6 @@ RUN    apt-get update                                                       \
         python-pygments python-recommonmark python-sphinx rapidjson-dev     \
         time z3 zlib1g-dev
 
-
 ADD deps/wasm-semantics/deps/k/haskell-backend/src/main/native/haskell-backend/scripts/install-stack.sh /.install-stack/
 RUN /.install-stack/install-stack.sh
 
