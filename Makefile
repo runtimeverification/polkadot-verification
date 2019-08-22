@@ -1,5 +1,7 @@
 
-.PHONY: clean distclean deps deps-polkadot polkadot-runtime build
+.PHONY: clean distclean deps deps-polkadot \
+        build polkadot-runtime-source \
+        test
 
 # Settings
 # --------
@@ -29,7 +31,7 @@ export TANGLER
 export LUA_PATH
 
 clean:
-	rm -rf $(DEFN_DIR)
+	rm -rf $(DEFN_DIR) tests/*.out
 
 distclean: clean
 	rm -rf $(BUILD_DIR)
@@ -41,8 +43,8 @@ deps:
 # Polkadot Setup
 # --------------
 
-POLKADOT_SUBMODULE := $(DEPS_DIR)/substrate
-POLKADOT_RUNTIME_WASM := $(POLKADOT_SUBMODULE)/target/debug/wbuild/target/wasm32-unknown-unknown/debug/node_runtime.wasm
+POLKADOT_SUBMODULE    := $(DEPS_DIR)/substrate
+POLKADOT_RUNTIME_WASM := $(POLKADOT_SUBMODULE)/target/release/wbuild/node-template-runtime/node_template_runtime.compact.wasm
 
 deps-polkadot:
 	curl https://sh.rustup.rs -sSf | sh -s -- -y
@@ -51,22 +53,35 @@ deps-polkadot:
 	rustup update stable
 	cargo install --git https://github.com/alexcrichton/wasm-gc
 
-polkadot-runtime: polkadot-runtime.wat
-
-polkadot-runtime.wat: $(POLKADOT_RUNTIME_WASM)
-	wasm2wat $< > $@
-
-$(POLKADOT_RUNTIME_WASM):
-	git submodule update --init -- $(POLKADOT_SUBMODULE)
-	cd $(POLKADOT_SUBMODULE) && cargo build
-
 # Useful Builds
 # -------------
 
-build: build-kwasm-java build-kwasm-haskell
+build: build-kwasm-java build-kwasm-haskell build-kwasm-llvm build-kwasm-ocaml
 
 # Regular Semantics Build
 # -----------------------
 
 build-kwasm-%:
 	$(KWASM_MAKE) build-$* DEFN_DIR=../../$(BUILD_DIR)/defn/kwasm
+
+# Verification Sourc Build
+# ------------------------
+
+polkadot-runtime-source: src/polkadot-runtime.wat.json
+
+src/polkadot-runtime.wat.json: src/polkadot-runtime.wat
+	./kpol kast --backend llvm $< json > $@
+
+src/polkadot-runtime.wat: $(POLKADOT_RUNTIME_WASM)
+	wasm2wat $< > $@
+
+$(POLKADOT_RUNTIME_WASM):
+	git submodule update --init --recursive -- $(POLKADOT_SUBMODULE)
+	cd $(POLKADOT_SUBMODULE) && cargo build --package node-template --release
+
+# Testing
+# -------
+
+TEST                  := ./kpol
+CHECK                 := git --no-pager diff --no-index --ignore-all-space
+TEST_CONCRETE_BACKEND := llvm

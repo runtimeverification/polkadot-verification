@@ -43,6 +43,24 @@ pipeline {
             '''
           }
         }
+        stage('Polkadot') {
+          steps {
+            sh '''
+              make polkadot-runtime-source
+            '''
+          }
+        }
+      }
+    }
+    stage('Test') {
+      parallel {
+        stage('Dummy') {
+          steps {
+            sh '''
+              echo "No tests to run!"
+            '''
+          }
+        }
       }
     }
   }
