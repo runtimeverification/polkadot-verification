@@ -70,7 +70,7 @@ build-kwasm-%:
 polkadot-runtime-source: src/polkadot-runtime.wat.json
 
 src/polkadot-runtime.wat.json: src/polkadot-runtime.wat
-	./kpol kast --backend $(TEST_CONCRETE_BACKEND) $< json > $@
+	./kpol kast --backend llvm $< json > $@
 
 src/polkadot-runtime.wat: $(POLKADOT_RUNTIME_WASM)
 	wasm2wat $< > $@
