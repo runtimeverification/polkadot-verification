@@ -30,5 +30,11 @@ ADD --chown=user:user deps/wasm-semantics/deps/k/haskell-backend/src/main/native
 RUN    cd /home/user/.tmp-haskell \
     && stack build --only-snapshot
 
+RUN    cd /home/user                                                                 \
+    && git clone --recursive 'https://github.com/WebAssembly/wabt' --branch='1.0.10' \
+    && cd wabt                                                                       \
+    && mkdir build && cd build                                                       \
+    && cmake .. && cmake --build .
+
 ENV LD_LIBRARY_PATH=/usr/local/lib
-ENV PATH=/home/user/.local/bin:/home/user/.cargo/bin:$PATH
+ENV PATH=/home/user/wabt/build:/home/user/.local/bin:/home/user/.cargo/bin:$PATH
