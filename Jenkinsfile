@@ -54,10 +54,10 @@ pipeline {
     }
     stage('Test') {
       parallel {
-        stage('Polkadot Runtime Generated Files') {
+        stage('Dummy') {
           steps {
             sh '''
-              make test-build-products -j2
+              echo "No tests to run!"
             '''
           }
         }
