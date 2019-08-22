@@ -1,7 +1,7 @@
 
 .PHONY: clean distclean deps deps-polkadot \
-        polkadot-runtime build \
-        test test-build-products test-polkadot-runtime test-parse
+        build polkadot-runtime-source \
+        test
 
 # Settings
 # --------
@@ -53,12 +53,6 @@ deps-polkadot:
 	rustup update stable
 	cargo install --git https://github.com/alexcrichton/wasm-gc
 
-polkadot-runtime: $(POLKADOT_RUNTIME_WASM)
-
-$(POLKADOT_RUNTIME_WASM):
-	git submodule update --init --recursive -- $(POLKADOT_SUBMODULE)
-	cd $(POLKADOT_SUBMODULE) && cargo build --package node-template --release
-
 # Useful Builds
 # -------------
 
@@ -70,28 +64,24 @@ build: build-kwasm-java build-kwasm-haskell build-kwasm-llvm build-kwasm-ocaml
 build-kwasm-%:
 	$(KWASM_MAKE) build-$* DEFN_DIR=../../$(BUILD_DIR)/defn/kwasm
 
+# Verification Sourc Build
+# ------------------------
+
+polkadot-runtime-source: src/polkadot-runtime.wat.json
+
+src/polkadot-runtime.wat.json: src/polkadot-runtime.wat
+	./kpol kast --backend $(TEST_CONCRETE_BACKEND) $< json > $@
+
+src/polkadot-runtime.wat: $(POLKADOT_RUNTIME_WASM)
+	wasm2wat $< > $@
+
+$(POLKADOT_RUNTIME_WASM):
+	git submodule update --init --recursive -- $(POLKADOT_SUBMODULE)
+	cd $(POLKADOT_SUBMODULE) && cargo build --package node-template --release
+
 # Testing
 # -------
 
 TEST                  := ./kpol
 CHECK                 := git --no-pager diff --no-index --ignore-all-space
 TEST_CONCRETE_BACKEND := llvm
-
-test: test-build-products
-
-### Polkadot Runtime Build Products
-
-# The files `tests/polkadot-runtime.{wat,wat.json}` take a lot of resources to produce.
-# They are committed to the repository, and on CI we check that their generation process produces the same files.
-
-test-build-products: test-polkadot-runtime test-parse
-
-test-polkadot-runtime: $(POLKADOT_RUNTIME_WASM)
-	wasm2wat $< > tests/polkadot-runtime.wat.out
-	$(CHECK) tests/polkadot-runtime.wat tests/polkadot-runtime.wat.out
-	rm -rf tests/polkadot-runtime.wat.out
-
-test-parse: tests/polkadot-runtime.wat tests/polkadot-runtime.wat.json build-kwasm-$(TEST_CONCRETE_BACKEND)
-	$(TEST) kast --backend $(TEST_CONCRETE_BACKEND) $< json > $<.json.out
-	$(CHECK) $<.json $<.json.out
-	rm -rf $<.json.out
