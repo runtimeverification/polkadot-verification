@@ -46,7 +46,7 @@ pipeline {
         stage('Polkadot') {
           steps {
             sh '''
-              make polkadot-runtime
+              make polkadot-runtime-source
             '''
           }
         }
