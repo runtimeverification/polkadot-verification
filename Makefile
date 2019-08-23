@@ -74,8 +74,8 @@ polkadot-runtime-source: src/polkadot-runtime.loaded.json
 src/polkadot-runtime.loaded.json: src/polkadot-runtime.wat.json
 	./kpol run --backend $(CONCRETE_BACKEND) $< --parser cat --output json > $@
 
-src/polkadot-runtime.wat.json: src/polkadot-runtime.wat
-	./kpol kast --backend $(CONCRETE_BACKEND) $< json > $@
+src/polkadot-runtime.wat.json: src/polkadot-runtime.env.wat src/polkadot-runtime.wat
+	cat $^ | ./kpol kast --backend $(CONCRETE_BACKEND) - json > $@
 
 src/polkadot-runtime.wat: $(POLKADOT_RUNTIME_WASM)
 	wasm2wat $< > $@
