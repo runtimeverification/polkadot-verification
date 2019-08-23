@@ -66,10 +66,16 @@ build-kwasm-%:
 # Verification Source Build
 # -------------------------
 
-polkadot-runtime-source: src/polkadot-runtime.wat.json
+CONCRETE_BACKEND := llvm
+SYMBOLIC_BACKEND := haskell
+
+polkadot-runtime-source: src/polkadot-runtime.loaded.json
+
+src/polkadot-runtime.loaded.json: src/polkadot-runtime.wat.json
+	./kpol run --backend $(CONCRETE_BACKEND) $< --parser cat --output json > $@
 
 src/polkadot-runtime.wat.json: src/polkadot-runtime.wat
-	./kpol kast --backend llvm $< json > $@
+	./kpol kast --backend $(CONCRETE_BACKEND) $< json > $@
 
 src/polkadot-runtime.wat: $(POLKADOT_RUNTIME_WASM)
 	wasm2wat $< > $@
