@@ -1,1 +1,23 @@
+(module
+  (export "ext_blake2_256"                      (func $ext_blake2_256))
+  (export "ext_twox_128"                        (func $ext_twox_128))
+  (export "ext_get_allocated_storage"           (func $ext_get_allocated_storage))
+  (export "ext_set_storage"                     (func $ext_set_storage))
+  (export "ext_clear_storage"                   (func $ext_clear_storage))
+  (export "ext_storage_root"                    (func $ext_storage_root))
+  (export "ext_storage_changes_root"            (func $ext_storage_changes_root))
+  (export "ext_sr25519_verify"                  (func $ext_sr25519_verify))
+  (export "ext_ed25519_verify"                  (func $ext_ed25519_verify))
+  (export "ext_get_storage_into"                (func $ext_get_storage_into))
+  (export "ext_print_utf8"                      (func $ext_print_utf8))
+  (export "ext_print_hex"                       (func $ext_print_hex))
+  (export "ext_ed25519_generate"                (func $ext_ed25519_generate))
+  (export "ext_sr25519_generate"                (func $ext_sr25519_generate))
+  (export "ext_blake2_256_enumerated_trie_root" (func $ext_blake2_256_enumerated_trie_root))
+  (export "ext_clear_prefix"                    (func $ext_clear_prefix))
+  (export "ext_malloc"                          (func $ext_malloc))
+  (export "ext_free"                            (func $ext_free))
+)
+
+(register "env")
 
