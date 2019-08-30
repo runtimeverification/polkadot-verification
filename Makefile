@@ -64,25 +64,6 @@ build: build-kwasm-java build-kwasm-haskell build-kwasm-llvm build-kwasm-ocaml
 build-kwasm-%:
 	$(KWASM_MAKE) build-$* DEFN_DIR=../../$(BUILD_DIR)/defn/kwasm
 
-# Specification Build
-# -------------------
-
-SPEC_NAMES := set-free-balance
-
-SPECS_DIR := $(BUILD_DIR)/specs
-ALL_SPECS := $(SPECS_DIR)/$(SPEC_NAMES:=-spec.k)
-
-.SECONDARY: $(ALL_SPECS)
-
-can-build-specs: $(ALL_SPECS:=.can-build)
-
-$(SPECS_DIR)/%-spec.k: %.md
-	pandoc --from markdown --to $(TANGLER) --metadata=code:.k $< > $@
-
-$(SPECS_DIR)/%-spec.k.can-build: $(SPECS_DIR)/%-spec.k
-	kompile --backend haskell $<
-	rm -rf $*-kompiled
-
 # Verification Source Build
 # -------------------------
 
@@ -97,6 +78,28 @@ src/polkadot-runtime.wat: $(POLKADOT_RUNTIME_WASM)
 $(POLKADOT_RUNTIME_WASM):
 	git submodule update --init --recursive -- $(POLKADOT_SUBMODULE)
 	cd $(POLKADOT_SUBMODULE) && cargo build --package node-template --release
+
+# Specification Build
+# -------------------
+
+SPEC_NAMES := set-free-balance
+
+SPECS_DIR := $(BUILD_DIR)/specs
+ALL_SPECS := $(SPECS_DIR)/$(SPEC_NAMES:=-spec.k)
+
+CAN_BUILD_BACKEND := haskell
+
+can-build-specs: $(ALL_SPECS:=.can-build)
+
+$(SPECS_DIR)/%-spec.k: %.md
+	pandoc --from markdown --to $(TANGLER) --metadata=code:.k $< > $@
+
+$(SPECS_DIR)/%-spec.k.can-build: $(SPECS_DIR)/%-spec.k
+	kompile --backend $(CAN_BUILD_BACKEND) -I $(SPECS_DIR)                 \
+	    --main-module   $(shell echo $* | tr '[:lower:]' '[:upper:]')-SPEC \
+	    --syntax-module $(shell echo $* | tr '[:lower:]' '[:upper:]')-SPEC \
+	    $<
+	rm -rf $*-kompiled
 
 # Testing
 # -------
