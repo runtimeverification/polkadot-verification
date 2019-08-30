@@ -1,6 +1,7 @@
 
 .PHONY: clean distclean deps deps-polkadot \
         build polkadot-runtime-source \
+        can-build-specs \
         test
 
 # Settings
@@ -63,8 +64,27 @@ build: build-kwasm-java build-kwasm-haskell build-kwasm-llvm build-kwasm-ocaml
 build-kwasm-%:
 	$(KWASM_MAKE) build-$* DEFN_DIR=../../$(BUILD_DIR)/defn/kwasm
 
-# Verification Sourc Build
-# ------------------------
+# Specification Build
+# -------------------
+
+SPEC_NAMES := set-free-balance
+
+SPECS_DIR := $(BUILD_DIR)/specs
+ALL_SPECS := $(SPECS_DIR)/$(SPEC_NAMES:=-spec.k)
+
+.SECONDARY: $(ALL_SPECS)
+
+can-build-specs: $(ALL_SPECS:=.can-build)
+
+$(SPECS_DIR)/%-spec.k: %.md
+	pandoc --from markdown --to $(TANGLER) --metadata=code:.k $< > $@
+
+$(SPECS_DIR)/%-spec.k.can-build: $(SPECS_DIR)/%-spec.k
+	kompile --backend haskell $<
+	rm -rf $*-kompiled
+
+# Verification Source Build
+# -------------------------
 
 polkadot-runtime-source: src/polkadot-runtime.wat.json
 
