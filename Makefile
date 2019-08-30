@@ -1,8 +1,7 @@
 
 .PHONY: clean distclean deps deps-polkadot \
         build polkadot-runtime-source \
-        can-build-specs \
-        test
+        test test-can-build-specs
 
 # Settings
 # --------
@@ -87,23 +86,25 @@ SPEC_NAMES := set-free-balance
 SPECS_DIR := $(BUILD_DIR)/specs
 ALL_SPECS := $(SPECS_DIR)/$(SPEC_NAMES:=-spec.k)
 
-CAN_BUILD_BACKEND := haskell
-
-can-build-specs: $(ALL_SPECS:=.can-build)
-
 $(SPECS_DIR)/%-spec.k: %.md
 	pandoc --from markdown --to $(TANGLER) --metadata=code:.k $< > $@
-
-$(SPECS_DIR)/%-spec.k.can-build: $(SPECS_DIR)/%-spec.k
-	kompile --backend $(CAN_BUILD_BACKEND) -I $(SPECS_DIR)                 \
-	    --main-module   $(shell echo $* | tr '[:lower:]' '[:upper:]')-SPEC \
-	    --syntax-module $(shell echo $* | tr '[:lower:]' '[:upper:]')-SPEC \
-	    $<
-	rm -rf $*-kompiled
 
 # Testing
 # -------
 
-TEST                  := ./kpol
-CHECK                 := git --no-pager diff --no-index --ignore-all-space
+TEST  := ./kpol
+CHECK := git --no-pager diff --no-index --ignore-all-space
+
 TEST_CONCRETE_BACKEND := llvm
+TEST_SYMBOLIC_BACKEND := haskell
+
+test: test-can-build-specs
+
+test-can-build-specs: $(ALL_SPECS:=.can-build)
+
+$(SPECS_DIR)/%-spec.k.can-build: $(SPECS_DIR)/%-spec.k
+	kompile --backend $(TEST_SYMBOLIC_BACKEND) -I $(SPECS_DIR)             \
+	    --main-module   $(shell echo $* | tr '[:lower:]' '[:upper:]')-SPEC \
+	    --syntax-module $(shell echo $* | tr '[:lower:]' '[:upper:]')-SPEC \
+	    $<
+	rm -rf $*-kompiled
