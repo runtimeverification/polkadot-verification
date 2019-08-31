@@ -103,8 +103,8 @@ A `Result` is considered an `Action`.
 -   Reaps the account if the balance goes below the existential threshold and the reserved balance is zero.
 
 ```k
-    syntax Action ::= set_free_balance ( AccountId , Int )
- // ------------------------------------------------------
+    syntax Action ::= "set_free_balance" "(" AccountId "," Int ")"
+ // --------------------------------------------------------------
     rule [account-updated]:
          <k> set_free_balance(WHO, BALANCE) => Updated </k>
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
