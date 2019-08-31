@@ -84,7 +84,7 @@ $(POLKADOT_RUNTIME_WASM):
 SPEC_NAMES := set-free-balance
 
 SPECS_DIR := $(BUILD_DIR)/specs
-ALL_SPECS := $(SPECS_DIR)/$(SPEC_NAMES:=-spec.k)
+ALL_SPECS := $(patsubst %, $(SPECS_DIR)/%-spec.k, $(SPEC_NAMES))
 
 specs: $(ALL_SPECS)
 
