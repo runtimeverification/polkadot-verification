@@ -107,15 +107,12 @@ $(SPECS_DIR)/%-spec.k: %.md
 TEST  := ./kpol
 CHECK := git --no-pager diff --no-index --ignore-all-space
 
-TEST_CONCRETE_BACKEND := llvm
-TEST_SYMBOLIC_BACKEND := haskell
-
 test: test-can-build-specs
 
 test-can-build-specs: $(ALL_SPECS:=.can-build)
 
 $(SPECS_DIR)/%-spec.k.can-build: $(SPECS_DIR)/%-spec.k
-	kompile --backend $(TEST_SYMBOLIC_BACKEND) -I $(SPECS_DIR)             \
+	kompile --backend $(SYMBOLIC_BACKEND) -I $(SPECS_DIR)                  \
 	    --main-module   $(shell echo $* | tr '[:lower:]' '[:upper:]')-SPEC \
 	    --syntax-module $(shell echo $* | tr '[:lower:]' '[:upper:]')-SPEC \
 	    $<
