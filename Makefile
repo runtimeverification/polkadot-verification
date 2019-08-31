@@ -97,8 +97,10 @@ ALL_SPECS := $(patsubst %, $(SPECS_DIR)/%-spec.k, $(SPEC_NAMES))
 
 specs: $(ALL_SPECS)
 
-$(SPECS_DIR)/%-spec.k: %.md
+$(SPECS_DIR):
 	mkdir -p $(SPECS_DIR)
+
+$(SPECS_DIR)/%-spec.k: %.md $(SPECS_DIR)
 	pandoc --from markdown --to $(TANGLER) --metadata=code:.k $< > $@
 
 # Testing
