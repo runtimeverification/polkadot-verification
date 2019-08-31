@@ -12,7 +12,7 @@ The Rust code is here:
 ///
 /// NOTE: LOW-LEVEL: This will not attempt to maintain total issuance. It is expected that
 /// the caller will do this.
-fn SetFreeBalance(who: &T::AccountId, balance: T::Balance) -> UpdateBalanceOutcome {
+fn set_free_balance(who: &T::AccountId, balance: T::Balance) -> UpdateBalanceOutcome {
   // Commented out for now - but consider it instructive.
   // assert!(!Self::total_balance(who).is_zero());
   // assert!(Self::free_balance(who) > T::ExistentialDeposit::get());
@@ -96,17 +96,17 @@ A `Result` is considered an `Action`.
  // ------------------------
 ```
 
-### `SetFreeBalance`
+### `set_free_balance`
 
 -   Updates an accounts balance if the new balance is above the existential threshold.
 -   Kills the account if the balance goes below the existential threshold and the reserved balance is non-zero.
 -   Reaps the account if the balance goes below the existential threshold and the reserved balance is zero.
 
 ```k
-    syntax Action ::= SetFreeBalance ( AccountId , Int )
+    syntax Action ::= set_free_balance ( AccountId , Int )
  // ------------------------------------------------------
     rule [account-updated]:
-         <k> SetFreeBalance(WHO, BALANCE) => Updated </k>
+         <k> set_free_balance(WHO, BALANCE) => Updated </k>
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
          <account>
            <accountID> WHO </accountID>
@@ -116,7 +116,7 @@ A `Result` is considered an `Action`.
       requires EXISTENTIAL_DEPOSIT <=Int BALANCE
 
     rule [account-killed]:
-         <k> SetFreeBalance(WHO, BALANCE) => AccountKilled </k>
+         <k> set_free_balance(WHO, BALANCE) => AccountKilled </k>
          <events> ... (.List => ListItem(DustEvent(FREE_BALANCE))) </events>
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
          <account>
@@ -129,7 +129,7 @@ A `Result` is considered an `Action`.
        andBool 0 <Int RESERVED_BALANCE
 
     rule [account-reaped]:
-         <k> SetFreeBalance(WHO, BALANCE) => AccountKilled </k>
+         <k> set_free_balance(WHO, BALANCE) => AccountKilled </k>
          <events> ... (.List => ListItem(DustEvent(FREE_BALANCE))) </events>
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
          <accounts>
