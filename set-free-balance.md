@@ -110,7 +110,7 @@ A `Result` is considered an `Action`.
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
          <account>
            <accountID> WHO </accountID>
-           <balance> (_ => 0) | _ </balance>
+           <balance> (_ => BALANCE) | _ </balance>
            ...
          </account>
       requires EXISTENTIAL_DEPOSIT <=Int BALANCE
