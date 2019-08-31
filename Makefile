@@ -1,6 +1,6 @@
 
 .PHONY: clean distclean deps deps-polkadot \
-        build polkadot-runtime-source \
+        build polkadot-runtime-source specs \
         test test-can-build-specs
 
 # Settings
@@ -85,6 +85,8 @@ SPEC_NAMES := set-free-balance
 
 SPECS_DIR := $(BUILD_DIR)/specs
 ALL_SPECS := $(SPECS_DIR)/$(SPEC_NAMES:=-spec.k)
+
+specs: $(ALL_SPECS)
 
 $(SPECS_DIR)/%-spec.k: %.md
 	mkdir -p $(SPECS_DIR)
