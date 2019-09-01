@@ -1,7 +1,7 @@
 
 .PHONY: clean distclean deps deps-polkadot \
-        build polkadot-runtime-source \
-        test
+        build polkadot-runtime-source specs \
+        test test-can-build-specs
 
 # Settings
 # --------
@@ -47,7 +47,6 @@ POLKADOT_SUBMODULE    := $(DEPS_DIR)/substrate
 POLKADOT_RUNTIME_WASM := $(POLKADOT_SUBMODULE)/target/release/wbuild/node-template-runtime/node_template_runtime.compact.wasm
 
 deps-polkadot:
-	curl https://sh.rustup.rs -sSf | sh -s -- -y
 	rustup update nightly
 	rustup target add wasm32-unknown-unknown --toolchain nightly
 	rustup update stable
@@ -64,8 +63,8 @@ build: build-kwasm-java build-kwasm-haskell build-kwasm-llvm build-kwasm-ocaml
 build-kwasm-%:
 	$(KWASM_MAKE) build-$* DEFN_DIR=../../$(BUILD_DIR)/defn/kwasm
 
-# Verification Sourc Build
-# ------------------------
+# Verification Source Build
+# -------------------------
 
 polkadot-runtime-source: src/polkadot-runtime.wat.json
 
@@ -79,9 +78,36 @@ $(POLKADOT_RUNTIME_WASM):
 	git submodule update --init --recursive -- $(POLKADOT_SUBMODULE)
 	cd $(POLKADOT_SUBMODULE) && cargo build --package node-template --release
 
+# Specification Build
+# -------------------
+
+SPEC_NAMES := set-free-balance
+
+SPECS_DIR := $(BUILD_DIR)/specs
+ALL_SPECS := $(patsubst %, $(SPECS_DIR)/%-spec.k, $(SPEC_NAMES))
+
+specs: $(ALL_SPECS)
+
+$(SPECS_DIR)/%-spec.k: %.md
+	mkdir -p $(SPECS_DIR)
+	pandoc --from markdown --to $(TANGLER) --metadata=code:.k $< > $@
+
 # Testing
 # -------
 
-TEST                  := ./kpol
-CHECK                 := git --no-pager diff --no-index --ignore-all-space
+TEST  := ./kpol
+CHECK := git --no-pager diff --no-index --ignore-all-space
+
 TEST_CONCRETE_BACKEND := llvm
+TEST_SYMBOLIC_BACKEND := haskell
+
+test: test-can-build-specs
+
+test-can-build-specs: $(ALL_SPECS:=.can-build)
+
+$(SPECS_DIR)/%-spec.k.can-build: $(SPECS_DIR)/%-spec.k
+	kompile --backend $(TEST_SYMBOLIC_BACKEND) -I $(SPECS_DIR)             \
+	    --main-module   $(shell echo $* | tr '[:lower:]' '[:upper:]')-SPEC \
+	    --syntax-module $(shell echo $* | tr '[:lower:]' '[:upper:]')-SPEC \
+	    $<
+	rm -rf $*-kompiled

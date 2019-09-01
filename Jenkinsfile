@@ -54,10 +54,10 @@ pipeline {
     }
     stage('Test') {
       parallel {
-        stage('Dummy') {
+        stage('Can Build Specs') {
           steps {
             sh '''
-              echo "No tests to run!"
+              make test-can-build-specs -j6
             '''
           }
         }
