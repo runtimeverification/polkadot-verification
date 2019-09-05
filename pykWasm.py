@@ -52,6 +52,7 @@ WASM_underbar_unparsed_symbols = [ '(import___)_WASM__WasmString_WasmString_Impo
                                  , 'param_WASM_'
                                  , 'result_WASM_'
                                  , '(invoke_)_WASM__Int'
+                                 , '_.const__WASM__IValType_Int'
                                  ]
 
 for symb in WASM_underbar_unparsed_symbols:
@@ -62,6 +63,12 @@ WASM_TEST_underbar_unparsed_symbols = [ '(register_)_WASM-TEST__WasmString'
 
 for symb in WASM_TEST_underbar_unparsed_symbols:
     WASM_symbols[symb] = underbarUnparsingInModule('WASM-TEST', symb)
+
+WASM_TEXT_underbar_unparsed_symbols = [ '(_)_WASM-TEXT__PlainInstr'
+                                      ]
+
+for symb in WASM_TEXT_underbar_unparsed_symbols:
+    WASM_symbols[symb] = underbarUnparsingInModule('WASM-TEXT', symb)
 
 ALL_symbols = pyk.combineDicts(pyk.K_symbols, WASM_symbols)
 
