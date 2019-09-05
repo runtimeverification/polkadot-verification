@@ -51,6 +51,7 @@ WASM_underbar_unparsed_symbols = [ '(import___)_WASM__WasmString_WasmString_Impo
                                  , '_WASM-DATA_'
                                  , 'param_WASM_'
                                  , 'result_WASM_'
+                                 , '(invoke_)_WASM__Int'
                                  ]
 
 for symb in WASM_underbar_unparsed_symbols:
