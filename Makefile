@@ -1,7 +1,7 @@
 
-.PHONY: clean distclean deps deps-polkadot \
-        build polkadot-runtime-source specs \
-        test test-can-build-specs
+.PHONY: clean distclean deps deps-polkadot           \
+        build polkadot-runtime-source specs          \
+        test test-can-build-specs test-python-config
 
 # Settings
 # --------
@@ -117,3 +117,9 @@ $(SPECS_DIR)/%-spec.k.can-build: $(SPECS_DIR)/%-spec.k
 	    --syntax-module $(shell echo $* | tr '[:lower:]' '[:upper:]')-SPEC \
 	    $<
 	rm -rf $*-kompiled
+
+# Python Configuration Build
+# --------------------------
+
+test-python-config:
+	python3 pykWasm.py
