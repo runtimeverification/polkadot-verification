@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import pyk
+import random
 import sys
 from pykWasm import *
 
@@ -38,6 +39,13 @@ kastSteps.append(wasm_push('i64', KVariable('V3')))
 kastSteps.append(wasm_invoke(156))
 
 invokedProgram = wasm_stmts(kastSteps)
+
+invokingSubstitution = { 'V1' : KToken(str(random.randint(0, 2 ** 32)), 'Int')
+                       , 'V2' : KToken(str(random.randint(0, 2 ** 64)), 'Int')
+                       , 'V3' : KToken(str(random.randint(0, 2 ** 64)), 'Int')
+                       }
+
+invokedProgram = pyk.substitute(invokedProgram, invokingSubstitution)
 
 #print(pyk.prettyPrintKast(kastProgram, ALL_symbols))
 print(pyk.prettyPrintKast(invokedProgram, ALL_symbols))
