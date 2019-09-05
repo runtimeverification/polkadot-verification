@@ -14,12 +14,6 @@ Polkadot Module Verification
 
 Make sure you have all the dependencies of KWasm installed: <https://github.com/kframework/wasm-semantics>.
 
-If you don't have `rustup`, get it with (likely if you've used other K projects or worked on Substrate you already have it):
-
-```sh
-curl https://sh.rustup.rs -sSf | sh -s -- -y
-```
-
 Then the following (roughly) is what you need to do to build KWasm for this repository.
 
 ```sh
