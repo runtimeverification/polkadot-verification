@@ -40,7 +40,7 @@ distclean: clean
 	rm -rf $(BUILD_DIR)
 
 deps:
-	git submodule update --init --recursive
+	git submodule update --init --recursive -- $(K_SUBMODULE)
 	$(KWASM_MAKE) deps
 
 # Polkadot Setup
