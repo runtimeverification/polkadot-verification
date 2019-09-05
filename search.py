@@ -7,8 +7,8 @@ from pykWasm import *
 
 sys.setrecursionlimit(150000000)
 
-kastProgram = pyk.readKastTerm('src/polkadot-runtime.wat.json')
-#loadedTerm  = pyk.readKastTerm('src/polkadot-runtime.loaded.json')
+# kastProgram = pyk.readKastTerm('src/polkadot-runtime.wat.json')
+# loadedTerm  = pyk.readKastTerm('src/polkadot-runtime.loaded.json')
 
 function_name = '$srml_balances::Module<T_I>::set_free_balance::h740a36cc4860a8fe'
 
@@ -32,11 +32,11 @@ def wasm_stmts_flattened(stmts, stmtType = 'Stmt'):
     else:
         _fatal('Not of type ' + stmtType + '!')
 
-kastSteps = wasm_stmts_flattened(kastProgram)
-kastSteps.append(wasm_push('i32', KVariable('V1')))
-kastSteps.append(wasm_push('i64', KVariable('V2')))
-kastSteps.append(wasm_push('i64', KVariable('V3')))
-kastSteps.append(wasm_invoke(156))
+kastSteps = [ wasm_push('i32', KVariable('V1'))
+            , wasm_push('i64', KVariable('V2'))
+            , wasm_push('i64', KVariable('V3'))
+            , wasm_invoke(156)
+            ]
 
 invokedProgram = wasm_stmts(kastSteps)
 
@@ -46,7 +46,12 @@ invokingSubstitution = { 'V1' : KToken(str(random.randint(0, 2 ** 32)), 'Int')
                        }
 
 invokedProgram = pyk.substitute(invokedProgram, invokingSubstitution)
-
-#print(pyk.prettyPrintKast(kastProgram, ALL_symbols))
 print(pyk.prettyPrintKast(invokedProgram, ALL_symbols))
-#print(pyk.prettyPrintKast(loadedTerm , ALL_symbols))
+sys.stdout.flush()
+
+# pyk._notif('Writing dump.json')
+# with open('dump.json', 'w') as dump:
+#     json.dump(invokedProgram, dump)
+#     dump.flush()
+# print(pyk.prettyPrintKast(kastProgram, ALL_symbols))
+# print(pyk.prettyPrintKast(loadedTerm , ALL_symbols))

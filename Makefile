@@ -1,6 +1,7 @@
 
 .PHONY: clean distclean deps deps-polkadot           \
         build polkadot-runtime-source specs          \
+        set-free-balance-random						 \
         test test-can-build-specs test-python-config
 
 # Settings
@@ -86,6 +87,15 @@ src/polkadot-runtime.wat: $(POLKADOT_RUNTIME_WASM)
 $(POLKADOT_RUNTIME_WASM):
 	git submodule update --init --recursive -- $(POLKADOT_SUBMODULE)
 	cd $(POLKADOT_SUBMODULE) && cargo build --package node-template --release
+
+# Generate Execution Traces
+# -------------------------
+
+set-free-balance-random:
+	./search.py > src/invoke.wat
+	cat src/invoke.wat
+	cat src/polkadot-runtime.env.wat src/polkadot-runtime.wat src/invoke.wat \
+	    | ./kpol run --backend $(CONCRETE_BACKEND) -
 
 # Specification Build
 # -------------------
