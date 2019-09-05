@@ -7,6 +7,8 @@ import sys
 
 from pyk.kast import KApply, KConstant, KSequence, KToken, KVariable, _notif, _warning, _fatal
 
+underbarUnparsingInModule = lambda modName, inputString: pyk.underbarUnparsing(inputString.split('_' + modName)[0])
+
 WASM_symbols = { '.List{"___WASM__Stmt_Stmts"}_Stmts'                 : pyk.constLabel('.Stmts')
                , '.ValStack_WASM-DATA_'                               : pyk.constLabel('.ValStack')
                , '.Int_WASM-DATA_'                                    : pyk.constLabel('.Int')
@@ -20,18 +22,45 @@ WASM_symbols = { '.List{"___WASM__Stmt_Stmts"}_Stmts'                 : pyk.cons
                , '___WASM__Defn_Defns'                                : (lambda a1, a2: a1 + '\n' + a2)
                , '___WASM__Instr_Instrs'                              : (lambda a1, a2: a1 + '\n' + a2)
                , '.List{"___WASM__EmptyStmt_EmptyStmts"}_EmptyStmts'  : pyk.constLabel('')
+               , '.List{"___WASM-DATA__ValType_ValTypes"}_ValTypes'   : pyk.constLabel('')
+               , '.List{"___WASM__TypeDecl_TypeDecls"}_TypeDecls'     : pyk.constLabel('')
                , '(module__)_WASM__OptionalId_Defns'                  : (lambda mName, mDefns: '(module ' + mName + '\n' + pyk.indent(mDefns) + '\n)')
-               , '_WASM-DATA_'                                        : pyk.constLabel('')
-               , '(export_(_))_WASM__WasmString_Externval'            : (lambda expName, exp: '(export ' + expName + ' (' + exp + '))')
-               , '___WASM-DATA__AllocatedKind_Index'                  : (lambda a1, a2: a1 + ' ' + a2)
-               , 'func_WASM-DATA_'                                    : pyk.underbarUnparsing('func_')
-               , '(register_)_WASM-TEST__WasmString'                  : (lambda a1: '(register' + a1 + ')')
-               , '(import___)_WASM__WasmString_WasmString_ImportDesc' : (lambda modName, impName, imp: '(import ' + modName + ' ' + impName + ' ' + imp + ')')
-               , '(func__)_WASM__OptionalId_TypeUse'                  : (lambda funName, funType: '(func ' + funName + ' ' + funType + ')')
-               , '(type_)_WASM__Index'                                : (lambda typeInt: '(type ' + typeInt + ')')
                , '(func__)_WASM__OptionalId_FuncSpec'                 : (lambda funcName, funcSpec: '(func ' + funcName + '\n' + pyk.indent(funcSpec) + '\n)')
                , '____WASM__TypeUse_LocalDecls_Instrs'                : (lambda type, locals, instrs: '\n'.join([type, locals, instrs]))
                }
+
+WASM_DATA_underbar_unparsed_symbols = [ 'func_WASM-DATA_'
+                                      , '___WASM-DATA__ValType_ValTypes'
+                                      , 'i32_WASM-DATA_'
+                                      , 'i64_WASM-DATA_'
+                                      , 'f32_WASM-DATA_'
+                                      , 'f64_WASM-DATA_'
+                                      ]
+
+for symb in WASM_DATA_underbar_unparsed_symbols:
+    WASM_symbols[symb] = underbarUnparsingInModule('WASM-DATA', symb)
+
+WASM_underbar_unparsed_symbols = [ '(import___)_WASM__WasmString_WasmString_ImportDesc'
+                                 , '(func__)_WASM__OptionalId_TypeUse'
+                                 , '(type_)_WASM__Index'
+                                 , '(export_(_))_WASM__WasmString_Externval'
+                                 , '___WASM-DATA__AllocatedKind_Index'
+                                 , '(type_(func_))_WASM__OptionalId_TypeDecls'
+                                 , '___WASM__TypeDecl_TypeDecls'
+                                 , '___WASM__TypeKeyWord_ValTypes'
+                                 , '_WASM-DATA_'
+                                 , 'param_WASM_'
+                                 , 'result_WASM_'
+                                 ]
+
+for symb in WASM_underbar_unparsed_symbols:
+    WASM_symbols[symb] = underbarUnparsingInModule('WASM', symb)
+
+WASM_TEST_underbar_unparsed_symbols = [ '(register_)_WASM-TEST__WasmString'
+                                      ]
+
+for symb in WASM_TEST_underbar_unparsed_symbols:
+    WASM_symbols[symb] = underbarUnparsingInModule('WASM-TEST', symb)
 
 ALL_symbols = pyk.combineDicts(pyk.K_symbols, WASM_symbols)
 
