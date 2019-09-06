@@ -16,10 +16,6 @@ RUN /.install-stack/install-stack.sh
 
 USER user:user
 
-ADD --chown=user:user deps/wasm-semantics/deps/k/llvm-backend/src/main/native/llvm-backend/install-rust deps/wasm-semantics/deps/k/llvm-backend/src/main/native/llvm-backend/rust-checksum /home/user/.install-rust/
-RUN    cd /home/user/.install-rust \
-    && ./install-rust
-
 ADD deps/wasm-semantics/deps/k/k-distribution/src/main/scripts/bin/k-configure-opam-dev deps/wasm-semantics/deps/k/k-distribution/src/main/scripts/bin/k-configure-opam-common /home/user/.tmp-opam/bin/
 ADD deps/wasm-semantics/deps/k/k-distribution/src/main/scripts/lib/opam  /home/user/.tmp-opam/lib/opam/
 RUN    cd /home/user \
@@ -35,6 +31,8 @@ RUN    cd /home/user                                                            
     && cd wabt                                                                       \
     && mkdir build && cd build                                                       \
     && cmake .. && cmake --build .
+
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
 
 ENV LD_LIBRARY_PATH=/usr/local/lib
 ENV PATH=/home/user/wabt/build:/home/user/.local/bin:/home/user/.cargo/bin:$PATH
