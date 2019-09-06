@@ -24,7 +24,6 @@ Then the following (roughly) is what you need to do to build KWasm for this repo
 
 ```sh
 git submodule update --init --recursive
-./deps/wasm-semantics/deps/k/llvm-backend/src/main/native/llvm-backend/install-rust
 ./deps/wasm-semantics/deps/k/k-distribution/src/main/scripts/bin/k-configure-opam-dev
 make deps
 make build -j4
