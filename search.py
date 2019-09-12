@@ -54,4 +54,6 @@ invokingSubstitution = { 'V1' : KToken(str(random.randint(0, 2 ** 32)), 'Int')
 init_config = pyk.substitute(init_config, invokingSubstitution)
 
 print(pyk.prettyPrintKast(init_config, ALL_symbols))
+(_, after_running, _) = krun({ 'format' : 'KAST' , 'version': 1, 'term': init_config }, '--parser', 'cat')
+print(pyk.prettyPrintKast(after_running, ALL_symbols))
 sys.stdout.flush()
