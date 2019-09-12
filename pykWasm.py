@@ -15,8 +15,7 @@ from pyk.kast import KApply, KConstant, KSequence, KToken, KVariable, _notif, _w
 # First strips the module name suffix off the label.
 underbarUnparsingInModule = lambda modName, inputString: pyk.underbarUnparsing(inputString.split('_' + modName)[0])
 
-WASM_symbols = { '.List{"___WASM__Stmt_Stmts"}_Stmts'                      : pyk.constLabel('.Stmts')
-               , '.ValStack_WASM-DATA_'                                    : pyk.constLabel('.ValStack')
+WASM_symbols = { '.ValStack_WASM-DATA_'                                    : pyk.constLabel('.ValStack')
                , '.Int_WASM-DATA_'                                         : pyk.constLabel('.Int')
                , '.ModuleInstCellMap'                                      : pyk.constLabel('.ModuleInstCellMap')
                , '.FuncDefCellMap'                                         : pyk.constLabel('.FuncDefCellMap')
@@ -27,6 +26,7 @@ WASM_symbols = { '.List{"___WASM__Stmt_Stmts"}_Stmts'                      : pyk
                , '___WASM__Stmt_Stmts'                                     : (lambda a1, a2: a1 + '\n' + a2)
                , '___WASM__Defn_Defns'                                     : (lambda a1, a2: a1 + '\n' + a2)
                , '___WASM__Instr_Instrs'                                   : (lambda a1, a2: a1 + '\n' + a2)
+               , '.List{"___WASM__Stmt_Stmts"}_Stmts'                      : pyk.constLabel('')
                , '.List{"___WASM__EmptyStmt_EmptyStmts"}_EmptyStmts'       : pyk.constLabel('')
                , '.List{"___WASM-DATA__ValType_ValTypes"}_ValTypes'        : pyk.constLabel('')
                , '.List{"___WASM__TypeDecl_TypeDecls"}_TypeDecls'          : pyk.constLabel('')
