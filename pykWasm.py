@@ -121,11 +121,13 @@ def split_symbolic_config_from(configuration):
 # Main Functionality                                                           #
 ################################################################################
 
-init_term = { 'format': 'KAST', 'version': 1, 'term': KConstant('.List{"___WASM__Stmt_Stmts"}_Stmts') }
-(_, simple_config, _) = krun(init_term, '--parser', 'cat')
-(generatedTop, initSubst) = split_symbolic_config_from(simple_config)
+def get_init_config():
+    init_term = { 'format': 'KAST', 'version': 1, 'term': KConstant('.List{"___WASM__Stmt_Stmts"}_Stmts') }
+    (_, simple_config, _) = krun(init_term, '--parser', 'cat')
+    return split_symbolic_config_from(simple_config)
 
 if __name__ == '__main__':
+    (generatedTop, initSubst) = get_init_config()
     initial_configuration = pyk.substitute(generatedTop, initSubst)
     kast_json = { 'format': 'KAST', 'version': 1, 'term': initial_configuration }
 
