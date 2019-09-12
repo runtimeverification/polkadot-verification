@@ -64,8 +64,18 @@ build: build-kwasm-java build-kwasm-haskell build-kwasm-llvm build-kwasm-ocaml
 # Regular Semantics Build
 # -----------------------
 
-build-kwasm-%:
-	$(KWASM_MAKE) build-$* DEFN_DIR=../../$(BUILD_DIR)/defn/kwasm
+build-kwasm-%: $(DEFN_DIR)/kwasm/%/wasm-with-k-term.k
+	$(KWASM_MAKE) build-$*                         \
+	    DEFN_DIR=../../$(DEFN_DIR)/kwasm           \
+	    MAIN_MODULE=WASM-WITH-K-TERM               \
+	    MAIN_SYNTAX_MODULE=WASM-WITH-K-TERM-SYNTAX \
+	    MAIN_DEFN_FILE=wasm-with-k-term.k
+
+.SECONDARY: $(DEFN_DIR)/kwasm/llvm/wasm-with-k-term.k
+
+$(DEFN_DIR)/kwasm/llvm/%.k: %.md $(TANGLER)
+	@mkdir -p $(dir $@)
+	pandoc --from markdown --to $(TANGLER) --metadata=code:".k" $< > $@
 
 # Verification Source Build
 # -------------------------
