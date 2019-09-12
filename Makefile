@@ -102,10 +102,7 @@ $(POLKADOT_RUNTIME_WASM):
 # -------------------------
 
 set-free-balance-random:
-	./search.py > src/invoke.wat
-	cat src/invoke.wat
-	cat src/polkadot-runtime.env.wat src/polkadot-runtime.wat src/invoke.wat \
-	    | ./kpol run --backend $(CONCRETE_BACKEND) -
+	./search.py
 
 # Specification Build
 # -------------------
