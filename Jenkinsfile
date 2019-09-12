@@ -68,6 +68,13 @@ pipeline {
             '''
           }
         }
+        stage('Set Free Balance Random') {
+          steps {
+            sh '''
+              make set-free-balance-random
+            '''
+          }
+        }
       }
     }
   }
