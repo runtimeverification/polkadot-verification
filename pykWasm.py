@@ -73,116 +73,33 @@ for symb in WASM_TEXT_underbar_unparsed_symbols:
 ALL_symbols = pyk.combineDicts(pyk.K_symbols, WASM_symbols)
 
 def kast(inputJson, *kastArgs):
-    return pyk.kastJSON('.build/defn/llvm', inputJson, kastArgs = list(kastArgs), kRelease = 'deps/k/k-distribution/target/release/k')
+    return pyk.kastJSON('.build/defn/kwasm/llvm', inputJson, kastArgs = list(kastArgs), kRelease = 'deps/wasm-semantics/deps/k/k-distribution/target/release/k')
 
 def krun(inputJson, *krunArgs):
-    return pyk.krunJSON('.build/defn/llvm', inputJson, krunArgs = list(krunArgs), kRelease = 'deps/k/k-distribution/target/release/k')
+    return pyk.krunJSON('.build/defn/kwasm/llvm', inputJson, krunArgs = list(krunArgs), kRelease = 'deps/wasm-semantics/deps/k/k-distribution/target/release/k')
 
 def kprove(inputJson, *krunArgs):
-    return pyk.kproveJSON('.build/defn/llvm', inputJson, kproveArgs = list(kproveArgs), kRelease = 'deps/k/k-distribution/target/release/k')
+    return pyk.kproveJSON('.build/defn/kwasm/llvm', inputJson, kproveArgs = list(kproveArgs), kRelease = 'deps/wasm-semantics/deps/k/k-distribution/target/release/k')
 
-moduleInst = KApply( '<moduleInst>' , [ KApply( '<modIdx>'      , [ KVariable('MODIDX_CELL')      ])
-                                      , KApply( '<exports>'     , [ KVariable('EXPORTS_CELL')     ])
-                                      , KApply( '<typeIds>'     , [ KVariable('TYPEIDS_CELL')     ])
-                                      , KApply( '<types>'       , [ KVariable('TYPES_CELL')       ])
-                                      , KApply( '<nextTypeIdx>' , [ KVariable('NEXTTYPEIDX_CELL') ])
-                                      , KApply( '<funcIds>'     , [ KVariable('FUNCIDS_CELL')     ])
-                                      , KApply( '<funcAddrs>'   , [ KVariable('FUNCADDRS_CELL')   ])
-                                      , KApply( '<nextFuncIdx>' , [ KVariable('NEXTFUNCIDX_CELL') ])
-                                      , KApply( '<tabIds>'      , [ KVariable('TABIDS_CELL')      ])
-                                      , KApply( '<tabAddrs>'    , [ KVariable('TABADDRS_CELL')    ])
-                                      , KApply( '<memIds>'      , [ KVariable('MEMIDS_CELL')      ])
-                                      , KApply( '<memAddrs>'    , [ KVariable('MEMADDRS_CELL')    ])
-                                      , KApply( '<globIds>'     , [ KVariable('GLOBIDS_CELL')     ])
-                                      , KApply( '<globalAddrs>' , [ KVariable('GLOBALADDRS_CELL') ])
-                                      , KApply( '<nextGlobIdx>' , [ KVariable('NEXTGLOBIDX_CELL') ])
-                                      ]
-                   )
+def split_symbolic_config_from(configuration):
+    initial_substitution = {}
 
-funcDef =  KApply( '<funcDef>' , [ KApply( '<fAddr>'    , [ KVariable('FADDR_CELL')    ])
-                                 , KApply( '<fCode>'    , [ KVariable('FCODE_CELL')    ])
-                                 , KApply( '<fType>'    , [ KVariable('FTYPE_CELL')    ])
-                                 , KApply( '<fLocal>'   , [ KVariable('FLOCAL_CELL')   ])
-                                 , KApply( '<fModInst>' , [ KVariable('FMODINST_CELL') ])
-                                 ]
-                 )
+    _mkCellVar = lambda label: label.replace('-', '_').replace('<', '').replace('>', '').upper() + '_CELL'
 
-tabInst = KApply ( '<tabInst>' , [ KApply( '<tAddr>' , [ KVariable('TADDR_CELL') ])
-                                 , KApply( '<tmax>'  , [ KVariable('TMAX_CELL')  ])
-                                 , KApply( '<tsize>' , [ KVariable('TSIZE_CELL') ])
-                                 , KApply( '<tdata>' , [ KVariable('TDATA_CELL') ])
-                                 ]
-                 )
+    def _replaceWithVar(k):
+        if pyk.isKApply(k) and pyk.isCellKLabel(k['label']):
+            if len(k['args']) == 1 and not (pyk.isKApply(k['args'][0]) and pyk.isCellKLabel(k['args'][0]['label'])):
+                config_var = _mkCellVar(k['label'])
+                initial_substitution[config_var] = k['args'][0]
+                return KApply(k['label'], [KVariable(config_var)])
+        return k
 
-memInst = KApply( 'memInst' , [ KApply( '<mAddr>' , [ KVariable('MADDR_CELL') ])
-                              , KApply( '<mmax>'  , [ KVariable('MMAX_CELL')  ])
-                              , KApply( '<msize>' , [ KVariable('MSIZE_CELL') ])
-                              , KApply( '<mdata>' , [ KVariable('MDATA_CELL') ])
-                              ]
-                )
+    pyk.traverseBottomUp(configuration, _replaceWithVar)
+    return (configuration, initial_substitution)
 
-globalInst = KApply( '<globalInst>' , [ KApply( '<gAddr>'  , [ KVariable('GADDR_CELL')  ])
-                                      , KApply( '<gValue>' , [ KVariable('GVALUE_CELL') ])
-                                      , KApply( '<gMut>'   , [ KVariable('GMUT_CELL')   ])
-                                      ]
-                   )
-
-wasm = KApply( '<wasm>' , [ KApply( '<k>'              , [ KVariable('K_CELL') ])
-                          , KApply( '<valstack>'       , [ KVariable('VALSTACK_CELL') ])
-                          , KApply( '<curFrame>'       , [ KApply( '<locals>'     , [ KVariable('LOCALS_CELL')     ])
-                                                         , KApply( '<localIds>'   , [ KVariable('LOCALIDS_CELL')   ])
-                                                         , KApply( '<curModIdx>'  , [ KVariable('CURMODIDX_CELL')  ])
-                                                         , KApply( '<labelDepth>' , [ KVariable('LABELDEPTH_CELL') ])
-                                                         , KApply( '<labelIds>'   , [ KVariable('LABELIDS_CELL')   ])
-                                                         ]
-                                  )
-                          , KApply( '<moduleRegistry>'  , [ KVariable('MODULEREGISTRY_CELL')  ])
-                          , KApply( '<moduleIds>'       , [ KVariable('MODULEIDS_CELL')       ])
-                          , KApply( '<moduleInstances>' , [ KVariable('MODULEINSTANCES_CELL') ]) # Map{moduleInst}
-                          , KApply( '<nextModuleIdx>'   , [ KVariable('NEXTMODULEIDX_CELL')   ])
-                          , KApply( '<mainStore>' , [ KApply( '<funcs>'        , [ KVariable('FUNCS_CELL')        ]) # Map{funcDef}
-                                                    , KApply( '<nextFuncAddr>' , [ KVariable('NEXTFUNCADDR_CELL') ])
-                                                    , KApply( '<tabs>'         , [ KVariable('TABS_CELL')         ]) # Map{tabInst}
-                                                    , KApply( '<nextTabAddr>'  , [ KVariable('NEXTTABADDR_CELL')  ])
-                                                    , KApply( '<mems>'         , [ KVariable('MEMS_CELL')         ]) # Map{memInst}
-                                                    , KApply( '<nextMemAddr>'  , [ KVariable('NEXTMEMADDR_CELL')  ])
-                                                    , KApply( '<globals>'      , [ KVariable('GLOBALS_CELL')      ]) # Map{globalInst}
-                                                    , KApply( '<nextGlobAddr>' , [ KVariable('NEXTGLOBADDR_CELL') ])
-                                                    ]
-                                  )
-                          , KApply( '<deterministicMemoryGrowth>' , [ KVariable('DETERMINISTICMEMORYGROWTH_CELL') ])
-                          , KApply( '<nextFreshId>'               , [ KVariable('NEXTFRESHID_CELL')               ])
-                          ]
-             )
-
-generatedTop = KApply( '<generatedTop>' , [ wasm
-                                          , KApply( '<generatedCounter>' , [ KVariable('GENERATEDCOUNTER_CELL') ])
-                                          ]
-                     )
-
-initSubst = { 'K_CELL'                         : KSequence([KConstant('.List{"___WASM__Stmt_Stmts"}_Stmts')]) # retrieved from kore_to_k_labels.properties
-            , 'VALSTACK_CELL'                  : KConstant('.ValStack_WASM-DATA_')
-            , 'LOCALS_CELL'                    : KConstant('.Map')
-            , 'LOCALIDS_CELL'                  : KConstant('.Map')
-            , 'CURMODIDX_CELL'                 : KConstant('.Int_WASM-DATA_')
-            , 'LABELDEPTH_CELL'                : KToken('0', 'Int')
-            , 'LABELIDS_CELL'                  : KConstant('.Map')
-            , 'MODULEREGISTRY_CELL'            : KConstant('.Map')
-            , 'MODULEIDS_CELL'                 : KConstant('.Map')
-            , 'MODULEINSTANCES_CELL'           : KConstant('.ModuleInstCellMap')
-            , 'NEXTMODULEIDX_CELL'             : KToken('0', 'Int')
-            , 'FUNCS_CELL'                     : KConstant('.FuncDefCellMap')
-            , 'NEXTFUNCADDR_CELL'              : KToken('0', 'Int')
-            , 'TABS_CELL'                      : KConstant('.TabInstCellMap')
-            , 'NEXTTABADDR_CELL'               : KToken('0', 'Int')
-            , 'MEMS_CELL'                      : KConstant('.MemInstCellMap')
-            , 'NEXTMEMADDR_CELL'               : KToken('0', 'Int')
-            , 'GLOBALS_CELL'                   : KConstant('.GlobalInstCellMap')
-            , 'NEXTGLOBADDR_CELL'              : KToken('0', 'Int')
-            , 'DETERMINISTICMEMORYGROWTH_CELL' : KToken('true', 'Bool')
-            , 'NEXTFRESHID_CELL'               : KToken('0', 'Int')
-            , 'GENERATEDCOUNTER_CELL'          : KToken('0', 'Int')
-            }
+init_term = { 'format': 'KAST', 'version': 1, 'term': KConstant('.List{"___WASM__Stmt_Stmts"}_Stmts') }
+(_, simple_config, _) = krun(init_term, '--parser', 'cat')
+(generatedTop, initSubst) = split_symbolic_config_from(simple_config)
 
 if __name__ == '__main__':
     initial_configuration = pyk.substitute(generatedTop, initSubst)
