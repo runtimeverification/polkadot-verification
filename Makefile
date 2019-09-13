@@ -6,10 +6,10 @@
 # Settings
 # --------
 
-BUILD_DIR:=.build
-DEPS_DIR:=deps
-DEFN_DIR:=$(BUILD_DIR)/defn
-KWASM_SUBMODULE:=$(DEPS_DIR)/wasm-semantics
+BUILD_DIR       := .build
+DEPS_DIR        := deps
+DEFN_DIR        := $(BUILD_DIR)/defn
+KWASM_SUBMODULE := $(DEPS_DIR)/wasm-semantics
 
 K_RELEASE := $(KWASM_SUBMODULE)/deps/k/k-distribution/target/release/k
 K_BIN     := $(K_RELEASE)/bin
@@ -28,8 +28,8 @@ PYTHONPATH := $(K_LIB)
 export PYTHONPATH
 
 PANDOC_TANGLE_SUBMODULE := $(KWASM_SUBMODULE)/deps/pandoc-tangle
-TANGLER := $(PANDOC_TANGLE_SUBMODULE)/tangle.lua
-LUA_PATH := $(PANDOC_TANGLE_SUBMODULE)/?.lua;;
+TANGLER                 := $(PANDOC_TANGLE_SUBMODULE)/tangle.lua
+LUA_PATH                := $(PANDOC_TANGLE_SUBMODULE)/?.lua;;
 export TANGLER
 export LUA_PATH
 
