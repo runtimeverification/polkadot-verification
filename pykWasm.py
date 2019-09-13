@@ -103,6 +103,7 @@ def kprove(inputJson, *krunArgs):
 def split_symbolic_config_from(configuration):
     substitution = {}
 
+    # generate variable name from cell name, removing disallowed characters
     _mkCellVar = lambda label: label.replace('-', '_').replace('<', '').replace('>', '').upper() + '_CELL'
 
     def _replaceWithVar(k):
