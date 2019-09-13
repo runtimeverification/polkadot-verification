@@ -1,15 +1,15 @@
 
-.PHONY: clean distclean deps deps-polkadot \
-        build polkadot-runtime-source specs \
-        test test-can-build-specs
+.PHONY: clean distclean deps deps-polkadot           \
+        build polkadot-runtime-source specs          \
+        test test-can-build-specs test-python-config
 
 # Settings
 # --------
 
-BUILD_DIR:=.build
-DEPS_DIR:=deps
-DEFN_DIR:=$(BUILD_DIR)/defn
-KWASM_SUBMODULE:=$(DEPS_DIR)/wasm-semantics
+BUILD_DIR       := .build
+DEPS_DIR        := deps
+DEFN_DIR        := $(BUILD_DIR)/defn
+KWASM_SUBMODULE := $(DEPS_DIR)/wasm-semantics
 
 K_RELEASE := $(KWASM_SUBMODULE)/deps/k/k-distribution/target/release/k
 K_BIN     := $(K_RELEASE)/bin
@@ -21,12 +21,15 @@ KWASM_MAKE := make --directory $(KWASM_SUBMODULE) BUILD_DIR=../../$(BUILD_DIR)
 export K_RELEASE
 export KWASM_DIR
 
-PATH:=$(CURDIR)/$(KWASM_SUBMODULE):$(CURDIR)/$(K_BIN):$(PATH)
+PATH := $(CURDIR)/$(KWASM_SUBMODULE):$(CURDIR)/$(K_BIN):$(PATH)
 export PATH
 
-PANDOC_TANGLE_SUBMODULE:=$(KWASM_SUBMODULE)/deps/pandoc-tangle
-TANGLER:=$(PANDOC_TANGLE_SUBMODULE)/tangle.lua
-LUA_PATH:=$(PANDOC_TANGLE_SUBMODULE)/?.lua;;
+PYTHONPATH := $(K_LIB)
+export PYTHONPATH
+
+PANDOC_TANGLE_SUBMODULE := $(KWASM_SUBMODULE)/deps/pandoc-tangle
+TANGLER                 := $(PANDOC_TANGLE_SUBMODULE)/tangle.lua
+LUA_PATH                := $(PANDOC_TANGLE_SUBMODULE)/?.lua;;
 export TANGLER
 export LUA_PATH
 
@@ -66,10 +69,16 @@ build-kwasm-%:
 # Verification Source Build
 # -------------------------
 
-polkadot-runtime-source: src/polkadot-runtime.wat.json
+CONCRETE_BACKEND := llvm
+SYMBOLIC_BACKEND := haskell
 
-src/polkadot-runtime.wat.json: src/polkadot-runtime.wat
-	./kpol kast --backend llvm $< json > $@
+polkadot-runtime-source: src/polkadot-runtime.loaded.json
+
+src/polkadot-runtime.loaded.json: src/polkadot-runtime.wat.json
+	./kpol run --backend $(CONCRETE_BACKEND) $< --parser cat --output json > $@
+
+src/polkadot-runtime.wat.json: src/polkadot-runtime.env.wat src/polkadot-runtime.wat
+	cat $^ | ./kpol kast --backend $(CONCRETE_BACKEND) - json > $@
 
 src/polkadot-runtime.wat: $(POLKADOT_RUNTIME_WASM)
 	wasm2wat $< > $@
@@ -89,7 +98,7 @@ ALL_SPECS := $(patsubst %, $(SPECS_DIR)/%-spec.k, $(SPEC_NAMES))
 specs: $(ALL_SPECS)
 
 $(SPECS_DIR)/%-spec.k: %.md
-	mkdir -p $(SPECS_DIR)
+	@mkdir -p $(SPECS_DIR)
 	pandoc --from markdown --to $(TANGLER) --metadata=code:.k $< > $@
 
 # Testing
@@ -98,16 +107,19 @@ $(SPECS_DIR)/%-spec.k: %.md
 TEST  := ./kpol
 CHECK := git --no-pager diff --no-index --ignore-all-space
 
-TEST_CONCRETE_BACKEND := llvm
-TEST_SYMBOLIC_BACKEND := haskell
-
 test: test-can-build-specs
 
 test-can-build-specs: $(ALL_SPECS:=.can-build)
 
 $(SPECS_DIR)/%-spec.k.can-build: $(SPECS_DIR)/%-spec.k
-	kompile --backend $(TEST_SYMBOLIC_BACKEND) -I $(SPECS_DIR)             \
+	kompile --backend $(SYMBOLIC_BACKEND) -I $(SPECS_DIR)                  \
 	    --main-module   $(shell echo $* | tr '[:lower:]' '[:upper:]')-SPEC \
 	    --syntax-module $(shell echo $* | tr '[:lower:]' '[:upper:]')-SPEC \
 	    $<
 	rm -rf $*-kompiled
+
+# Python Configuration Build
+# --------------------------
+
+test-python-config:
+	python3 pykWasm.py
