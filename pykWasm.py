@@ -7,6 +7,12 @@ import sys
 
 from pyk.kast import KApply, KConstant, KSequence, KToken, KVariable, _notif, _warning, _fatal
 
+################################################################################
+# Unparsing                                                                    #
+################################################################################
+
+# Builds an unparser based on the KLabel directly, interpreting the `_` as argument positions for unparsing.
+# First strips the module name suffix off the label.
 underbarUnparsingInModule = lambda modName, inputString: pyk.underbarUnparsing(inputString.split('_' + modName)[0])
 
 WASM_symbols = { '.List{"___WASM__Stmt_Stmts"}_Stmts'                 : pyk.constLabel('.Stmts')
@@ -72,6 +78,10 @@ for symb in WASM_TEXT_underbar_unparsed_symbols:
 
 ALL_symbols = pyk.combineDicts(pyk.K_symbols, WASM_symbols)
 
+################################################################################
+# Runner Wrappers                                                              #
+################################################################################
+
 def kast(inputJson, *kastArgs):
     return pyk.kastJSON('.build/defn/kwasm/llvm', inputJson, kastArgs = list(kastArgs), kRelease = 'deps/wasm-semantics/deps/k/k-distribution/target/release/k')
 
@@ -81,8 +91,17 @@ def krun(inputJson, *krunArgs):
 def kprove(inputJson, *krunArgs):
     return pyk.kproveJSON('.build/defn/kwasm/llvm', inputJson, kproveArgs = list(kproveArgs), kRelease = 'deps/wasm-semantics/deps/k/k-distribution/target/release/k')
 
+################################################################################
+# Should Be Upstreamed Helpers                                                 #
+################################################################################
+
+# Function which takes a configuration and splits it into:
+    # 1. A symbolic configuration `symb_configuration` where each leaf cell has a KVariable in it named after the cell.
+    # 2. A substitution `substitution` which maps the generated KVariables to their original values in `configuration`.
+# such that `pyk.substitute(symb_configuration, substitution) == configuration`.
+
 def split_symbolic_config_from(configuration):
-    initial_substitution = {}
+    substitution = {}
 
     _mkCellVar = lambda label: label.replace('-', '_').replace('<', '').replace('>', '').upper() + '_CELL'
 
@@ -90,12 +109,16 @@ def split_symbolic_config_from(configuration):
         if pyk.isKApply(k) and pyk.isCellKLabel(k['label']):
             if len(k['args']) == 1 and not (pyk.isKApply(k['args'][0]) and pyk.isCellKLabel(k['args'][0]['label'])):
                 config_var = _mkCellVar(k['label'])
-                initial_substitution[config_var] = k['args'][0]
+                substitution[config_var] = k['args'][0]
                 return KApply(k['label'], [KVariable(config_var)])
         return k
 
-    pyk.traverseBottomUp(configuration, _replaceWithVar)
-    return (configuration, initial_substitution)
+    symb_configuration = pyk.traverseBottomUp(configuration, _replaceWithVar)
+    return (symb_configuration, substitution)
+
+################################################################################
+# Main Functionality                                                           #
+################################################################################
 
 init_term = { 'format': 'KAST', 'version': 1, 'term': KConstant('.List{"___WASM__Stmt_Stmts"}_Stmts') }
 (_, simple_config, _) = krun(init_term, '--parser', 'cat')
@@ -105,15 +128,18 @@ if __name__ == '__main__':
     initial_configuration = pyk.substitute(generatedTop, initSubst)
     kast_json = { 'format': 'KAST', 'version': 1, 'term': initial_configuration }
 
+    # Use official K unparser to get string for initial configuration
     (returnCode, kastPrinted, _) = kast(kast_json, '--input', 'json', '--output', 'pretty')
     if returnCode != 0:
         _fatal('kast returned non-zero exit code reading/printing the initial configuration')
         sys.exit(returnCode)
 
+    # Use fast pyk unparser to get string for initial configuration
     fastPrinted = pyk.prettyPrintKast(initial_configuration['args'][0], ALL_symbols)
     _notif('fastPrinted output')
     print(fastPrinted)
 
+    # Check that fast and official unparsers agree, or see how much they disagree.
     kastPrinted = kastPrinted.strip()
     if fastPrinted != kastPrinted:
         _warning('kastPrinted and fastPrinted differ!')
