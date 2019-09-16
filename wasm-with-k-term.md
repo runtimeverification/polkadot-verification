@@ -14,5 +14,6 @@ endmodule
 module WASM-WITH-K-TERM
     imports WASM-TEST
     imports K-TERM
+    imports K-IO
 endmodule
 ```

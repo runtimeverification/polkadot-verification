@@ -1,6 +1,6 @@
 
-.PHONY: clean distclean deps deps-polkadot           \
-        build polkadot-runtime-source specs          \
+.PHONY: clean distclean deps deps-polkadot                      \
+        build build-coverage-llvm polkadot-runtime-source specs \
         test test-can-build-specs test-python-config
 
 # Settings
@@ -58,7 +58,9 @@ deps-polkadot:
 # Useful Builds
 # -------------
 
-build: build-kwasm-java build-kwasm-haskell build-kwasm-llvm build-kwasm-ocaml
+KOMPILE_OPTIONS :=
+
+build: build-kwasm-haskell build-kwasm-llvm build-coverage-llvm
 
 # Regular Semantics Build
 # -----------------------
@@ -68,7 +70,8 @@ build-kwasm-%: $(DEFN_DIR)/kwasm/%/wasm-with-k-term.k
 	    DEFN_DIR=../../$(DEFN_DIR)/kwasm           \
 	    MAIN_MODULE=WASM-WITH-K-TERM               \
 	    MAIN_SYNTAX_MODULE=WASM-WITH-K-TERM-SYNTAX \
-	    MAIN_DEFN_FILE=wasm-with-k-term.k
+	    MAIN_DEFN_FILE=wasm-with-k-term            \
+	    KOMPILE_OPTIONS=$(KOMPILE_OPTIONS)
 
 .SECONDARY: $(DEFN_DIR)/kwasm/llvm/wasm-with-k-term.k
 
@@ -96,6 +99,12 @@ src/polkadot-runtime.wat: $(POLKADOT_RUNTIME_WASM)
 $(POLKADOT_RUNTIME_WASM):
 	git submodule update --init --recursive -- $(POLKADOT_SUBMODULE)
 	cd $(POLKADOT_SUBMODULE) && cargo build --package node-template --release
+
+# Generate Execution Traces
+# -------------------------
+
+build-coverage-llvm: KOMPILE_OPTIONS+=--coverage
+build-coverage-llvm: build-kwasm-llvm
 
 # Specification Build
 # -------------------
