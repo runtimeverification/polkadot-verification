@@ -74,9 +74,14 @@ build-kwasm-%: $(DEFN_DIR)/kwasm/%/wasm-with-k-term.k
 	    MAIN_DEFN_FILE=wasm-with-k-term            \
 	    KOMPILE_OPTIONS=$(KOMPILE_OPTIONS)
 
-.SECONDARY: $(DEFN_DIR)/kwasm/llvm/wasm-with-k-term.k
+.SECONDARY: $(DEFN_DIR)/kwasm/llvm/wasm-with-k-term.k    \
+            $(DEFN_DIR)/kwasm/haskell/wasm-with-k-term.k
 
 $(DEFN_DIR)/kwasm/llvm/%.k: %.md $(TANGLER)
+	@mkdir -p $(dir $@)
+	pandoc --from markdown --to $(TANGLER) --metadata=code:".k" $< > $@
+
+$(DEFN_DIR)/kwasm/haskell/%.k: %.md $(TANGLER)
 	@mkdir -p $(dir $@)
 	pandoc --from markdown --to $(TANGLER) --metadata=code:".k" $< > $@
 
