@@ -232,7 +232,7 @@ def split_symbolic_config_from(configuration):
 
 def get_init_config():
     init_term = { 'format': 'KAST', 'version': 1, 'term': KConstant('.List{"___WASM__Stmt_Stmts"}_Stmts') }
-    (_, simple_config, _) = krun(init_term, '--parser', 'cat')
+    (_, simple_config, _) = krun(init_term)
     return split_symbolic_config_from(simple_config)
 
 if __name__ == '__main__':
