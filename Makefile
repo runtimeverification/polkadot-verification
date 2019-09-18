@@ -1,6 +1,7 @@
 
-.PHONY: clean distclean deps deps-polkadot           \
-        build polkadot-runtime-source specs          \
+.PHONY: clean distclean deps deps-polkadot              \
+        build build-coverage-llvm specs                 \
+        polkadot-runtime-source polkadot-runtime-loaded \
         test test-can-build-specs test-python-config
 
 # Settings
@@ -40,7 +41,7 @@ distclean: clean
 	rm -rf $(BUILD_DIR)
 
 deps:
-	git submodule update --init --recursive
+	git submodule update --init --recursive -- $(KWASM_SUBMODULE)
 	$(KWASM_MAKE) deps
 
 # Polkadot Setup
@@ -58,13 +59,31 @@ deps-polkadot:
 # Useful Builds
 # -------------
 
-build: build-kwasm-java build-kwasm-haskell build-kwasm-llvm build-kwasm-ocaml
+KOMPILE_OPTIONS :=
+
+build: build-kwasm-haskell build-kwasm-llvm build-coverage-llvm
 
 # Regular Semantics Build
 # -----------------------
 
-build-kwasm-%:
-	$(KWASM_MAKE) build-$* DEFN_DIR=../../$(BUILD_DIR)/defn/kwasm
+build-kwasm-%: $(DEFN_DIR)/kwasm/%/wasm-with-k-term.k
+	$(KWASM_MAKE) build-$*                         \
+	    DEFN_DIR=../../$(DEFN_DIR)/kwasm           \
+	    MAIN_MODULE=WASM-WITH-K-TERM               \
+	    MAIN_SYNTAX_MODULE=WASM-WITH-K-TERM-SYNTAX \
+	    MAIN_DEFN_FILE=wasm-with-k-term            \
+	    KOMPILE_OPTIONS=$(KOMPILE_OPTIONS)
+
+.SECONDARY: $(DEFN_DIR)/kwasm/llvm/wasm-with-k-term.k    \
+            $(DEFN_DIR)/kwasm/haskell/wasm-with-k-term.k
+
+$(DEFN_DIR)/kwasm/llvm/%.k: %.md $(TANGLER)
+	@mkdir -p $(dir $@)
+	pandoc --from markdown --to $(TANGLER) --metadata=code:".k" $< > $@
+
+$(DEFN_DIR)/kwasm/haskell/%.k: %.md $(TANGLER)
+	@mkdir -p $(dir $@)
+	pandoc --from markdown --to $(TANGLER) --metadata=code:".k" $< > $@
 
 # Verification Source Build
 # -------------------------
@@ -72,7 +91,8 @@ build-kwasm-%:
 CONCRETE_BACKEND := llvm
 SYMBOLIC_BACKEND := haskell
 
-polkadot-runtime-source: src/polkadot-runtime.loaded.json
+polkadot-runtime-source: src/polkadot-runtime.wat
+polkadot-runtime-loaded: src/polkadot-runtime.loaded.json
 
 src/polkadot-runtime.loaded.json: src/polkadot-runtime.wat.json
 	./kpol run --backend $(CONCRETE_BACKEND) $< --parser cat --output json > $@
@@ -86,6 +106,12 @@ src/polkadot-runtime.wat: $(POLKADOT_RUNTIME_WASM)
 $(POLKADOT_RUNTIME_WASM):
 	git submodule update --init --recursive -- $(POLKADOT_SUBMODULE)
 	cd $(POLKADOT_SUBMODULE) && cargo build --package node-template --release
+
+# Generate Execution Traces
+# -------------------------
+
+build-coverage-llvm: KOMPILE_OPTIONS+=--coverage
+build-coverage-llvm: build-kwasm-llvm
 
 # Specification Build
 # -------------------

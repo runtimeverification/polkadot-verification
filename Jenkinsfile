@@ -61,6 +61,13 @@ pipeline {
             '''
           }
         }
+        stage('Python Config') {
+          steps {
+            sh '''
+              make test-python-config
+            '''
+          }
+        }
       }
     }
   }
