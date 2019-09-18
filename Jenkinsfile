@@ -54,13 +54,6 @@ pipeline {
     }
     stage('Test') {
       parallel {
-        stage('Can Build loaded') {
-          steps {
-            sh '''
-              make polkadot-runtime-loaded
-            '''
-          }
-        }
         stage('Can Build Specs') {
           steps {
             sh '''
