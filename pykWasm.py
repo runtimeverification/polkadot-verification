@@ -201,39 +201,13 @@ def kprove(inputJson, *krunArgs):
     return pyk.kproveJSON('.build/defn/kwasm/llvm', inputJson, kproveArgs = list(kproveArgs), kRelease = 'deps/wasm-semantics/deps/k/k-distribution/target/release/k')
 
 ################################################################################
-# Should Be Upstreamed Helpers                                                 #
-################################################################################
-
-# Function which takes a configuration and splits it into:
-    # 1. A symbolic configuration `symb_configuration` where each leaf cell has a KVariable in it named after the cell.
-    # 2. A substitution `substitution` which maps the generated KVariables to their original values in `configuration`.
-# such that `pyk.substitute(symb_configuration, substitution) == configuration`.
-
-def split_symbolic_config_from(configuration):
-    substitution = {}
-
-    # generate variable name from cell name, removing disallowed characters
-    _mkCellVar = lambda label: label.replace('-', '_').replace('<', '').replace('>', '').upper() + '_CELL'
-
-    def _replaceWithVar(k):
-        if pyk.isKApply(k) and pyk.isCellKLabel(k['label']):
-            if len(k['args']) == 1 and not (pyk.isKApply(k['args'][0]) and pyk.isCellKLabel(k['args'][0]['label'])):
-                config_var = _mkCellVar(k['label'])
-                substitution[config_var] = k['args'][0]
-                return KApply(k['label'], [KVariable(config_var)])
-        return k
-
-    symb_configuration = pyk.traverseBottomUp(configuration, _replaceWithVar)
-    return (symb_configuration, substitution)
-
-################################################################################
 # Main Functionality                                                           #
 ################################################################################
 
 def get_init_config():
     init_term = { 'format': 'KAST', 'version': 1, 'term': KConstant('.List{"___WASM__Stmt_Stmts"}_Stmts') }
     (_, simple_config, _) = krun(init_term)
-    return split_symbolic_config_from(simple_config)
+    return pyk.splitConfigFrom(simple_config)
 
 if __name__ == '__main__':
     (generatedTop, initSubst) = get_init_config()
