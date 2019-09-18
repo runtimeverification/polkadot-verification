@@ -1,6 +1,7 @@
 
-.PHONY: clean distclean deps deps-polkadot                      \
-        build build-coverage-llvm polkadot-runtime-source specs \
+.PHONY: clean distclean deps deps-polkadot              \
+        build build-coverage-llvm specs                 \
+        polkadot-runtime-source polkadot-runtime-loaded \
         test test-can-build-specs test-python-config
 
 # Settings
@@ -85,7 +86,8 @@ $(DEFN_DIR)/kwasm/llvm/%.k: %.md $(TANGLER)
 CONCRETE_BACKEND := llvm
 SYMBOLIC_BACKEND := haskell
 
-polkadot-runtime-source: src/polkadot-runtime.loaded.json
+polkadot-runtime-source: src/polkadot-runtime.wat
+polkadot-runtime-loaded: src/polkadot-runtime.loaded.json
 
 src/polkadot-runtime.loaded.json: src/polkadot-runtime.wat.json
 	./kpol run --backend $(CONCRETE_BACKEND) $< --parser cat --output json > $@
