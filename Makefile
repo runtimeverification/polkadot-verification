@@ -61,21 +61,25 @@ deps-polkadot:
 
 KOMPILE_OPTIONS :=
 
+MAIN_MODULE        := WASM-WITH-K-TERM
+MAIN_SYNTAX_MODULE := WASM-WITH-K-TERM-SYNTAX
+MAIN_DEFN_FILE     := wasm-with-k-term
+
 build: build-kwasm-haskell build-kwasm-llvm build-coverage-llvm
 
 # Regular Semantics Build
 # -----------------------
 
-build-kwasm-%: $(DEFN_DIR)/kwasm/%/wasm-with-k-term.k
-	$(KWASM_MAKE) build-$*                         \
-	    DEFN_DIR=../../$(DEFN_DIR)/kwasm           \
-	    MAIN_MODULE=WASM-WITH-K-TERM               \
-	    MAIN_SYNTAX_MODULE=WASM-WITH-K-TERM-SYNTAX \
-	    MAIN_DEFN_FILE=wasm-with-k-term            \
+build-kwasm-%: $(DEFN_DIR)/kwasm/%/$(MAIN_DEFN_FILE).k
+	$(KWASM_MAKE) build-$*                       \
+	    DEFN_DIR=../../$(DEFN_DIR)/kwasm         \
+	    MAIN_MODULE=$(MAIN_MODULE)               \
+	    MAIN_SYNTAX_MODULE=$(MAIN_SYNTAX_MODULE) \
+	    MAIN_DEFN_FILE=$(MAIN_DEFN_FILE)         \
 	    KOMPILE_OPTIONS=$(KOMPILE_OPTIONS)
 
-.SECONDARY: $(DEFN_DIR)/kwasm/llvm/wasm-with-k-term.k    \
-            $(DEFN_DIR)/kwasm/haskell/wasm-with-k-term.k
+.SECONDARY: $(DEFN_DIR)/kwasm/llvm/$(MAIN_DEFN_FILE).k    \
+            $(DEFN_DIR)/kwasm/haskell/$(MAIN_DEFN_FILE).k
 
 $(DEFN_DIR)/kwasm/llvm/%.k: %.md $(TANGLER)
 	@mkdir -p $(dir $@)
