@@ -1,9 +1,9 @@
 
-.PHONY: clean distclean deps deps-polkadot              \
-        build                                           \
-        polkadot-runtime-source polkadot-runtime-loaded \
-        specs                                           \
-        test test-can-build-specs test-python-config
+.PHONY: clean distclean deps deps-polkadot                           \
+        build                                                        \
+        polkadot-runtime-source polkadot-runtime-loaded              \
+        specs                                                        \
+        test test-can-build-specs test-python-config test-fuse-rules
 
 # Settings
 # --------
@@ -68,7 +68,8 @@ MAIN_MODULE        := WASM-WITH-K-TERM
 MAIN_SYNTAX_MODULE := WASM-WITH-K-TERM-SYNTAX
 MAIN_DEFN_FILE     := wasm-with-k-term
 
-build: build-kwasm-haskell build-kwasm-llvm build-coverage-llvm
+build: build-kwasm-llvm    build-coverage-llvm    \
+       build-kwasm-haskell build-coverage-haskell
 
 # Regular Semantics Build
 # -----------------------
@@ -120,6 +121,23 @@ $(POLKADOT_RUNTIME_WASM):
 build-coverage-llvm: KOMPILE_OPTIONS+=--coverage
 build-coverage-llvm: build-kwasm-llvm
 
+build-coverage-haskell: KOMPILE_OPTIONS+=--coverage
+build-coverage-haskell: build-kwasm-haskell
+
+# TODO: Hacky way for selecting coverage file  because `--coverage-file` is not respected at all
+#       So we have to forcibly remove any existing coverage files, and pick up the generated one with a wildcard
+#       Would be better without the `rm -rf ...`, and with these:
+#           $(KPOL) run --backend $(CONCRETE_BACKEND) $(SIMPLE_TESTS)/$*.wast --coverage-file $(SIMPLE_TESTS)/$*.wast.$(CONCRETE_BACKEND)-coverage
+#           ./translateCoverage.py _ _ $(SIMPLE_TESTS)/$*.wast.$(SYMBOLIC_BACKEND)-coverage
+%.wast.fuse-rules: build-coverage-llvm build-coverage-haskell
+	rm -rf $(DEFN_DIR)/kwasm/$(CONCRETE_BACKEND)/$(MAIN_DEFN_FILE)-kompiled/*_coverage.txt
+	$(KPOL) run --backend $(CONCRETE_BACKEND) $*.wast
+	./translateCoverage.py $(DEFN_DIR)/kwasm/$(CONCRETE_BACKEND)/$(MAIN_DEFN_FILE)-kompiled/allRules.txt   \
+	                       $(DEFN_DIR)/kwasm/$(SYMBOLIC_BACKEND)/$(MAIN_DEFN_FILE)-kompiled/allRules.txt   \
+	                       $(DEFN_DIR)/kwasm/$(CONCRETE_BACKEND)/$(MAIN_DEFN_FILE)-kompiled/*_coverage.txt \
+	                     > $*.wast.coverage-$(SYMBOLIC_BACKEND)
+	# $(KPOL) run --backend $(SYMBOLIC_BACKEND) $*.wast.coverage-$(SYMBOLIC_BACKEND) --rule-sequence
+
 # Specification Build
 # -------------------
 
@@ -139,7 +157,7 @@ $(SPECS_DIR)/%-spec.k: %.md
 
 CHECK := git --no-pager diff --no-index --ignore-all-space
 
-test: test-can-build-specs
+test: test-can-build-specs test-fuse-rules
 
 test-can-build-specs: $(ALL_SPECS:=.can-build)
 
@@ -149,6 +167,10 @@ $(SPECS_DIR)/%-spec.k.can-build: $(SPECS_DIR)/%-spec.k
 	    --syntax-module $(shell echo $* | tr '[:lower:]' '[:upper:]')-SPEC \
 	    $<
 	rm -rf $*-kompiled
+
+simple_tests := $(wildcard $(KWASM_SUBMODULE)/tests/simple/*.wast)
+
+test-fuse-rules: $(simple_tests:=.fuse-rules)
 
 # Python Configuration Build
 # --------------------------
