@@ -1,7 +1,8 @@
 
 .PHONY: clean distclean deps deps-polkadot              \
-        build build-coverage-llvm specs                 \
+        build                                           \
         polkadot-runtime-source polkadot-runtime-loaded \
+        specs                                           \
         test test-can-build-specs test-python-config
 
 # Settings
@@ -33,6 +34,8 @@ TANGLER                 := $(PANDOC_TANGLE_SUBMODULE)/tangle.lua
 LUA_PATH                := $(PANDOC_TANGLE_SUBMODULE)/?.lua;;
 export TANGLER
 export LUA_PATH
+
+KPOL := ./kpol
 
 clean:
 	rm -rf $(DEFN_DIR) tests/*.out
@@ -99,10 +102,10 @@ polkadot-runtime-source: src/polkadot-runtime.wat
 polkadot-runtime-loaded: src/polkadot-runtime.loaded.json
 
 src/polkadot-runtime.loaded.json: src/polkadot-runtime.wat.json
-	./kpol run --backend $(CONCRETE_BACKEND) $< --parser cat --output json > $@
+	$(KPOL) run --backend $(CONCRETE_BACKEND) $< --parser cat --output json > $@
 
 src/polkadot-runtime.wat.json: src/polkadot-runtime.env.wat src/polkadot-runtime.wat
-	cat $^ | ./kpol kast --backend $(CONCRETE_BACKEND) - json > $@
+	cat $^ | $(KPOL) kast --backend $(CONCRETE_BACKEND) - json > $@
 
 src/polkadot-runtime.wat: $(POLKADOT_RUNTIME_WASM)
 	wasm2wat $< > $@
@@ -134,7 +137,6 @@ $(SPECS_DIR)/%-spec.k: %.md
 # Testing
 # -------
 
-TEST  := ./kpol
 CHECK := git --no-pager diff --no-index --ignore-all-space
 
 test: test-can-build-specs
