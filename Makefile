@@ -125,14 +125,14 @@ $(POLKADOT_RUNTIME_WASM):
 #       Would be better without the `rm -rf ...`, and with these:
 #           $(KPOL) run --backend $(CONCRETE_BACKEND) $(SIMPLE_TESTS)/$*.wast --coverage-file $(SIMPLE_TESTS)/$*.wast.$(CONCRETE_BACKEND)-coverage
 #           ./translateCoverage.py _ _ $(SIMPLE_TESTS)/$*.wast.$(SYMBOLIC_BACKEND)-coverage
-%.wast.fuse-rules: build-coverage-llvm build-coverage-haskell
-	rm -rf $(DEFN_DIR)/kwasm/$(CONCRETE_BACKEND)/$(MAIN_DEFN_FILE)-kompiled/*_coverage.txt
-	$(KPOL) run --backend $(CONCRETE_BACKEND) $*.wast
-	./translateCoverage.py $(DEFN_DIR)/kwasm/$(CONCRETE_BACKEND)/$(MAIN_DEFN_FILE)-kompiled/allRules.txt   \
-	                       $(DEFN_DIR)/kwasm/$(SYMBOLIC_BACKEND)/$(MAIN_DEFN_FILE)-kompiled/allRules.txt   \
-	                       $(DEFN_DIR)/kwasm/$(CONCRETE_BACKEND)/$(MAIN_DEFN_FILE)-kompiled/*_coverage.txt \
+%.wast.fuse-rules:
+	rm -rf $(DEFN_DIR)/coverage/$(CONCRETE_BACKEND)/$(MAIN_DEFN_FILE)-kompiled/*_coverage.txt
+	SUBDEFN=coverage $(KPOL) run --backend $(CONCRETE_BACKEND) $*.wast
+	./translateCoverage.py $(DEFN_DIR)/coverage/$(CONCRETE_BACKEND)/$(MAIN_DEFN_FILE)-kompiled/allRules.txt   \
+	                       $(DEFN_DIR)/coverage/$(SYMBOLIC_BACKEND)/$(MAIN_DEFN_FILE)-kompiled/allRules.txt   \
+	                       $(DEFN_DIR)/coverage/$(CONCRETE_BACKEND)/$(MAIN_DEFN_FILE)-kompiled/*_coverage.txt \
 	                     > $*.wast.coverage-$(SYMBOLIC_BACKEND)
-	# $(KPOL) run --backend $(SYMBOLIC_BACKEND) $*.wast.coverage-$(SYMBOLIC_BACKEND) --rule-sequence
+	# SUBDEFN=coverage $(KPOL) run --backend $(SYMBOLIC_BACKEND) $*.wast.coverage-$(SYMBOLIC_BACKEND) --rule-sequence
 
 # Specification Build
 # -------------------
