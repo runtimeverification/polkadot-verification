@@ -68,28 +68,30 @@ MAIN_MODULE        := WASM-WITH-K-TERM
 MAIN_SYNTAX_MODULE := WASM-WITH-K-TERM-SYNTAX
 MAIN_DEFN_FILE     := wasm-with-k-term
 
-build: build-kwasm-llvm    build-coverage-llvm    \
-       build-kwasm-haskell build-coverage-haskell
+SUBDEFN := kwasm
+export SUBDEFN
 
-# Regular Semantics Build
-# -----------------------
+build: build-llvm build-haskell
 
-build-kwasm-%: $(DEFN_DIR)/kwasm/%/$(MAIN_DEFN_FILE).k
+# Semantics Build
+# ---------------
+
+build-%: $(DEFN_DIR)/$(SUBDEFN)/%/$(MAIN_DEFN_FILE).k
 	$(KWASM_MAKE) build-$*                       \
-	    DEFN_DIR=../../$(DEFN_DIR)/kwasm         \
+	    DEFN_DIR=../../$(DEFN_DIR)/$(SUBDEFN)    \
 	    MAIN_MODULE=$(MAIN_MODULE)               \
 	    MAIN_SYNTAX_MODULE=$(MAIN_SYNTAX_MODULE) \
 	    MAIN_DEFN_FILE=$(MAIN_DEFN_FILE)         \
 	    KOMPILE_OPTIONS=$(KOMPILE_OPTIONS)
 
-.SECONDARY: $(DEFN_DIR)/kwasm/llvm/$(MAIN_DEFN_FILE).k    \
-            $(DEFN_DIR)/kwasm/haskell/$(MAIN_DEFN_FILE).k
+.SECONDARY: $(DEFN_DIR)/$(SUBDEFN)/llvm/$(MAIN_DEFN_FILE).k    \
+            $(DEFN_DIR)/$(SUBDEFN)/haskell/$(MAIN_DEFN_FILE).k
 
-$(DEFN_DIR)/kwasm/llvm/%.k: %.md $(TANGLER)
+$(DEFN_DIR)/$(SUBDEFN)/llvm/%.k: %.md $(TANGLER)
 	@mkdir -p $(dir $@)
 	pandoc --from markdown --to $(TANGLER) --metadata=code:".k" $< > $@
 
-$(DEFN_DIR)/kwasm/haskell/%.k: %.md $(TANGLER)
+$(DEFN_DIR)/$(SUBDEFN)/haskell/%.k: %.md $(TANGLER)
 	@mkdir -p $(dir $@)
 	pandoc --from markdown --to $(TANGLER) --metadata=code:".k" $< > $@
 
@@ -117,12 +119,6 @@ $(POLKADOT_RUNTIME_WASM):
 
 # Generate Execution Traces
 # -------------------------
-
-build-coverage-llvm: KOMPILE_OPTIONS+=--coverage
-build-coverage-llvm: build-kwasm-llvm
-
-build-coverage-haskell: KOMPILE_OPTIONS+=--coverage
-build-coverage-haskell: build-kwasm-haskell
 
 # TODO: Hacky way for selecting coverage file  because `--coverage-file` is not respected at all
 #       So we have to forcibly remove any existing coverage files, and pick up the generated one with a wildcard
