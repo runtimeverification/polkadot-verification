@@ -55,6 +55,7 @@ pipeline {
     stage('Test') {
       parallel {
         stage('Can Build Specs') {
+          options { timeout(time: 1, unit: 'MINUTES') }
           steps {
             sh '''
               make test-can-build-specs -j6
@@ -62,6 +63,7 @@ pipeline {
           }
         }
         stage('Python Config') {
+          options { timeout(time: 1, unit: 'MINUTES') }
           steps {
             sh '''
               make test-python-config
