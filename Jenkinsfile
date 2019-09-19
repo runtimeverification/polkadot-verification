@@ -70,6 +70,14 @@ pipeline {
             '''
           }
         }
+        stage('Fuse Rules Simple') {
+          options { timeout(time: 20, unit: 'MINUTES') }
+          steps {
+            sh '''
+              make test-fuse-rules
+            '''
+          }
+        }
       }
     }
   }
