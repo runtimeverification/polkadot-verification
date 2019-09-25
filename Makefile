@@ -164,7 +164,8 @@ $(SPECS_DIR)/%-spec.k.can-build: $(SPECS_DIR)/%-spec.k
 	    $<
 	rm -rf $*-kompiled
 
-simple_tests := $(wildcard $(KWASM_SUBMODULE)/tests/simple/*.wast)
+simple_tests     := $(wildcard $(KWASM_SUBMODULE)/tests/simple/*.wast)
+bad_simple_tests := $(KWASM_SUBMODULE)/tests/simple/arithmetic.wast
 
 test-fuse-rules: $(simple_tests:=.fuse-rules)
 
