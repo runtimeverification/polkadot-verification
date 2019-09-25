@@ -164,8 +164,11 @@ $(SPECS_DIR)/%-spec.k.can-build: $(SPECS_DIR)/%-spec.k
 	    $<
 	rm -rf $*-kompiled
 
-simple_tests     := $(wildcard $(KWASM_SUBMODULE)/tests/simple/*.wast)
-bad_simple_tests := $(KWASM_SUBMODULE)/tests/simple/arithmetic.wast
+all_simple_tests := $(wildcard $(KWASM_SUBMODULE)/tests/simple/*.wast)
+bad_simple_tests := $(KWASM_SUBMODULE)/tests/simple/arithmetic.wast \
+                    $(KWASM_SUBMODULE)/tests/simple/comparison.wast \
+                    $(KWASM_SUBMODULE)/tests/simple/memory.wast
+simple_tests     := $(filter-out $(bad_simple_tests), $(all_simple_tests))
 
 test-fuse-rules: $(simple_tests:=.fuse-rules)
 
