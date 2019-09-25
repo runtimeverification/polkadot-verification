@@ -75,7 +75,7 @@ pipeline {
           options { timeout(time: 20, unit: 'MINUTES') }
           steps {
             sh '''
-              make test-fuse-rules -j6
+              make test-fuse-rules
             '''
           }
         }
