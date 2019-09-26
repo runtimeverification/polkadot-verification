@@ -39,8 +39,8 @@ pipeline {
         stage('KWasm') {
           steps {
             sh '''
-              make build SUBDEFN=kwasm                                 -j4
-              make build SUBDEFN=coverage KOMPILE_OPTIONS='--coverage' -j4
+              make build SUBDEFN=kwasm                                               -j4
+              make build SUBDEFN=coverage KOMPILE_OPTIONS='"--coverage --emit-json"' -j4
             '''
           }
         }

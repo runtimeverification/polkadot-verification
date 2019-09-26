@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
 
+import json
 import sys
+
+from pykWasm import *
+
+def _notif(msg):
+    sys.stderr.write('=== ' + msg + '\n')
+    sys.stderr.flush()
 
 def _fatal(msg, exit_code = 1):
     sys.stderr.write('!!! ' + msg + '\n')
@@ -29,13 +36,28 @@ src_rule_list = []
 with open(src_rules_file, 'r') as src_rules:
     src_rule_list = [ rule_hash.strip() for rule_hash in src_rules ]
 
+dst_non_function_rules = []
+dst_kompiled = pyk.readKastTerm(dst_kompiled_dir + '/compiled.json')
+for module in dst_kompiled['modules']:
+    for sentence in module['localSentences']:
+        if pyk.isKRule(sentence):
+            ruleBody = sentence['body']
+            ruleAtt  = sentence['att']['att']
+            if    (pyk.isKApply(ruleBody)                                     and ruleBody['label']        == '<generatedTop>') \
+               or (pyk.isKRewrite(ruleBody) and pyk.isKApply(ruleBody['lhs']) and ruleBody['lhs']['label'] == '<generatedTop>'):
+                if 'UNIQUE_ID' in ruleAtt:
+                    dst_non_function_rules.append(ruleAtt['UNIQUE_ID'])
+
 dst_rule_list = []
 for src_rule in src_rule_list:
     if src_rule in src_rule_map:
         src_rule_loc = src_rule_map[src_rule]
         if src_rule_loc in dst_rule_map:
             dst_rule = dst_rule_map[src_rule_loc]
-            dst_rule_list.append(dst_rule)
+            if dst_rule in dst_non_function_rules:
+                dst_rule_list.append(dst_rule)
+            else:
+                _notif('Skipping functional rule: ' + dst_rule)
         else:
             _fatal('COULD NOT FIND RULE LOCATION IN dst_rule_map: ' + src_rule_loc)
     else:
