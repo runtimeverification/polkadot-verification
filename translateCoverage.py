@@ -7,19 +7,19 @@ def _fatal(msg, exit_code = 1):
     sys.stderr.flush()
     sys.exit(exit_code)
 
-src_all_rules_file = sys.argv[1]
-dst_all_rules_file = sys.argv[2]
-src_rules_file     = sys.argv[3]
+src_kompiled_dir = sys.argv[1]
+dst_kompiled_dir = sys.argv[2]
+src_rules_file   = sys.argv[3]
 
 src_rule_map = {}
-with open(src_all_rules_file, 'r') as src_all_rules:
+with open(src_kompiled_dir + '/allRules.txt', 'r') as src_all_rules:
     for line in src_all_rules:
         [ src_rule_hash, src_rule_loc ] = line.split(' ')
         src_rule_loc = src_rule_loc.split('/')[-1]
         src_rule_map[src_rule_hash.strip()] = src_rule_loc.strip()
 
 dst_rule_map = {}
-with open(dst_all_rules_file, 'r') as dst_all_rules:
+with open(dst_kompiled_dir + '/allRules.txt', 'r') as dst_all_rules:
     for line in dst_all_rules:
         [ dst_rule_hash, dst_rule_loc ] = line.split(' ')
         dst_rule_loc = dst_rule_loc.split('/')[-1]
