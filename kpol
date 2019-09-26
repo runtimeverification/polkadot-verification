@@ -2,5 +2,5 @@
 
 export K_OPTS=-Xmx24G
 export KWASM_DIR=$(pwd)
-export KWASM_DEFN_DIR=$(pwd)/.build/defn/kwasm
+export KWASM_DEFN_DIR=$(pwd)/.build/defn/${SUBDEFN:-kwasm}
 deps/wasm-semantics/kwasm "$@"

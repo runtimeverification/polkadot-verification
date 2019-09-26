@@ -39,7 +39,8 @@ pipeline {
         stage('KWasm') {
           steps {
             sh '''
-              make build -j4
+              make build SUBDEFN=kwasm                                 -j4
+              make build SUBDEFN=coverage KOMPILE_OPTIONS='--coverage' -j4
             '''
           }
         }
@@ -55,6 +56,7 @@ pipeline {
     stage('Test') {
       parallel {
         stage('Can Build Specs') {
+          options { timeout(time: 1, unit: 'MINUTES') }
           steps {
             sh '''
               make test-can-build-specs -j6
@@ -62,9 +64,18 @@ pipeline {
           }
         }
         stage('Python Config') {
+          options { timeout(time: 1, unit: 'MINUTES') }
           steps {
             sh '''
               make test-python-config
+            '''
+          }
+        }
+        stage('Fuse Rules Simple') {
+          options { timeout(time: 20, unit: 'MINUTES') }
+          steps {
+            sh '''
+              make test-fuse-rules
             '''
           }
         }
