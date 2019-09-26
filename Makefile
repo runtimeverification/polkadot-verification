@@ -125,13 +125,15 @@ $(POLKADOT_RUNTIME_WASM):
 #       Would be better without the `rm -rf ...`, and with these:
 #           $(KPOL) run --backend $(CONCRETE_BACKEND) $(SIMPLE_TESTS)/$*.wast --coverage-file $(SIMPLE_TESTS)/$*.wast.$(CONCRETE_BACKEND)-coverage
 #           ./translateCoverage.py _ _ $(SIMPLE_TESTS)/$*.wast.$(SYMBOLIC_BACKEND)-coverage
-%.wast.fuse-rules:
+$(KWASM_SUBMODULE)/tests/simple/%.wast.coverage-$(CONCRETE_BACKEND): $(KWASM_SUBMODULE)/tests/simple/%.wast
 	rm -rf $(DEFN_DIR)/coverage/$(CONCRETE_BACKEND)/$(MAIN_DEFN_FILE)-kompiled/*_coverage.txt
-	SUBDEFN=coverage $(KPOL) run --backend $(CONCRETE_BACKEND) $*.wast
-	./translateCoverage.py $(DEFN_DIR)/coverage/$(CONCRETE_BACKEND)/$(MAIN_DEFN_FILE)-kompiled/allRules.txt   \
-	                       $(DEFN_DIR)/coverage/$(SYMBOLIC_BACKEND)/$(MAIN_DEFN_FILE)-kompiled/allRules.txt   \
-	                       $(DEFN_DIR)/coverage/$(CONCRETE_BACKEND)/$(MAIN_DEFN_FILE)-kompiled/*_coverage.txt \
-	                     > $*.wast.coverage-$(SYMBOLIC_BACKEND)
+	SUBDEFN=coverage $(KPOL) run --backend $(CONCRETE_BACKEND) $<
+	mv $(DEFN_DIR)/coverage/$(CONCRETE_BACKEND)/$(MAIN_DEFN_FILE)-kompiled/*_coverage.txt $@
+
+$(KWASM_SUBMODULE)/tests/simple/%.wast.coverage-$(SYMBOLIC_BACKEND): $(KWASM_SUBMODULE)/tests/simple/%.wast.coverage-$(CONCRETE_BACKEND)
+	./translateCoverage.py $(DEFN_DIR)/coverage/$(CONCRETE_BACKEND)/$(MAIN_DEFN_FILE)-kompiled \
+	                       $(DEFN_DIR)/coverage/$(SYMBOLIC_BACKEND)/$(MAIN_DEFN_FILE)-kompiled \
+	                       $< > $@
 	# SUBDEFN=coverage $(KPOL) run --backend $(SYMBOLIC_BACKEND) $*.wast.coverage-$(SYMBOLIC_BACKEND) --rule-sequence
 
 # Specification Build
@@ -170,7 +172,7 @@ bad_simple_tests := $(KWASM_SUBMODULE)/tests/simple/arithmetic.wast \
                     $(KWASM_SUBMODULE)/tests/simple/memory.wast
 simple_tests     := $(filter-out $(bad_simple_tests), $(all_simple_tests))
 
-test-fuse-rules: $(simple_tests:=.fuse-rules)
+test-fuse-rules: $(KWASM_SUBMODULE)/tests/simple/branching.wast.coverage-$(SYMBOLIC_BACKEND)
 
 # Python Configuration Build
 # --------------------------
