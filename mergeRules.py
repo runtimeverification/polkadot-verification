@@ -63,7 +63,7 @@ for subsequence in maximal_subsequences:
     for rule_id in rule_ids:
         print('rule_id: ' + rule_id)
         rule = getRuleById(WASM_definition_haskell_no_coverage, rule_id)
-        print(pyk.prettyPrintKast(rule, WASM_symbols_haskell_no_coverage))
+        print(pyk.prettyPrintKast(pyk.minimizeRule(rule), WASM_symbols_haskell_no_coverage))
         print()
 
     (rc, stdout, stderr) = mergeRules(WASM_definition_haskell_no_coverage_dir + '/wasm-with-k-term-kompiled/definition.kore', rule_ids, kArgs = ['--module', 'WASM-WITH-K-TERM'])
@@ -73,7 +73,13 @@ for subsequence in maximal_subsequences:
             tempf.flush()
             (_, stdout, stderr) = pyk.kast(WASM_definition_haskell_no_coverage_dir, tempf.name, kastArgs = ['--input', 'kore', '--output', 'json'])
             kast_output = json.loads(stdout)['term']
-            print(pyk.prettyPrintKast(kast_output, WASM_symbols_haskell_no_coverage))
+            # print(pyk.prettyPrintKast(kast_output, WASM_symbols_haskell_no_coverage))
+            rule_pattern = KApply('#Implies', [KApply('#And', [KVariable('#CONSTRAINT'), KVariable('#INITTERM')]), KVariable('#FINALTERM')])
+            rule_subst = pyk.match(rule_pattern, kast_output)
+            # print(str(rule_subst))
+            rule_body = pyk.pushDownRewrites(pyk.KRewrite(rule_subst['#INITTERM'], rule_subst['#FINALTERM']))
+            gen_rule = pyk.minimizeRule(pyk.KRule(rule_body, requires = rule_subst['#CONSTRAINT']))
+            print(pyk.prettyPrintKast(gen_rule, WASM_symbols_haskell_no_coverage))
     else:
         print(stderr)
         _warning('Cannot merge rules!')
