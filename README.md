@@ -18,7 +18,29 @@ Then the following (roughly) is what you need to do to build KWasm for this repo
 
 ```sh
 git submodule update --init --recursive
-./deps/wasm-semantics/deps/k/k-distribution/src/main/scripts/bin/k-configure-opam-dev
 make deps
-make build -j4
+make build -j2 KOMPILE_OPTIONS='"--emit-json --coverage"' SUBDEFN=coverage
+make build -j2 KOMPILE_OPTIONS='"--emit-json"'
 ```
+
+Setup `PATH` and `PYTHONPATH`:
+
+```sh
+export PATH=./deps/wasm-semantics/deps/k/k-distribution/target/release/k/bin:$PATH
+export PYTHONPATH=./deps/wasm-semantics/deps/k/k-distribution/target/release/k/lib
+```
+
+Then generate the haskell coverage file:
+
+```sh
+make deps/wasm-semantics/tests/simple/constants.wast.coverage-haskell
+```
+
+Then try merging the rules:
+
+```sh
+./mergeRules.py deps/wasm-semantics/tests/simple/constants.wast.coverage-haskell 2
+```
+
+Which results in errors in `definition.kore` due to multiple symbols with the same klabel (for `EmptyK` and `EmptyKList`).
+Edit `definition.kore` directly to fix it, then re-run the above command.
