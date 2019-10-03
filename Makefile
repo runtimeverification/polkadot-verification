@@ -56,7 +56,6 @@ POLKADOT_RUNTIME_WASM := $(POLKADOT_SUBMODULE)/target/release/wbuild/node-templa
 deps-polkadot:
 	rustup update nightly
 	rustup target add wasm32-unknown-unknown --toolchain nightly
-	rustup update stable
 	cargo install --git https://github.com/alexcrichton/wasm-gc
 
 # Useful Builds
@@ -132,7 +131,7 @@ $(KWASM_SUBMODULE)/tests/simple/%.wast.coverage-$(CONCRETE_BACKEND): $(KWASM_SUB
 
 $(KWASM_SUBMODULE)/tests/simple/%.wast.coverage-$(SYMBOLIC_BACKEND): $(KWASM_SUBMODULE)/tests/simple/%.wast.coverage-$(CONCRETE_BACKEND)
 	./translateCoverage.py $(DEFN_DIR)/coverage/$(CONCRETE_BACKEND)/$(MAIN_DEFN_FILE)-kompiled \
-	                       $(DEFN_DIR)/coverage/$(SYMBOLIC_BACKEND)/$(MAIN_DEFN_FILE)-kompiled \
+	                       $(DEFN_DIR)/kwasm/$(SYMBOLIC_BACKEND)/$(MAIN_DEFN_FILE)-kompiled    \
 	                       $< > $@
 	# SUBDEFN=coverage $(KPOL) run --backend $(SYMBOLIC_BACKEND) $*.wast.coverage-$(SYMBOLIC_BACKEND) --rule-sequence
 
