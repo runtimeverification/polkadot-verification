@@ -13,25 +13,10 @@ with open(sys.argv[1], 'r') as rule_file:
 
 subsequence_length = int(sys.argv[2])
 
-subsequences = { }
+################################################################################
+# Should be Upstreamed                                                         #
+################################################################################
 
-for i in range(0, len(rules) - subsequence_length):
-    subsequence = '|'.join(rules[ i : i + subsequence_length ])
-    if subsequence in subsequences:
-        subsequences[subsequence] += 1
-    else:
-        subsequences[subsequence] = 1
-
-maximal_subsequences      = []
-maximal_subsequence_count = 0
-for subsequence in subsequences.keys():
-    if subsequences[subsequence] > maximal_subsequence_count:
-        maximal_subsequences = [subsequence]
-        maximal_subsequence_count = subsequences[subsequence]
-    elif subsequences[subsequence] == maximal_subsequence_count:
-        maximal_subsequences.append(subsequence)
-
-# TODO: Upstream this
 def getRuleById(definition, rule_id):
     for module in definition['modules']:
         for sentence in module['localSentences']:
@@ -56,6 +41,33 @@ def mergeRules(definition, ruleList, kArgs = [], teeOutput = True, kRelease = No
         sys.stdout.write('\n'.join(ruleList))
         sys.stdout.flush()
         return _runK2('kore-exec', definition, kArgs = ['--merge-rules', tempf.name] + kArgs, teeOutput = teeOutput, kRelease = kRelease)
+
+################################################################################
+# Calculate subsequences and find the maximal subsequences                     #
+################################################################################
+
+subsequences = { }
+
+for i in range(0, len(rules) - subsequence_length):
+    subsequence = '|'.join(rules[ i : i + subsequence_length ])
+    if subsequence in subsequences:
+        subsequences[subsequence] += 1
+    else:
+        subsequences[subsequence] = 1
+
+maximal_subsequences      = []
+maximal_subsequence_count = 0
+
+for subsequence in subsequences.keys():
+    if subsequences[subsequence] > maximal_subsequence_count:
+        maximal_subsequences      = [subsequence]
+        maximal_subsequence_count = subsequences[subsequence]
+    elif subsequences[subsequence] == maximal_subsequence_count:
+        maximal_subsequences.append(subsequence)
+
+################################################################################
+# Generate merged rules for selected maximal subsequences                      #
+################################################################################
 
 for subsequence in maximal_subsequences:
     _notif('Merging rules: ' + subsequence)
