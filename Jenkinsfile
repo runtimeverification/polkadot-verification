@@ -25,6 +25,13 @@ pipeline {
             '''
           }
         }
+        stage('Polkadot') {
+          steps {
+            sh '''
+              make deps-polkadot
+            '''
+          }
+        }
       }
     }
     stage('Build') {
@@ -40,6 +47,13 @@ pipeline {
           steps {
             sh '''
               make build SUBDEFN=coverage KOMPILE_OPTIONS='"--emit-json --coverage"' -j4
+            '''
+          }
+        }
+        stage('Polkadot') {
+          steps {
+            sh '''
+              make polkadot-runtime-source
             '''
           }
         }
