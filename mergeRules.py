@@ -55,15 +55,20 @@ for i in range(0, len(rules) - subsequence_length):
     else:
         subsequences[subsequence] = 1
 
-maximal_subsequences      = []
-maximal_subsequence_count = 0
+maximal_subsequences          = []
+maximal_subsequence_count     = 0
+maximal_subsequences_rule_set = set([])
 
 for subsequence in subsequences.keys():
+    rule_set = set(subsequence.split('|'))
     if subsequences[subsequence] > maximal_subsequence_count:
-        maximal_subsequences      = [subsequence]
-        maximal_subsequence_count = subsequences[subsequence]
+        maximal_subsequences          = [subsequence]
+        maximal_subsequence_count     = subsequences[subsequence]
+        maximal_subsequences_rule_set = rule_set
     elif subsequences[subsequence] == maximal_subsequence_count:
-        maximal_subsequences.append(subsequence)
+        if not any([ rule in maximal_subsequences_rule_set for rule in rule_set ]):
+            maximal_subsequences.append(subsequence)
+            maximal_subsequences_rule_set = maximal_subsequences_rule_set.union(rule_set)
 
 ################################################################################
 # Generate merged rules for selected maximal subsequences                      #
