@@ -76,12 +76,12 @@ build: build-llvm build-haskell
 # ---------------
 
 build-%: $(DEFN_DIR)/$(SUBDEFN)/%/$(MAIN_DEFN_FILE).k
-	$(KWASM_MAKE) build-$*                       \
-	    DEFN_DIR=../../$(DEFN_DIR)/$(SUBDEFN)    \
-	    MAIN_MODULE=$(MAIN_MODULE)               \
-	    MAIN_SYNTAX_MODULE=$(MAIN_SYNTAX_MODULE) \
-	    MAIN_DEFN_FILE=$(MAIN_DEFN_FILE)         \
-	    KOMPILE_OPTIONS=$(KOMPILE_OPTIONS)
+	$(KWASM_MAKE) build-$*                               \
+	    DEFN_DIR=../../$(DEFN_DIR)/$(SUBDEFN)            \
+	    MAIN_MODULE=$(MAIN_MODULE)                       \
+	    MAIN_SYNTAX_MODULE=$(MAIN_SYNTAX_MODULE)         \
+	    MAIN_DEFN_FILE=$(MAIN_DEFN_FILE)                 \
+	    KOMPILE_OPTIONS="--emit-json $(KOMPILE_OPTIONS)"
 
 .SECONDARY: $(DEFN_DIR)/$(SUBDEFN)/llvm/$(MAIN_DEFN_FILE).k    \
             $(DEFN_DIR)/$(SUBDEFN)/haskell/$(MAIN_DEFN_FILE).k

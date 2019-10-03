@@ -39,14 +39,14 @@ pipeline {
         stage('KWasm (normal)') {
           steps {
             sh '''
-              make build SUBDEFN=kwasm    KOMPILE_OPTIONS='"--emit-json"'            -j4
+              make build SUBDEFN=kwasm -j4
             '''
           }
         }
         stage('KWasm (coverage)') {
           steps {
             sh '''
-              make build SUBDEFN=coverage KOMPILE_OPTIONS='"--emit-json --coverage"' -j4
+              make build SUBDEFN=coverage -j4 KOMPILE_OPTIONS='--coverage'
             '''
           }
         }
