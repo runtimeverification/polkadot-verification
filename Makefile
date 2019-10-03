@@ -56,7 +56,6 @@ POLKADOT_RUNTIME_WASM := $(POLKADOT_SUBMODULE)/target/release/wbuild/node-templa
 deps-polkadot:
 	rustup update nightly
 	rustup target add wasm32-unknown-unknown --toolchain nightly
-	rustup update stable
 	cargo install --git https://github.com/alexcrichton/wasm-gc
 
 # Useful Builds
