@@ -47,6 +47,7 @@ def iterated_compile(src_definition_dir, dst_definition_dir, main_defn_file, mai
         coverage_data = get_coverage(input_program, src_definition_dir, main_defn_file, dst_definition_dir)
         times.append(time.clock() - time_start)
         merged_rules = mergeRules(coverage_data, dst_definition_json, main_defn_file, main_module, dst_symbol_table, subsequence_length = subsequence_length)
+        merged_rules = [ addAttribute(rule, 'priority', str(49 - i)) for rule in merged_rules ]
         append_module_to_file(src_definition_dir, main_defn_file, main_module, i, merged_rules, src_symbol_table)
         append_module_to_file(dst_definition_dir, main_defn_file, main_module, i, merged_rules, dst_symbol_table)
     return times
