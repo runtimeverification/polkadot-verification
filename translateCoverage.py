@@ -74,11 +74,17 @@ def translateCoverage(src_all_rules, dst_all_rules, dst_definition, src_rules_li
 
     return dst_rule_list
 
-if __name__ == '__main__':
-    src_kompiled_dir = sys.argv[1]  # usually .build/defn/coverage/llvm/wasm-with-k-term-kompiled
-    dst_kompiled_dir = sys.argv[2]  # usually .build/defn/kwasm/haskell/wasm-with-k-term-kompiled
-    src_rules_file   = sys.argv[3]  # usually something like deps/wasm-semantics/tests/simple/constants.wast.llvm-coverage
+def translateCoverageFromPaths(src_komplied_dir, dst_kompiled_dir, src_rules_file):
+    """Translate coverage information given paths to needed files.
 
+    Input:
+
+        -   src_kompiled_dir: Path to *-kompiled directory of source.
+        -   dst_kompiled_dir: Path to *-kompiled directory of destination.
+        -   src_rules_file: Path to generated rules coverage file.
+
+    Output: Translated list of rules with non-semantic rules stripped out.
+    """
     src_all_rules = []
     with open(src_kompiled_dir + '/allRules.txt', 'r') as src_all_rules_file:
         src_all_rules = [ line.strip() for line in src_all_rules_file ]
@@ -93,7 +99,14 @@ if __name__ == '__main__':
     with open(src_rules_file, 'r') as src_rules:
         src_rules_list = [ line.strip() for line in src_rules ]
 
-    dst_rules_list = translateCoverage(src_all_rules, dst_all_rules, dst_definition, src_rules_list)
+    return translateCoverage(src_all_rules, dst_all_rules, dst_definition, src_rules_list)
+
+if __name__ == '__main__':
+    src_kompiled_dir = sys.argv[1]  # usually .build/defn/coverage/llvm/wasm-with-k-term-kompiled
+    dst_kompiled_dir = sys.argv[2]  # usually .build/defn/kwasm/haskell/wasm-with-k-term-kompiled
+    src_rules_file   = sys.argv[3]  # usually something like deps/wasm-semantics/tests/simple/constants.wast.llvm-coverage
+
+    dst_rules_list = translateCoverageFromPaths(src_kompiled_dir, dst_kompiled_dir, src_rules_file)
 
     # Print the new rule list one line at a time.
     sys.stdout.write('\n'.join(dst_rules_list) + '\n')
