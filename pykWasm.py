@@ -2,8 +2,10 @@
 
 import difflib
 import json
+import os
 import pyk
 import sys
+import tempfile
 
 from pyk.kast import KApply, KConstant, KRewrite, KSequence, KToken, KVariable, _notif, _warning, _fatal
 
@@ -20,6 +22,31 @@ def kompile_definition(definition_dir, backend, main_defn_file, main_module, kom
     kCommand = [ command , '--backend' , backend , '--directory' , definition_dir , '-I' , definition_dir , '--main-module' , main_module , main_defn_file ] + kompileArgs
     _notif('Running: ' + ' '.join(kCommand))
     return pyk._teeProcessStdout(kCommand, tee = teeOutput)
+
+def getRuleById(definition, rule_id):
+    for module in definition['modules']:
+        for sentence in module['localSentences']:
+            if pyk.isKRule(sentence) and 'att' in sentence:
+                atts = sentence['att']['att']
+                if 'UNIQUE_ID' in atts and atts['UNIQUE_ID'] == rule_id:
+                    return sentence
+
+def _runK2(command, definition, kArgs = [], teeOutput = True, kRelease = None):
+    if kRelease is not None:
+        command = kRelease + '/bin/' + command
+    elif 'K_RELEASE' in os.environ:
+        command = os.environ['K_RELEASE'] + '/bin/' + command
+    kCommand = [ command , definition ] + kArgs
+    _notif('Running: ' + ' '.join(kCommand))
+    return pyk._teeProcessStdout(kCommand, tee = teeOutput)
+
+def mergeRulesKoreExec(definition, ruleList, kArgs = [], teeOutput = True, kRelease = None):
+    with tempfile.NamedTemporaryFile(mode = 'w') as tempf:
+        tempf.write('\n'.join(ruleList))
+        tempf.flush()
+        sys.stdout.write('\n'.join(ruleList))
+        sys.stdout.flush()
+        return _runK2('kore-exec', definition, kArgs = ['--merge-rules', tempf.name] + kArgs, teeOutput = teeOutput, kRelease = kRelease)
 
 ################################################################################
 # Load Definition Specific Stuff                                               #

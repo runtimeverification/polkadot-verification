@@ -1,40 +1,10 @@
 #!/usr/bin/env python3
 
-import os
 import sys
 import tempfile
 
 from pykWasm import *
 from pykWasm import _notif, _warning, _fatal
-
-################################################################################
-# Should be Upstreamed                                                         #
-################################################################################
-
-def getRuleById(definition, rule_id):
-    for module in definition['modules']:
-        for sentence in module['localSentences']:
-            if pyk.isKRule(sentence) and 'att' in sentence:
-                atts = sentence['att']['att']
-                if 'UNIQUE_ID' in atts and atts['UNIQUE_ID'] == rule_id:
-                    return sentence
-
-def _runK2(command, definition, kArgs = [], teeOutput = True, kRelease = None):
-    if kRelease is not None:
-        command = kRelease + '/bin/' + command
-    elif 'K_RELEASE' in os.environ:
-        command = os.environ['K_RELEASE'] + '/bin/' + command
-    kCommand = [ command , definition ] + kArgs
-    _notif('Running: ' + ' '.join(kCommand))
-    return pyk._teeProcessStdout(kCommand, tee = teeOutput)
-
-def mergeRulesKoreExec(definition, ruleList, kArgs = [], teeOutput = True, kRelease = None):
-    with tempfile.NamedTemporaryFile(mode = 'w') as tempf:
-        tempf.write('\n'.join(ruleList))
-        tempf.flush()
-        sys.stdout.write('\n'.join(ruleList))
-        sys.stdout.flush()
-        return _runK2('kore-exec', definition, kArgs = ['--merge-rules', tempf.name] + kArgs, teeOutput = teeOutput, kRelease = kRelease)
 
 ################################################################################
 # Calculate subsequences and find the maximal subsequences                     #
