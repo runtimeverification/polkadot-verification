@@ -3,7 +3,8 @@
         build                                                        \
         polkadot-runtime-source polkadot-runtime-loaded              \
         specs                                                        \
-        test test-can-build-specs test-python-config test-rule-lists
+        test test-can-build-specs test-python-config test-rule-lists \
+        test-merge-rules
 
 # Settings
 # --------
@@ -168,7 +169,7 @@ $(SPECS_DIR)/%-spec.k.prove: $(SPECS_DIR)/%-spec.k $(SPECS_DIR)/%-kompiled/defin
 
 CHECK := git --no-pager diff --no-index --ignore-all-space
 
-test: test-fuse-rules prove-specs test-python-config
+test: test-merge-rules prove-specs test-python-config
 
 all_simple_tests := $(wildcard $(KWASM_SUBMODULE)/tests/simple/*.wast)
 bad_simple_tests := $(KWASM_SUBMODULE)/tests/simple/arithmetic.wast     \
@@ -182,6 +183,10 @@ bad_simple_tests := $(KWASM_SUBMODULE)/tests/simple/arithmetic.wast     \
 simple_tests     := $(filter-out $(bad_simple_tests), $(all_simple_tests))
 
 test-rule-lists: $(simple_tests:=.coverage-$(SYMBOLIC_BACKEND))
+test-merge-rules: $(simple_tests:=.merged-rules)
+
+$(KWASM_SUBMODULE)/tests/simple/%.wast.merged-rules: $(KWASM_SUBMODULE)/tests/simple/%.wast.coverage-$(SYMBOLIC_BACKEND)
+	./mergeRules.py $< 2
 
 # Python Configuration Build
 # --------------------------
