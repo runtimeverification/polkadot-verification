@@ -89,7 +89,7 @@ for subsequence in maximal_subsequences:
             tempf.write(stdout)
             tempf.flush()
             (_, stdout, stderr) = pyk.kast(WASM_definition_haskell_no_coverage_dir, tempf.name, kastArgs = ['--input', 'kore', '--output', 'json'])
-            (_, stdout2, stderr2) = pyk.kast(WASM_definition_haskell_no_coverage_dir, tempf.name, kastArgs = ['--input', 'kore', '--output', 'pretty'])
+            # (_, stdout2, stderr2) = pyk.kast(WASM_definition_haskell_no_coverage_dir, tempf.name, kastArgs = ['--input', 'kore', '--output', 'pretty'])
             kast_output = json.loads(stdout)['term']
             # print(pyk.prettyPrintKast(kast_output, WASM_symbols_haskell_no_coverage))
             rule_pattern = KApply('#Implies', [KApply('#And', [KVariable('#CONSTRAINT'), KVariable('#INITTERM')]), KVariable('#FINALTERM')])
