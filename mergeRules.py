@@ -89,15 +89,13 @@ for subsequence in maximal_subsequences:
             tempf.write(stdout)
             tempf.flush()
             (_, stdout, stderr) = pyk.kast(WASM_definition_haskell_no_coverage_dir, tempf.name, kastArgs = ['--input', 'kore', '--output', 'json'])
-            # (_, stdout2, stderr2) = pyk.kast(WASM_definition_haskell_no_coverage_dir, tempf.name, kastArgs = ['--input', 'kore', '--output', 'pretty'])
-            kast_output = json.loads(stdout)['term']
-            # print(pyk.prettyPrintKast(kast_output, WASM_symbols_haskell_no_coverage))
-            rule_pattern = KApply('#Implies', [KApply('#And', [KVariable('#CONSTRAINT'), KVariable('#INITTERM')]), KVariable('#FINALTERM')])
-            rule_subst = pyk.match(rule_pattern, kast_output)
-            # print(str(rule_subst))
+            merged_rule = json.loads(stdout)['term']
+            rule_pattern = KRewrite(KApply('#And', [KVariable('#CONSTRAINT'), KVariable('#INITTERM')]), KVariable('#FINALTERM'))
+            rule_subst = pyk.match(rule_pattern, merged_rule)
             rule_body = pyk.KRewrite(rule_subst['#INITTERM'], rule_subst['#FINALTERM'])
             gen_rule = pyk.KRule(rule_body, requires = rule_subst['#CONSTRAINT'])
             print(pyk.prettyPrintKast(gen_rule, WASM_symbols_haskell_no_coverage))
+            sys.stdout.flush()
     else:
         print(stderr)
         _warning('Cannot merge rules!')
