@@ -85,6 +85,7 @@ def mergeRules(rule_sequence, definition_dir, definition, main_defn_file, main_m
                 rule_subst = pyk.match(rule_pattern, merged_rule)
                 rule_body = pyk.KRewrite(rule_subst['#INITTERM'], rule_subst['#FINALTERM'])
                 gen_rule = pyk.KRule(rule_body, requires = rule_subst['#CONSTRAINT'])
+                merged_rules.append(gen_rule)
                 print(pyk.prettyPrintKast(gen_rule, WASM_symbols_haskell_no_coverage))
                 sys.stdout.flush()
         else:
