@@ -48,6 +48,24 @@ def mergeRulesKoreExec(definition, ruleList, kArgs = [], teeOutput = True, kRele
         sys.stdout.flush()
         return _runK2('kore-exec', definition, kArgs = ['--merge-rules', tempf.name] + kArgs, teeOutput = teeOutput, kRelease = kRelease)
 
+def mergeRules(definition_dir, main_defn_file, main_module, subsequence):
+    (rc, stdout, stderr) = mergeRulesKoreExec(definition_dir + '/' + main_defn_file + '-kompiled/definition.kore', subsequence, kArgs = ['--module', main_module])
+    if rc == 0:
+        with tempfile.NamedTemporaryFile(mode = 'w') as tempf:
+            tempf.write(stdout)
+            tempf.flush()
+            (_, stdout, stderr) = pyk.kast(definition_dir, tempf.name, kastArgs = ['--input', 'kore', '--output', 'json'])
+            merged_rule = json.loads(stdout)['term']
+            rule_pattern = KRewrite(KApply('#And', [KVariable('#CONSTRAINT'), KVariable('#INITTERM')]), KVariable('#FINALTERM'))
+            rule_subst = pyk.match(rule_pattern, merged_rule)
+            rule_body = pyk.KRewrite(rule_subst['#INITTERM'], rule_subst['#FINALTERM'])
+            gen_rule = pyk.KRule(rule_body, requires = rule_subst['#CONSTRAINT'])
+            return gen_rule
+    else:
+        print(stderr)
+        _warning('Cannot merge rules!')
+        return None
+
 ################################################################################
 # Load Definition Specific Stuff                                               #
 ################################################################################
