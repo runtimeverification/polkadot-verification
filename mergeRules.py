@@ -3,11 +3,23 @@
 import sys
 import tempfile
 
-#from pykWasm import *
-#from pykWasm import _notif, _warning, _fatal
+from pykWasm import *
+from pykWasm import _notif, _warning, _fatal
 
 ################################################################################
-# Calculate subsequences and find the maximal subsequences                     #
+# Direct rule merging                                                          #
+################################################################################
+
+def merge_rules_direct(definition_dir, definition, main_defn_file, main_module, rule_sequences):
+    merged_rules = []
+    for rule_sequence in rule_sequences:
+        gen_rule = mergeRules(definition_dir, main_defn_file, main_module, rule_sequence)
+        if gen_rule is not None:
+            merged_rules.append(gen_rule)
+    return merged_rules
+
+################################################################################
+# Rule Merging based on maximal non-overlapping subsequences                   #
 ################################################################################
 
 def maximal_nonoverlapping_subsequences(sequence, subsequence_length = 2):
@@ -46,53 +58,30 @@ def maximal_nonoverlapping_subsequences(sequence, subsequence_length = 2):
 
     return [ subsequence.split('|') for subsequence in maximal_subsequences ]
 
-################################################################################
-# Generate merged rules for selected maximal subsequences                      #
-################################################################################
+def merge_rules_max_subsequences(definition_dir, main_defn_file, main_module, rule_sequences, subsequence_length = 2):
+    """Merge rules which form maximal length subsequences.
 
-#def mergeRules(rule_sequence, definition_dir, definition, main_defn_file, main_module, symbol_table, subsequence_length = 2):
-#    """Merge rules which form maximal length subsequences.
-#
-#    Input:
-#        -   rule_sequence: total sequence of all rules to look at.
-#        -   definition: JSON encoding of definition to do rule merging over.
-#        -   main_defn_file: name of main definition file.
-#        -   main_module: name of main module of definition.
-#        -   symbol_table: unparsing symbol table for definition.
-#        -   subsequence_length: how large of subsequences to attempt rule merging for.
-#
-#    Output: List of merged rules for maximal subsequences of the given length.
-#    """
-#    maximal_subsequences = maximal_nonoverlapping_subsequences(rule_sequence, subsequence_length = subsequence_length)
-#
-#    merged_rules = []
-#    for subsequence in maximal_subsequences:
-#        _notif('Merging rules: ' + str(subsequence))
-#        for rule_id in subsequence:
-#            print('rule_id: ' + rule_id)
-#            rule = getRuleById(definition, rule_id)
-#            print(pyk.prettyPrintKast(rule, symbol_table))
-#            print()
-#
-#        (rc, stdout, stderr) = mergeRulesKoreExec(definition_dir + '/' + main_defn_file + '-kompiled/definition.kore', subsequence, kArgs = ['--module', main_module])
-#        if rc == 0:
-#            with tempfile.NamedTemporaryFile(mode = 'w') as tempf:
-#                tempf.write(stdout)
-#                tempf.flush()
-#                (_, stdout, stderr) = pyk.kast(definition_dir, tempf.name, kastArgs = ['--input', 'kore', '--output', 'json'])
-#                merged_rule = json.loads(stdout)['term']
-#                rule_pattern = KRewrite(KApply('#And', [KVariable('#CONSTRAINT'), KVariable('#INITTERM')]), KVariable('#FINALTERM'))
-#                rule_subst = pyk.match(rule_pattern, merged_rule)
-#                rule_body = pyk.KRewrite(rule_subst['#INITTERM'], rule_subst['#FINALTERM'])
-#                gen_rule = pyk.KRule(rule_body, requires = rule_subst['#CONSTRAINT'])
-#                merged_rules.append(gen_rule)
-#                print(pyk.prettyPrintKast(gen_rule, WASM_symbols_haskell_no_coverage))
-#                sys.stdout.flush()
-#        else:
-#            print(stderr)
-#            _warning('Cannot merge rules!')
-#
-#    return merged_rules
+    Input:
+        -   definition_dir: directory of definition to do rule merging in.
+        -   main_defn_file: name of main definition file.
+        -   main_module: name of main module of definition.
+        -   rule_sequences: total sequence of all rules to look at.
+        -   subsequence_length: how large of subsequences to attempt rule merging for.
+
+    Output: List of merged rules for maximal subsequences of the given length.
+    """
+    merged_rules = []
+    for rule_sequence in rule_sequences:
+        maximal_subsequences = maximal_nonoverlapping_subsequences(rule_sequence, subsequence_length = subsequence_length)
+        for subsequence in maximal_subsequences:
+            gen_rule = mergeRules(definition_dir, main_defn_file, main_module, rule_sequence)
+            if gen_rule is not None:
+                merged_rules.append(gen_rule)
+    return merged_rules
+
+################################################################################
+# Merging rules based on max productivity                                      #
+################################################################################
 
 def rule_seq_follow_count(rule_seq, rule_traces):
     rule_follow = { }
@@ -158,73 +147,62 @@ def calculate_new_traces(rule_traces, rules_to_merge):
                 i += 1
     return new_traces
 
+def merge_rules_max_productivity(definition_dir, main_defn_file, main_module, rule_sequences, min_merged_success_rate = 0.25, min_occurance_rate = 0.05):
+    """Merge rules which will cause maximal productivity for a given backend.
+
+    Input:
+        -   definition_dir: Directory where definition lives.
+        -   main_defn_file: name of main definition file.
+        -   main_module: name of main module of definition.
+        -   rule_sequences: all sequences to use as input data for deciding productivity.
+        -   min_merged_success_rate: how often the resulting merged rule should apply (relative to how many times the first step in the rule would have applied).
+        -   min_occurance_rate: how often the first step in the merged rule should apply relative to all the rules.
+
+    Output: List of merged rules to add to definition at lower priority.
+    """
+
+    while True:
+        (next_rule_merge, m1, m2) = calculate_next_rule_merge(rule_sequences)
+        if next_rule_merge is None:
+            break
+        print('Merging: ' + str(next_rule_merge) + ' with merged success rate: ' + str(m1) + ' and occurance rate: ' + str(m2))
+        rule_sequences = calculate_new_traces(rule_traces, next_rule_merge)
+    merged_rule_traces = set([])
+    for rule_sequence in rule_sequences:
+        for rule in rule_sequence:
+            if len(rule.split('|')) > 1:
+                merged_rule_traces.add(rule)
+    merged_rules = []
+    for rule in merged_rule_traces:
+        gen_rule = mergeRules(definition_dir, main_defn_file, main_module, rule.split('|'))
+        if gen_rule is not None:
+            merged_rules.append(gen_rule)
+    return merged_rules
+
 ################################################################################
 # Main functionality                                                           #
 ################################################################################
 
 if __name__ == '__main__':
-    rule_file_paths = [ 'coverage-data/table.wast.coverage-haskell'
-                      , 'coverage-data/conversion.wast.coverage-haskell'
-                      , 'coverage-data/imports.wast.coverage-haskell'
-                      , 'coverage-data/variables.wast.coverage-haskell'
-                      , 'coverage-data/branching.wast.coverage-haskell'
-                      , 'coverage-data/modules.wast.coverage-haskell'
-                      , 'coverage-data/data.wast.coverage-haskell'
-                      , 'coverage-data/unicode.wast.coverage-haskell'
-                      , 'coverage-data/start.wast.coverage-haskell'
-                      , 'coverage-data/address-c.wast.coverage-haskell'
-                      , 'coverage-data/comments.wast.coverage-haskell'
-                      , 'coverage-data/integers.wast.coverage-haskell'
-                      , 'coverage-data/identifiers.wast.coverage-haskell'
-                      ]
+    merge_type  = sys.argv[1]
+    merge_files = sys.argv[2:]
 
     rule_traces = []
-    rule_sets = [set([])]
     for rule_file_path in rule_file_paths:
         with open(rule_file_path, 'r') as rule_file:
             rules = [ line.strip() for line in rule_file ]
             rule_traces.append(rules)
-            rule_sets[0] = rule_sets[0].union(set(rules))
-    rule_sets.append(set([]))
 
-    # rule_traces = rule_traces[0:1]
-    print(rule_traces)
+    if merge_type == 'direct':
+        merged_rules = merge_rules_direct(WASM_definition_haskell_no_coverage_dir, 'wasm-with-k-term', 'WASM-WITH-K-TERM', rule_traces)
+    elif merge_type == 'max-subseq':
+        merged_rules = merge_rules_max_subsequences(WASM_definition_haskell_no_coverage_dir, 'wasm-with-k-term', 'WASM-WITH-K-TERM', rule_traces, subsequence_length = 2)
+    elif merge_type == 'max-productivity':
+        merged_rules = merge_rules_max_productivity(WASM_definition_haskell_no_coverage_dir, 'wasm-with-k-term', 'WASM-WITH-K-TERM', rule_traces, min_merged_success_rate = 0.25, min_occurance_rate = 0.05)
+    else:
+        _fatal('Unknown merge technique: ' + merge_type)
 
-    while True:
-        (next_rule_merge, m1, m2) = calculate_next_rule_merge(rule_traces)
-        if next_rule_merge is None:
-            break
-        print('Merging: ' + str(next_rule_merge) + ' with merged success rate: ' + str(m1) + ' and occurance rate: ' + str(m2))
-        rule_traces = calculate_new_traces(rule_traces, next_rule_merge)
-    print(rule_traces)
-
-    sys.exit(1)
-
-
-    r1 = '8c5037076555451c7425967181bb86d68c45a908dcb663cbd7265b43b08e1bce'
-    r2 = 'cf4162273f4cd02153ce127e0f7f062c40fedf05a6d80709dc5412fc6bdcc494'
-    rule_follow_exp = rule_seq_follow_count([r1], rule_traces)
-    print(rule_follow_exp)
-    print(rule_follow_exp[r2])
-
-    rule_count1 = sum([ rule_follow_exp[k] for k in rule_follow_exp.keys() ])
-    print(rule_count1)
-
-    rule_count2 = 0
-    for rule_trace in rule_traces:
-        if rule_trace[-1] == r1:
-            rule_count2 += 1
-    print(rule_count2)
-
-    rule_occurances = { rule : 0 for rule in rule_sets[0] }
-    for rule_trace in rule_traces:
-        for rule in rule_trace:
-            rule_occurances[rule] = rule_occurances[rule] + 1
-    print(rule_occurances)
-
-    print(rule_pairs)
-
-    print(rules_to_merge)
-    print(max_productivity)
-
-    #mergeRules(rules, WASM_definition_haskell_no_coverage_dir, WASM_definition_haskell_no_coverage, 'wasm-with-k-term', 'WASM-WITH-K-TERM', WASM_symbols_haskell_no_coverage, subsequence_length = subsequence_length)
+    for merged_rule in merged_rules:
+        _notif('Merged rule!')
+        print(pyk.prettyPrintKast(merged_rule, WASM_symbols_haskell_no_coverage))
+    sys.stdout.flush()
