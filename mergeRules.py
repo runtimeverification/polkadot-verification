@@ -10,7 +10,7 @@ from pykWasm import _notif, _warning, _fatal
 # Direct rule merging                                                          #
 ################################################################################
 
-def merge_rules_direct(definition_dir, definition, main_defn_file, main_module, rule_sequences):
+def merge_rules_direct(definition_dir, main_defn_file, main_module, rule_sequences):
     merged_rules = []
     for rule_sequence in rule_sequences:
         gen_rule = mergeRules(definition_dir, main_defn_file, main_module, rule_sequence)
@@ -166,7 +166,8 @@ def merge_rules_max_productivity(definition_dir, main_defn_file, main_module, ru
         if next_rule_merge is None:
             break
         print('Merging: ' + str(next_rule_merge) + ' with merged success rate: ' + str(m1) + ' and occurance rate: ' + str(m2))
-        rule_sequences = calculate_new_traces(rule_traces, next_rule_merge)
+        sys.stdout.flush()
+        rule_sequences = calculate_new_traces(rule_sequences, next_rule_merge)
     merged_rule_traces = set([])
     for rule_sequence in rule_sequences:
         for rule in rule_sequence:
@@ -174,7 +175,7 @@ def merge_rules_max_productivity(definition_dir, main_defn_file, main_module, ru
                 merged_rule_traces.add(rule)
     merged_rules = []
     for rule in merged_rule_traces:
-        gen_rule = mergeRules(definition_dir, main_defn_file, main_module, rule.split('|'))
+        gen_rule = mergeRules(definition_dir, main_defn_file, main_module, rule.split('|'), symbolTable = WASM_symbols_haskell_no_coverage, definition = WASM_definition_haskell_no_coverage)
         if gen_rule is not None:
             merged_rules.append(gen_rule)
     return merged_rules
@@ -188,7 +189,7 @@ if __name__ == '__main__':
     merge_files = sys.argv[2:]
 
     rule_traces = []
-    for rule_file_path in rule_file_paths:
+    for rule_file_path in merge_files:
         with open(rule_file_path, 'r') as rule_file:
             rules = [ line.strip() for line in rule_file ]
             rule_traces.append(rules)
@@ -205,4 +206,4 @@ if __name__ == '__main__':
     for merged_rule in merged_rules:
         _notif('Merged rule!')
         print(pyk.prettyPrintKast(merged_rule, WASM_symbols_haskell_no_coverage))
-    sys.stdout.flush()
+        sys.stdout.flush()
