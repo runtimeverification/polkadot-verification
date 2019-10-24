@@ -13,6 +13,10 @@ from pyk.kast import KApply, KConstant, KRewrite, KSequence, KToken, KVariable, 
 # Should be Upstreamed                                                         #
 ################################################################################
 
+def prettyPrintRule(kRule, symbolTable):
+    kRule['body'] = pyk.pushDownRewrites(kRule['body'])
+    return pyk.prettyPrintKast(pyk.minimizeRule(kRule), symbolTable)
+
 def kompile_definition(definition_dir, backend, main_defn_file, main_module, kompileArgs = [], teeOutput = True, kRelease = None):
     command = 'kompile'
     if kRelease is not None:
