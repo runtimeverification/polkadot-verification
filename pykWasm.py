@@ -44,16 +44,23 @@ def _runK2(command, definition, kArgs = [], teeOutput = True, kRelease = None):
     _notif('Running: ' + ' '.join(kCommand))
     return pyk._teeProcessStdout(kCommand, tee = teeOutput)
 
-def mergeRulesKoreExec(definition, ruleList, kArgs = [], teeOutput = True, kRelease = None):
+def mergeRulesKoreExec(definition_dir, ruleList, kArgs = [], teeOutput = True, kRelease = None, symbolTable = None, definition = None):
+    if symbolTable is not None and definition is not None:
+        _notif('Merging rules:')
+        for rule in ruleList:
+            print()
+            print('rule: ' + rule)
+            print(prettyPrintRule(getRuleById(definition, rule), symbolTable))
+            sys.stdout.flush()
     with tempfile.NamedTemporaryFile(mode = 'w') as tempf:
         tempf.write('\n'.join(ruleList))
         tempf.flush()
         sys.stdout.write('\n'.join(ruleList))
         sys.stdout.flush()
-        return _runK2('kore-exec', definition, kArgs = ['--merge-rules', tempf.name] + kArgs, teeOutput = teeOutput, kRelease = kRelease)
+        return _runK2('kore-exec', definition_dir, kArgs = ['--merge-rules', tempf.name] + kArgs, teeOutput = teeOutput, kRelease = kRelease)
 
-def mergeRules(definition_dir, main_defn_file, main_module, subsequence):
-    (rc, stdout, stderr) = mergeRulesKoreExec(definition_dir + '/' + main_defn_file + '-kompiled/definition.kore', subsequence, kArgs = ['--module', main_module])
+def mergeRules(definition_dir, main_defn_file, main_module, subsequence, symbolTable = None, definition = None):
+    (rc, stdout, stderr) = mergeRulesKoreExec(definition_dir + '/' + main_defn_file + '-kompiled/definition.kore', subsequence, kArgs = ['--module', main_module], symbolTable = symbolTable, definition = definition)
     if rc == 0:
         with tempfile.NamedTemporaryFile(mode = 'w') as tempf:
             tempf.write(stdout)
@@ -64,6 +71,10 @@ def mergeRules(definition_dir, main_defn_file, main_module, subsequence):
             rule_subst = pyk.match(rule_pattern, merged_rule)
             rule_body = pyk.KRewrite(rule_subst['#INITTERM'], rule_subst['#FINALTERM'])
             gen_rule = pyk.KRule(rule_body, requires = rule_subst['#CONSTRAINT'])
+            if symbolTable is not None:
+                _notif('Merged rule:')
+                print(prettyPrintRule(gen_rule, symbolTable))
+                sys.stdout.flush()
             return gen_rule
     else:
         print(stderr)
