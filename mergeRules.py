@@ -203,7 +203,8 @@ if __name__ == '__main__':
     else:
         _fatal('Unknown merge technique: ' + merge_type)
 
+    _notif('Merged rules!')
     for merged_rule in merged_rules:
-        _notif('Merged rule!')
+        print()
         print(pyk.prettyPrintKast(merged_rule, WASM_symbols_haskell_no_coverage))
         sys.stdout.flush()
