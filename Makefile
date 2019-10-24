@@ -4,7 +4,7 @@
         polkadot-runtime-source polkadot-runtime-loaded              \
         specs                                                        \
         test test-can-build-specs test-python-config test-rule-lists \
-        test-merge-rules
+        test-merge-rules test-merge-all-rules
 
 # Settings
 # --------
@@ -120,6 +120,8 @@ $(POLKADOT_RUNTIME_WASM):
 # Generate Execution Traces
 # -------------------------
 
+MERGE_RULES_TECHNIQUE := max-productivity
+
 # TODO: Hacky way for selecting coverage file  because `--coverage-file` is not respected at all
 #       So we have to forcibly remove any existing coverage files, and pick up the generated one with a wildcard
 #       Would be better without the `rm -rf ...`, and with these:
@@ -135,6 +137,9 @@ $(KWASM_SUBMODULE)/tests/simple/%.wast.coverage-$(SYMBOLIC_BACKEND): $(KWASM_SUB
 	                       $(DEFN_DIR)/kwasm/$(SYMBOLIC_BACKEND)/$(MAIN_DEFN_FILE)-kompiled    \
 	                       $< > $@
 	# SUBDEFN=coverage $(KPOL) run --backend $(SYMBOLIC_BACKEND) $*.wast.coverage-$(SYMBOLIC_BACKEND) --rule-sequence
+
+$(KWASM_SUBMODULE)/tests/simple/%.wast.merged-rules: $(KWASM_SUBMODULE)/tests/simple/%.wast.coverage-$(SYMBOLIC_BACKEND)
+	./mergeRules.py $(MERGE_RULES_TECHNIQUE) $< &> $@
 
 # Specification Build
 # -------------------
@@ -184,9 +189,10 @@ simple_tests     := $(filter-out $(bad_simple_tests), $(all_simple_tests))
 
 test-rule-lists: $(simple_tests:=.coverage-$(SYMBOLIC_BACKEND))
 test-merge-rules: $(simple_tests:=.merged-rules)
+test-merge-all-rules: $(KWASM_SUBMODULE)/tests/simple/merge-all-rules
 
-$(KWASM_SUBMODULE)/tests/simple/%.wast.merged-rules: $(KWASM_SUBMODULE)/tests/simple/%.wast.coverage-$(SYMBOLIC_BACKEND)
-	./mergeRules.py $< 2
+$(KWASM_SUBMODULE)/tests/simple/merge-all-rules: $(simple_tests:=.coverage-$(SYMBOLIC_BACKEND))
+	./mergeRules.py $(MERGE_RULES_TECHNIQUE) $^ &> $@
 
 # Python Configuration Build
 # --------------------------
