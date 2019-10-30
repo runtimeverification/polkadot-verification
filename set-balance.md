@@ -1,42 +1,16 @@
-`set_free_balance` spec
-=======================
-
-The Rust code is here:
-
-```
-/// Set the free balance of an account to some new value. Will enforce `ExistentialDeposit`
-/// law, annulling the account as needed.
-///
-/// Doesn't do any preparatory work for creating a new account, so should only be used when it
-/// is known that the account already exists.
-///
-/// NOTE: LOW-LEVEL: This will not attempt to maintain total issuance. It is expected that
-/// the caller will do this.
-fn set_free_balance(who: &T::AccountId, balance: T::Balance) -> UpdateBalanceOutcome {
-  // Commented out for now - but consider it instructive.
-  // assert!(!Self::total_balance(who).is_zero());
-  // assert!(Self::free_balance(who) > T::ExistentialDeposit::get());
-  if balance < T::ExistentialDeposit::get() {
-    <FreeBalance<T, I>>::insert(who, balance);
-    Self::on_free_too_low(who);
-    UpdateBalanceOutcome::AccountKilled
-  } else {
-    <FreeBalance<T, I>>::insert(who, balance);
-    UpdateBalanceOutcome::Updated
-  }
-}
-```
+`set_balance` spec
+==================
 
 State Model
 -----------
 
 ```k
-module SET-FREE-BALANCE-SPEC
+module SET-BALANCE-SPEC
     imports INT
     imports LIST
 
     configuration
-      <set-free-balance>
+      <set-balance>
         <k> $ACTION:Action </k>
         <events> .List </events>
         <existentialDeposit> 0 </existentialDeposit>
@@ -47,7 +21,7 @@ module SET-FREE-BALANCE-SPEC
             <nonce> .Nonce </nonce>
           </account>
         </accounts>
-      </set-free-balance>
+      </set-balance>
 ```
 
 Data
@@ -136,6 +110,55 @@ A `Result` is considered an `Action`.
            ( <account>
                <accountID> WHO </accountID>
                <balance> FREE_BALANCE | 0 </balance>
+               ...
+             </account>
+          => .Bag
+           )
+           ...
+         </accounts>
+      requires BALANCE <Int EXISTENTIAL_DEPOSIT
+```
+
+### `set_reserved_balance`
+
+-   Updates an accounts balance if the new balance is above the existential threshold.
+-   Kills the account if the balance goes below the existential threshold and the free balance is non-zero.
+-   Reaps the account if the balance goes below the existential threshold and the free balance is zero.
+
+```k
+    syntax Action ::= "set_reserved_balance" "(" AccountId "," Int ")"
+ // --------------------------------------------------------------
+    rule [reserved-account-updated]:
+         <k> set_reserved_balance(WHO, BALANCE) => Updated </k>
+         <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
+         <account>
+           <accountID> WHO </accountID>
+           <balance> _ | (_ => BALANCE) </balance>
+           ...
+         </account>
+      requires EXISTENTIAL_DEPOSIT <=Int BALANCE
+
+    rule [reserved-account-killed]:
+         <k> set_reserved_balance(WHO, BALANCE) => AccountKilled </k>
+         <events> ... (.List => ListItem(DustEvent(RESERVED_BALANCE))) </events>
+         <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
+         <account>
+           <accountID> WHO </accountID>
+           <nonce> _ => .Nonce </nonce>
+           <balance> FREE_BALANCE | (RESERVED_BALANCE => 0) </balance>
+           ...
+         </account>
+      requires BALANCE <Int EXISTENTIAL_DEPOSIT
+       andBool 0 <Int FREE_BALANCE
+
+    rule [reserved-account-reaped]:
+         <k> set_reserved_balance(WHO, BALANCE) => AccountKilled </k>
+         <events> ... (.List => ListItem(DustEvent(RESERVED_BALANCE))) </events>
+         <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
+         <accounts>
+           ( <account>
+               <accountID> WHO </accountID>
+               <balance> 0 | RESERVED_BALANCE </balance>
                ...
              </account>
           => .Bag
