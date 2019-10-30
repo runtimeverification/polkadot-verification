@@ -195,11 +195,11 @@ if __name__ == '__main__':
             rule_traces.append(rules)
 
     if merge_type == 'direct':
-        merged_rules = merge_rules_direct(WASM_definition_haskell_no_coverage_dir, 'wasm-with-k-term', 'WASM-WITH-K-TERM', rule_traces)
+        merged_rules = merge_rules_direct(WASM_definition_haskell_no_coverage_dir, 'wasm-with-k-io', 'WASM-WITH-K-IO', rule_traces)
     elif merge_type == 'max-subseq':
-        merged_rules = merge_rules_max_subsequences(WASM_definition_haskell_no_coverage_dir, 'wasm-with-k-term', 'WASM-WITH-K-TERM', rule_traces, subsequence_length = 2)
+        merged_rules = merge_rules_max_subsequences(WASM_definition_haskell_no_coverage_dir, 'wasm-with-k-io', 'WASM-WITH-K-IO', rule_traces, subsequence_length = 2)
     elif merge_type == 'max-productivity':
-        merged_rules = merge_rules_max_productivity(WASM_definition_haskell_no_coverage_dir, 'wasm-with-k-term', 'WASM-WITH-K-TERM', rule_traces, min_merged_success_rate = 0.25, min_occurance_rate = 0.05)
+        merged_rules = merge_rules_max_productivity(WASM_definition_haskell_no_coverage_dir, 'wasm-with-k-io', 'WASM-WITH-K-IO', rule_traces, min_merged_success_rate = 0.25, min_occurance_rate = 0.05)
     else:
         _fatal('Unknown merge technique: ' + merge_type)
 
