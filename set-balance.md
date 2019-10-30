@@ -1,5 +1,5 @@
 `set_balance` spec
-=======================
+==================
 
 State Model
 -----------
@@ -119,7 +119,6 @@ A `Result` is considered an `Action`.
       requires BALANCE <Int EXISTENTIAL_DEPOSIT
 ```
 
-
 ### `set_reserved_balance`
 
 -   Updates an accounts balance if the new balance is above the existential threshold.
@@ -168,7 +167,6 @@ A `Result` is considered an `Action`.
          </accounts>
       requires BALANCE <Int EXISTENTIAL_DEPOSIT
 ```
-
 
 ```k
 endmodule
