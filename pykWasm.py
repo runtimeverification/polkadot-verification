@@ -31,11 +31,11 @@ WASM_definition_llvm_coverage_dir    = '.build/defn/coverage/llvm'
 WASM_definition_haskell_no_coverage_dir = '.build/defn/kwasm/haskell'
 WASM_definition_haskell_coverage_dir    = '.build/defn/coverage/haskell'
 
-WASM_definition_llvm_no_coverage = pyk.readKastTerm(WASM_definition_llvm_no_coverage_dir + '/wasm-with-k-term-kompiled/compiled.json')
-WASM_definition_llvm_coverage    = pyk.readKastTerm(WASM_definition_llvm_coverage_dir + '/wasm-with-k-term-kompiled/compiled.json')
+WASM_definition_llvm_no_coverage = pyk.readKastTerm(WASM_definition_llvm_no_coverage_dir + '/wasm-with-k-io-kompiled/compiled.json')
+WASM_definition_llvm_coverage    = pyk.readKastTerm(WASM_definition_llvm_coverage_dir + '/wasm-with-k-io-kompiled/compiled.json')
 
-WASM_definition_haskell_no_coverage = pyk.readKastTerm(WASM_definition_haskell_no_coverage_dir + '/wasm-with-k-term-kompiled/compiled.json')
-WASM_definition_haskell_coverage    = pyk.readKastTerm(WASM_definition_haskell_coverage_dir + '/wasm-with-k-term-kompiled/compiled.json')
+WASM_definition_haskell_no_coverage = pyk.readKastTerm(WASM_definition_haskell_no_coverage_dir + '/wasm-with-k-io-kompiled/compiled.json')
+WASM_definition_haskell_coverage    = pyk.readKastTerm(WASM_definition_haskell_coverage_dir + '/wasm-with-k-io-kompiled/compiled.json')
 
 WASM_symbols_llvm_no_coverage = pyk.buildSymbolTable(WASM_definition_llvm_no_coverage)
 WASM_symbols_llvm_coverage    = pyk.buildSymbolTable(WASM_definition_llvm_coverage)
