@@ -138,7 +138,7 @@ $(KWASM_SUBMODULE)/tests/simple/%.wast.coverage-$(SYMBOLIC_BACKEND): $(KWASM_SUB
 # Specification Build
 # -------------------
 
-SPEC_NAMES := set-free-balance
+SPEC_NAMES := set-balance
 
 SPECS_DIR := $(BUILD_DIR)/specs
 ALL_SPECS := $(patsubst %, $(SPECS_DIR)/%-spec.k, $(SPEC_NAMES))
