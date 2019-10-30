@@ -80,11 +80,11 @@ pipeline {
             '''
           }
         }
-        stage('Fuse Rules Simple') {
+        stage('Merge Rules Simple') {
           options { timeout(time: 20, unit: 'MINUTES') }
           steps {
             sh '''
-              make test-rule-lists
+              make test-merge-rules -j8
             '''
           }
         }
