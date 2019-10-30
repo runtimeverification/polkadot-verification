@@ -3,7 +3,7 @@
         build                                                        \
         polkadot-runtime-source polkadot-runtime-loaded              \
         specs                                                        \
-        test test-can-build-specs test-python-config test-fuse-rules
+        test test-can-build-specs test-python-config test-rule-lists
 
 # Settings
 # --------
@@ -76,12 +76,12 @@ build: build-llvm build-haskell
 # ---------------
 
 build-%: $(DEFN_DIR)/$(SUBDEFN)/%/$(MAIN_DEFN_FILE).k
-	$(KWASM_MAKE) build-$*                       \
-	    DEFN_DIR=../../$(DEFN_DIR)/$(SUBDEFN)    \
-	    MAIN_MODULE=$(MAIN_MODULE)               \
-	    MAIN_SYNTAX_MODULE=$(MAIN_SYNTAX_MODULE) \
-	    MAIN_DEFN_FILE=$(MAIN_DEFN_FILE)         \
-	    KOMPILE_OPTIONS=$(KOMPILE_OPTIONS)
+	$(KWASM_MAKE) build-$*                               \
+	    DEFN_DIR=../../$(DEFN_DIR)/$(SUBDEFN)            \
+	    MAIN_MODULE=$(MAIN_MODULE)                       \
+	    MAIN_SYNTAX_MODULE=$(MAIN_SYNTAX_MODULE)         \
+	    MAIN_DEFN_FILE=$(MAIN_DEFN_FILE)                 \
+	    KOMPILE_OPTIONS="--emit-json $(KOMPILE_OPTIONS)"
 
 .SECONDARY: $(DEFN_DIR)/$(SUBDEFN)/llvm/$(MAIN_DEFN_FILE).k    \
             $(DEFN_DIR)/$(SUBDEFN)/haskell/$(MAIN_DEFN_FILE).k
@@ -166,12 +166,17 @@ $(SPECS_DIR)/%-spec.k.can-build: $(SPECS_DIR)/%-spec.k
 	rm -rf $*-kompiled
 
 all_simple_tests := $(wildcard $(KWASM_SUBMODULE)/tests/simple/*.wast)
-bad_simple_tests := $(KWASM_SUBMODULE)/tests/simple/arithmetic.wast \
-                    $(KWASM_SUBMODULE)/tests/simple/comparison.wast \
-                    $(KWASM_SUBMODULE)/tests/simple/memory.wast
+bad_simple_tests := $(KWASM_SUBMODULE)/tests/simple/arithmetic.wast     \
+                    $(KWASM_SUBMODULE)/tests/simple/bitwise.wast        \
+                    $(KWASM_SUBMODULE)/tests/simple/comparison.wast     \
+                    $(KWASM_SUBMODULE)/tests/simple/constants.wast      \
+                    $(KWASM_SUBMODULE)/tests/simple/control-flow.wast   \
+                    $(KWASM_SUBMODULE)/tests/simple/functions_call.wast \
+                    $(KWASM_SUBMODULE)/tests/simple/memory.wast         \
+                    $(KWASM_SUBMODULE)/tests/simple/polymorphic.wast
 simple_tests     := $(filter-out $(bad_simple_tests), $(all_simple_tests))
 
-test-fuse-rules: $(KWASM_SUBMODULE)/tests/simple/branching.wast.coverage-$(SYMBOLIC_BACKEND)
+test-rule-lists: $(simple_tests:=.coverage-$(SYMBOLIC_BACKEND))
 
 # Python Configuration Build
 # --------------------------

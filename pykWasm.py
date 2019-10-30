@@ -5,7 +5,21 @@ import json
 import pyk
 import sys
 
-from pyk.kast import KApply, KConstant, KSequence, KToken, KVariable, _notif, _warning, _fatal
+from pyk.kast import KApply, KConstant, KRewrite, KSequence, KToken, KVariable, _notif, _warning, _fatal
+
+################################################################################
+# Should be Upstreamed                                                         #
+################################################################################
+
+def kompile_definition(definition_dir, backend, main_defn_file, main_module, kompileArgs = [], teeOutput = True, kRelease = None):
+    command = 'kompile'
+    if kRelease is not None:
+        command = kRelease + '/bin/' + command
+    elif 'K_RELEASE' in os.environ:
+        command = os.environ['K_RELEASE'] + '/bin/' + command
+    kCommand = [ command , '--backend' , backend , '--directory' , definition_dir , '-I' , definition_dir , '--main-module' , main_module , main_defn_file ] + kompileArgs
+    _notif('Running: ' + ' '.join(kCommand))
+    return pyk._teeProcessStdout(kCommand, tee = teeOutput)
 
 ################################################################################
 # Load Definition Specific Stuff                                               #

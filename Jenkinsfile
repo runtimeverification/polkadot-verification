@@ -39,14 +39,16 @@ pipeline {
         stage('KWasm (normal)') {
           steps {
             sh '''
-              make build SUBDEFN=kwasm    KOMPILE_OPTIONS='"--emit-json"'            -j4
+              make build SUBDEFN=kwasm -j4
+              ./strip-erroneous-labels.sh .build/defn/kwasm/haskell/wasm-with-k-term-kompiled/definition.kore
             '''
           }
         }
         stage('KWasm (coverage)') {
           steps {
             sh '''
-              make build SUBDEFN=coverage KOMPILE_OPTIONS='"--emit-json --coverage"' -j4
+              make build SUBDEFN=coverage -j4 KOMPILE_OPTIONS='--coverage'
+              ./strip-erroneous-labels.sh .build/defn/coverage/haskell/wasm-with-k-term-kompiled/definition.kore
             '''
           }
         }
@@ -81,7 +83,7 @@ pipeline {
           options { timeout(time: 20, unit: 'MINUTES') }
           steps {
             sh '''
-              make test-fuse-rules
+              make test-rule-lists
             '''
           }
         }
