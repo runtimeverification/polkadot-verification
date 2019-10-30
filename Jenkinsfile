@@ -40,7 +40,6 @@ pipeline {
           steps {
             sh '''
               make build SUBDEFN=kwasm -j4
-              ./strip-erroneous-labels.sh .build/defn/kwasm/haskell/wasm-with-k-term-kompiled/definition.kore
             '''
           }
         }
@@ -48,7 +47,6 @@ pipeline {
           steps {
             sh '''
               make build SUBDEFN=coverage -j4 KOMPILE_OPTIONS='--coverage'
-              ./strip-erroneous-labels.sh .build/defn/coverage/haskell/wasm-with-k-term-kompiled/definition.kore
             '''
           }
         }
