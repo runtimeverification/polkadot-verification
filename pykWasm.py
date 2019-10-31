@@ -31,11 +31,11 @@ WASM_definition_llvm_coverage_dir    = '.build/defn/coverage/llvm'
 WASM_definition_haskell_no_coverage_dir = '.build/defn/kwasm/haskell'
 WASM_definition_haskell_coverage_dir    = '.build/defn/coverage/haskell'
 
-WASM_definition_llvm_no_coverage = pyk.readKastTerm(WASM_definition_llvm_no_coverage_dir + '/wasm-with-k-term-kompiled/compiled.json')
-WASM_definition_llvm_coverage    = pyk.readKastTerm(WASM_definition_llvm_coverage_dir + '/wasm-with-k-term-kompiled/compiled.json')
+WASM_definition_llvm_no_coverage = pyk.readKastTerm(WASM_definition_llvm_no_coverage_dir + '/wasm-with-k-io-kompiled/compiled.json')
+WASM_definition_llvm_coverage    = pyk.readKastTerm(WASM_definition_llvm_coverage_dir + '/wasm-with-k-io-kompiled/compiled.json')
 
-WASM_definition_haskell_no_coverage = pyk.readKastTerm(WASM_definition_haskell_no_coverage_dir + '/wasm-with-k-term-kompiled/compiled.json')
-WASM_definition_haskell_coverage    = pyk.readKastTerm(WASM_definition_haskell_coverage_dir + '/wasm-with-k-term-kompiled/compiled.json')
+WASM_definition_haskell_no_coverage = pyk.readKastTerm(WASM_definition_haskell_no_coverage_dir + '/wasm-with-k-io-kompiled/compiled.json')
+WASM_definition_haskell_coverage    = pyk.readKastTerm(WASM_definition_haskell_coverage_dir + '/wasm-with-k-io-kompiled/compiled.json')
 
 WASM_symbols_llvm_no_coverage = pyk.buildSymbolTable(WASM_definition_llvm_no_coverage)
 WASM_symbols_llvm_coverage    = pyk.buildSymbolTable(WASM_definition_llvm_coverage)
@@ -94,10 +94,10 @@ if __name__ == '__main__':
     kast_json = { 'format': 'KAST', 'version': 1, 'term': initial_configuration }
 
     # Use official K unparser to get string for initial configuration
-    (returnCode, kastPrinted, _) = kast(kast_json, '--input', 'json', '--output', 'pretty')
-    if returnCode != 0:
-        _fatal('kast returned non-zero exit code reading/printing the initial configuration')
-        sys.exit(returnCode)
+    # (returnCode, kastPrinted, _) = kast(kast_json, '--input', 'json', '--output', 'pretty')
+    # if returnCode != 0:
+    #     _fatal('kast returned non-zero exit code reading/printing the initial configuration')
+    #     sys.exit(returnCode)
 
     # Use fast pyk unparser to get string for initial configuration
     fastPrinted = pyk.prettyPrintKast(initial_configuration['args'][0], WASM_symbols_llvm_no_coverage)
@@ -105,10 +105,10 @@ if __name__ == '__main__':
     print(fastPrinted)
 
     # Check that fast and official unparsers agree, or see how much they disagree.
-    kastPrinted = kastPrinted.strip()
-    if fastPrinted != kastPrinted:
-        _warning('kastPrinted and fastPrinted differ!')
-        for line in difflib.unified_diff(kastPrinted.split('\n'), fastPrinted.split('\n'), fromfile='kast', tofile='fast', lineterm='\n'):
-            sys.stderr.write(line + '\n')
-        sys.stderr.flush()
+    # kastPrinted = kastPrinted.strip()
+    # if fastPrinted != kastPrinted:
+    #     _warning('kastPrinted and fastPrinted differ!')
+    #     for line in difflib.unified_diff(kastPrinted.split('\n'), fastPrinted.split('\n'), fromfile='kast', tofile='fast', lineterm='\n'):
+    #         sys.stderr.write(line + '\n')
+    #     sys.stderr.flush()
 
