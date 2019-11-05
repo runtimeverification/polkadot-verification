@@ -168,6 +168,52 @@ A `Result` is considered an `Action`.
       requires BALANCE <Int EXISTENTIAL_DEPOSIT
 ```
 
+### `set_balance`
+
+* Sets the new free balance
+* Creates suitible imbalances (both positive and negative).
+* Calls `set_free_balance` with the new free balance.
+* Calls `set_reserved_balance` with the new reserved balance.
+* **FIXME**: these semantics **do not** include lookup of an `AccountId` from a `Source`.
+
+```k
+    syntax Action ::= "set_balance" "(" AccountId "," Int "," Int ")"
+ // --------------------------------------------------------------
+    rule [balance-set]:
+        <k> set_balance(WHO, FREE_BALANCE, RESERVED_BALANCE) => set_balance_free(WHO, FREE_BALANCE) set_balance_reserved(WHO, RESERVED_BALANCE) </k>
+```
+
+### `set_balance_free`
+
+* Sets the new free balance
+* Emits an imbalance event
+* Helper function for `set_balance`
+* **FIXME** use saturating arithmetic
+
+```k
+    syntax Action ::= "set_balance_free" "(" AccountId "," Int ")"
+    syntax Action ::= "set_balance_reserved" "(" AccountId "," Int ")"
+ // --------------------------------------------------------------
+    rule [balance-set-free]:
+         <k> set_balance_free(WHO, FREE_BALANCE) => set_free_balance(WHO, FREE_BALANCE) . ... </k>
+         <totalIssuance> balance => (balance +Int FREE_BALANCE) </totalIssuance>
+         <accounts>
+           ( <account>
+               <accountID> WHO </accountID>
+               ...
+             </account>
+           )
+    rule [balance-set-reserved]:
+         <k> set_balance_reserved(WHO, RESERVED_BALANCE) => set_reserved_balance(WHO, RESERVED_BALANCE) . ... </k>
+         <totalIssuance> balance => (balance +Int RESERVED_BALANCE) </totalIssuance>
+         <accounts>
+           ( <account>
+               <accountID> WHO </accountID>
+               ...
+             </account>
+           )
+```
+
 ```k
 endmodule
 ```
