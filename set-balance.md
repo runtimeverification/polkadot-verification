@@ -14,6 +14,7 @@ module SET-BALANCE-SPEC
         <k> $ACTION:Action </k>
         <events> .List </events>
         <existentialDeposit> 0 </existentialDeposit>
+        <totalIssuance> 0 </totalIssuance>
         <accounts>
           <account multiplicity="*" type="Map">
             <accountID> .AccountId:AccountId </accountID>
@@ -68,6 +69,10 @@ A `Result` is considered an `Action`.
 ```k
     syntax Action ::= Result
  // ------------------------
+
+    syntax Actions ::= List{Action, ""}
+ // -----------------------------------
+    rule <k> A:Action AS:Actions => A ~> AS ... </k>
 ```
 
 ### `set_free_balance`
@@ -195,23 +200,20 @@ A `Result` is considered an `Action`.
     syntax Action ::= "set_balance_reserved" "(" AccountId "," Int ")"
  // --------------------------------------------------------------
     rule [balance-set-free]:
-         <k> set_balance_free(WHO, FREE_BALANCE) => set_free_balance(WHO, FREE_BALANCE) . ... </k>
-         <totalIssuance> balance => (balance +Int FREE_BALANCE) </totalIssuance>
-         <accounts>
-           ( <account>
-               <accountID> WHO </accountID>
-               ...
-             </account>
-           )
+         <k> set_balance_free(WHO, FREE_BALANCE) => set_free_balance(WHO, FREE_BALANCE) ... </k>
+         <totalIssuance> BALANCE => BALANCE +Int FREE_BALANCE </totalIssuance>
+         <account>
+           <accountID> WHO </accountID>
+           ...
+         </account>
+
     rule [balance-set-reserved]:
-         <k> set_balance_reserved(WHO, RESERVED_BALANCE) => set_reserved_balance(WHO, RESERVED_BALANCE) . ... </k>
-         <totalIssuance> balance => (balance +Int RESERVED_BALANCE) </totalIssuance>
-         <accounts>
-           ( <account>
-               <accountID> WHO </accountID>
-               ...
-             </account>
-           )
+         <k> set_balance_reserved(WHO, RESERVED_BALANCE) => set_reserved_balance(WHO, RESERVED_BALANCE) ... </k>
+         <totalIssuance> BALANCE => BALANCE +Int RESERVED_BALANCE </totalIssuance>
+         <account>
+           <accountID> WHO </accountID>
+           ...
+         </account>
 ```
 
 ```k
