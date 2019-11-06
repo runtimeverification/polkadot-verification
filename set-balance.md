@@ -84,8 +84,8 @@ A `Result` is considered an `Action`.
 ```k
     syntax Action ::= "set_free_balance" "(" AccountId "," Int ")"
  // --------------------------------------------------------------
-    rule [account-updated]:
-         <k> set_free_balance(WHO, BALANCE) => Updated </k>
+    rule [free-account-updated]:
+         <k> set_free_balance(WHO, BALANCE) => Updated ... </k>
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
          <account>
            <accountID> WHO </accountID>
@@ -94,8 +94,8 @@ A `Result` is considered an `Action`.
          </account>
       requires EXISTENTIAL_DEPOSIT <=Int BALANCE
 
-    rule [account-killed]:
-         <k> set_free_balance(WHO, BALANCE) => AccountKilled </k>
+    rule [free-account-killed]:
+         <k> set_free_balance(WHO, BALANCE) => AccountKilled ... </k>
          <events> ... (.List => ListItem(DustEvent(FREE_BALANCE))) </events>
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
          <account>
@@ -107,8 +107,8 @@ A `Result` is considered an `Action`.
       requires BALANCE <Int EXISTENTIAL_DEPOSIT
        andBool 0 <Int RESERVED_BALANCE
 
-    rule [account-reaped]:
-         <k> set_free_balance(WHO, BALANCE) => AccountKilled </k>
+    rule [free-account-reaped]:
+         <k> set_free_balance(WHO, BALANCE) => AccountKilled ... </k>
          <events> ... (.List => ListItem(DustEvent(FREE_BALANCE))) </events>
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
          <accounts>
@@ -132,9 +132,9 @@ A `Result` is considered an `Action`.
 
 ```k
     syntax Action ::= "set_reserved_balance" "(" AccountId "," Int ")"
- // --------------------------------------------------------------
+ // ------------------------------------------------------------------
     rule [reserved-account-updated]:
-         <k> set_reserved_balance(WHO, BALANCE) => Updated </k>
+         <k> set_reserved_balance(WHO, BALANCE) => Updated ... </k>
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
          <account>
            <accountID> WHO </accountID>
@@ -144,7 +144,7 @@ A `Result` is considered an `Action`.
       requires EXISTENTIAL_DEPOSIT <=Int BALANCE
 
     rule [reserved-account-killed]:
-         <k> set_reserved_balance(WHO, BALANCE) => AccountKilled </k>
+         <k> set_reserved_balance(WHO, BALANCE) => AccountKilled ... </k>
          <events> ... (.List => ListItem(DustEvent(RESERVED_BALANCE))) </events>
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
          <account>
@@ -157,7 +157,7 @@ A `Result` is considered an `Action`.
        andBool 0 <Int FREE_BALANCE
 
     rule [reserved-account-reaped]:
-         <k> set_reserved_balance(WHO, BALANCE) => AccountKilled </k>
+         <k> set_reserved_balance(WHO, BALANCE) => AccountKilled ... </k>
          <events> ... (.List => ListItem(DustEvent(RESERVED_BALANCE))) </events>
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
          <accounts>
@@ -183,9 +183,9 @@ A `Result` is considered an `Action`.
 
 ```k
     syntax Action ::= "set_balance" "(" AccountId "," Int "," Int ")"
- // --------------------------------------------------------------
+ // -----------------------------------------------------------------
     rule [balance-set]:
-        <k> set_balance(WHO, FREE_BALANCE, RESERVED_BALANCE) => set_balance_free(WHO, FREE_BALANCE) set_balance_reserved(WHO, RESERVED_BALANCE) </k>
+        <k> set_balance(WHO, FREE_BALANCE, RESERVED_BALANCE) => set_balance_free(WHO, FREE_BALANCE) set_balance_reserved(WHO, RESERVED_BALANCE) ... </k>
 ```
 
 ### `set_balance_free`
@@ -198,7 +198,7 @@ A `Result` is considered an `Action`.
 ```k
     syntax Action ::= "set_balance_free" "(" AccountId "," Int ")"
     syntax Action ::= "set_balance_reserved" "(" AccountId "," Int ")"
- // --------------------------------------------------------------
+ // ------------------------------------------------------------------
     rule [balance-set-free]:
          <k> set_balance_free(WHO, FREE_BALANCE) => set_free_balance(WHO, FREE_BALANCE) ... </k>
          <totalIssuance> BALANCE => BALANCE +Int FREE_BALANCE </totalIssuance>
