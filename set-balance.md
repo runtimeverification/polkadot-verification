@@ -8,11 +8,13 @@ State Model
 module SET-BALANCE-SPEC
     imports INT
     imports LIST
+    imports SET
 
     configuration
       <set-balance>
         <k> $ACTION:Action </k>
         <events> .List </events>
+        <root-accounts> .Set </root-accounts>
         <existentialDeposit> 0 </existentialDeposit>
         <totalIssuance> 0 </totalIssuance>
         <accounts>
@@ -183,10 +185,12 @@ A `Result` is considered an `Action`.
 * **FIXME**: these semantics **do not** include lookup of an `AccountId` from a `Source`.
 
 ```k
-    syntax Action ::= "set_balance" "(" AccountId "," Int "," Int ")"
- // -----------------------------------------------------------------
+    syntax Action ::= "set_balance" "(" AccountId "," AccountId "," Int "," Int ")"
+ // -------------------------------------------------------------------------------
     rule [balance-set]:
-        <k> set_balance(WHO, FREE_BALANCE, RESERVED_BALANCE) => set_balance_free(WHO, FREE_BALANCE) set_balance_reserved(WHO, RESERVED_BALANCE) ... </k>
+        <k> set_balance(ORIGIN, WHO, FREE_BALANCE, RESERVED_BALANCE) => set_balance_free(WHO, FREE_BALANCE) set_balance_reserved(WHO, RESERVED_BALANCE) ... </k>
+        <root-accounts> ROOTS </root-accounts>
+      requires ORIGIN in ROOTS
 ```
 
 ### `set_balance_free`
