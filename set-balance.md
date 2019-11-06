@@ -18,7 +18,8 @@ module SET-BALANCE-SPEC
         <accounts>
           <account multiplicity="*" type="Map">
             <accountID> .AccountId:AccountId </accountID>
-            <balance> 0 | 0 </balance>
+            <freeBalance> 0 </freeBalance>
+            <reservedBalance> 0 </reservedBalance>
             <nonce> .Nonce </nonce>
           </account>
         </accounts>
@@ -29,16 +30,12 @@ Data
 ----
 
 -   An `AccountId` is an optional `Int`.
--   A `Balance` is a tuple of `Int` (for free/reserved balance).
 -   A `Nonce` is an optional `Int`.
 -   An `Event` records some happenning.
 
 ```k
     syntax AccountId ::= ".AccountId" | Int
  // ---------------------------------------
-
-    syntax Balance ::= Int "|" Int
- // ------------------------------
 
     syntax Nonce ::= ".Nonce" | Int
  // -------------------------------
@@ -89,7 +86,7 @@ A `Result` is considered an `Action`.
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
          <account>
            <accountID> WHO </accountID>
-           <balance> (_ => BALANCE) | _ </balance>
+           <freeBalance> _ => BALANCE </freeBalance>
            ...
          </account>
       requires EXISTENTIAL_DEPOSIT <=Int BALANCE
@@ -101,7 +98,8 @@ A `Result` is considered an `Action`.
          <account>
            <accountID> WHO </accountID>
            <nonce> _ => .Nonce </nonce>
-           <balance> (FREE_BALANCE => 0) | RESERVED_BALANCE </balance>
+           <freeBalance> FREE_BALANCE => 0 </freeBalance>
+           <reservedBalance> RESERVED_BALANCE </reservedBalance>
            ...
          </account>
       requires BALANCE <Int EXISTENTIAL_DEPOSIT
@@ -114,7 +112,8 @@ A `Result` is considered an `Action`.
          <accounts>
            ( <account>
                <accountID> WHO </accountID>
-               <balance> FREE_BALANCE | 0 </balance>
+               <freeBalance> FREE_BALANCE </freeBalance>
+               <reservedBalance> 0 </reservedBalance>
                ...
              </account>
           => .Bag
@@ -138,7 +137,7 @@ A `Result` is considered an `Action`.
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
          <account>
            <accountID> WHO </accountID>
-           <balance> _ | (_ => BALANCE) </balance>
+           <reservedBalance> _ => BALANCE </reservedBalance>
            ...
          </account>
       requires EXISTENTIAL_DEPOSIT <=Int BALANCE
@@ -150,7 +149,8 @@ A `Result` is considered an `Action`.
          <account>
            <accountID> WHO </accountID>
            <nonce> _ => .Nonce </nonce>
-           <balance> FREE_BALANCE | (RESERVED_BALANCE => 0) </balance>
+           <freeBalance> FREE_BALANCE  </freeBalance>
+           <reservedBalance> RESERVED_BALANCE => 0 </reservedBalance>
            ...
          </account>
       requires BALANCE <Int EXISTENTIAL_DEPOSIT
@@ -163,7 +163,8 @@ A `Result` is considered an `Action`.
          <accounts>
            ( <account>
                <accountID> WHO </accountID>
-               <balance> 0 | RESERVED_BALANCE </balance>
+               <freeBalance> 0 </freeBalance>
+               <reservedBalance> RESERVED_BALANCE </reservedBalance>
                ...
              </account>
           => .Bag
