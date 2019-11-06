@@ -46,6 +46,16 @@ Data
  // ----------------------------------
 ```
 
+Some predicates which help specifying behavior:
+
+-   `#inWidth`: Specify that a given number is in some bitwidth.
+
+```k
+    syntax Bool ::= #inWidth(Int, Int) [function, functional]
+ // ---------------------------------------------------------
+    rule #inWidth(N, M) => 0 <=Int M andBool M <Int (2 ^Int N)
+```
+
 Results
 -------
 
@@ -205,20 +215,24 @@ A `Result` is considered an `Action`.
     syntax Action ::= "set_balance_reserved" "(" AccountId "," Int ")"
  // ------------------------------------------------------------------
     rule [balance-set-free]:
-         <k> set_balance_free(WHO, FREE_BALANCE) => set_free_balance(WHO, FREE_BALANCE) ... </k>
-         <totalIssuance> BALANCE => BALANCE +Int FREE_BALANCE </totalIssuance>
+         <k> set_balance_free(WHO, FREE_BALANCE') => set_free_balance(WHO, FREE_BALANCE') ... </k>
+         <totalIssuance> ISSUANCE => ISSUANCE +Int (FREE_BALANCE' -Int FREE_BALANCE) </totalIssuance>
          <account>
            <accountID> WHO </accountID>
+           <freeBalance> FREE_BALANCE </freeBalance>
            ...
          </account>
+      requires #inWidth(64, ISSUANCE +Int (FREE_BALANCE' -Int FREE_BALANCE))
 
     rule [balance-set-reserved]:
-         <k> set_balance_reserved(WHO, RESERVED_BALANCE) => set_reserved_balance(WHO, RESERVED_BALANCE) ... </k>
-         <totalIssuance> BALANCE => BALANCE +Int RESERVED_BALANCE </totalIssuance>
+         <k> set_balance_reserved(WHO, RESERVED_BALANCE') => set_reserved_balance(WHO, RESERVED_BALANCE') ... </k>
+         <totalIssuance> ISSUANCE => ISSUANCE +Int (RESERVED_BALANCE' -Int RESERVED_BALANCE) </totalIssuance>
          <account>
            <accountID> WHO </accountID>
+           <reservedBalance> RESERVED_BALANCE </reservedBalance>
            ...
          </account>
+      requires #inWidth(64, ISSUANCE +Int (RESERVED_BALANCE' -Int RESERVED_BALANCE))
 ```
 
 ```k
