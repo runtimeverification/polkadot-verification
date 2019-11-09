@@ -16,6 +16,8 @@ module SET-BALANCE-SPEC
         <events> .List </events>
         <root-accounts> .Set </root-accounts>
         <existentialDeposit> 0 </existentialDeposit>
+        <creationFee> 0 </creationFee>
+        <transferFee> 0 </transferFee>
         <totalIssuance> 0 </totalIssuance>
         <accounts>
           <account multiplicity="*" type="Map">
@@ -208,7 +210,6 @@ A `Result` is considered an `Action`.
 * Sets the new free balance
 * Emits an imbalance event
 * Helper function for `set_balance`
-* **FIXME** use saturating arithmetic
 
 ```k
     syntax Action ::= "set_balance_free" "(" AccountId "," Int ")"
@@ -234,6 +235,105 @@ A `Result` is considered an `Action`.
          </account>
       requires #inWidth(64, ISSUANCE +Int (RESERVED_BALANCE' -Int RESERVED_BALANCE))
 ```
+
+### `locked_at`
+
+Amount locked at block `n`.
+
+
+### `transfer`
+
+
+Transfer some liquid free balance to another account.
+
+`transfer` will set the `FreeBalance` of the sender and receiver.
+It will decrease the total issuance of the system by the `TransferFee`.
+If the sender's account is below the existential deposit as a result
+of the transfer, the account will be reaped.
+
+The dispatch origin for this call must be `Signed` by the transactor.
+
+# <weight>
+- Dependent on arguments but not critical, given proper implementations for
+  input config types. See related functions below.
+- It contains a limited number of reads and writes internally and no complex computation.
+
+Related functions:
+
+  - `ensure_can_withdraw` is always called internally but has a bounded complexity.
+  - Transferring balances to accounts that did not exist before will cause
+     `T::OnNewAccount::on_new_account` to be called.
+  - Removing enough funds from an account will trigger
+    `T::DustRemoval::on_unbalanced` and `T::OnFreeBalanceZero::on_free_balance_zero`.
+
+# </weight>
+
+```rust
+#[weight = SimpleDispatchInfo::FixedNormal(1_000_000)]
+pub fn transfer(
+   origin,
+   dest: <T::Lookup as StaticLookup>::Source,
+   #[compact] value: T::Balance
+) {
+   let transactor = ensure_signed(origin)?;
+   let dest = T::Lookup::lookup(dest)?;
+   <Self as Currency<_>>::transfer(&transactor, &dest, value)?;
+}
+```
+
+```k
+    syntax Action ::= "transfer" "(" AccountId "," AccountId "," Int ")"
+ // ---------------------------------------------------------------------
+    rule [transfer-existing-account]:
+        <k> transfer(ORIGIN, DESTINATION, AMOUNT) =>
+            set_free_balance(ORIGIN, SOURCE_BALANCE -Int AMOUNT -Int FEE)
+            set_free_balance(DESTINATION, DESTINATION_BALANCE +Int AMOUNT)
+        </k>
+        <totalIssuance> ISSUANCE => ISSUANCE -Int FEE </totalIssuance>
+        <transferFee> FEE </transferFee>
+        <accounts>
+          <account>
+            <accountID> ORIGIN </accountID>
+            <freeBalance> SOURCE_BALANCE </freeBalance>
+            ...
+          </account>
+          <account>
+            <accountID> DESTINATION </accountID>
+            <freeBalance> DESTINATION_BALANCE </freeBalance>
+            ...
+          </account>
+        </accounts>
+      requires DESTINATION_BALANCE >Int 0 andBool
+               #inWidth(64, AMOUNT +Int FEE) andBool
+               SOURCE_BALANCE >=Int (AMOUNT +Int FEE)
+    rule [transfer-create-account]:
+        <k> transfer(ORIGIN, DESTINATION, AMOUNT) =>
+            set_free_balance(ORIGIN, SOURCE_BALANCE -Int AMOUNT -Int CREATION_FEE)
+            set_free_balance(DESTINATION, AMOUNT)
+        </k>
+        <totalIssuance> ISSUANCE => ISSUANCE -Int CREATION_FEE </totalIssuance>
+        <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
+        <creationFee> CREATION_FEE </creationFee>
+        <accounts>
+          <account>
+            <accountID> ORIGIN </accountID>
+            <freeBalance> SOURCE_BALANCE </freeBalance>
+            ...
+          </account>
+          <account>
+            <accountID> DESTINATION </accountID>
+            <freeBalance> 0 </freeBalance>
+            <reservedBalance> 0 </reservedBalance>
+            ...
+          </account>
+        </accounts>
+      requires #inWidth(64, AMOUNT +Int CREATION_FEE) andBool
+               SOURCE_BALANCE >=Int (AMOUNT +Int CREATION_FEE) andBool
+               EXISTENTIAL_DEPOSIT >=Int AMOUNT
+```
+
+Force a transfer from any account to any other account.  This can only be done by root.
+
 
 ```k
 endmodule
