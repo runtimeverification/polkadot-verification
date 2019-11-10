@@ -285,54 +285,63 @@ pub fn transfer(
     syntax Action ::= "transfer" "(" AccountId "," AccountId "," Int ")"
  // ---------------------------------------------------------------------
     rule [transfer-existing-account]:
-        <k> transfer(ORIGIN, DESTINATION, AMOUNT) =>
-            set_free_balance(ORIGIN, SOURCE_BALANCE -Int AMOUNT -Int FEE)
-            set_free_balance(DESTINATION, DESTINATION_BALANCE +Int AMOUNT)
-        </k>
-        <totalIssuance> ISSUANCE => ISSUANCE -Int FEE </totalIssuance>
-        <transferFee> FEE </transferFee>
-        <accounts>
-          <account>
-            <accountID> ORIGIN </accountID>
-            <freeBalance> SOURCE_BALANCE </freeBalance>
-            ...
-          </account>
-          <account>
-            <accountID> DESTINATION </accountID>
-            <freeBalance> DESTINATION_BALANCE </freeBalance>
-            ...
-          </account>
-        </accounts>
+         <k> transfer(ORIGIN, DESTINATION, AMOUNT) =>
+             set_free_balance(ORIGIN, SOURCE_BALANCE -Int AMOUNT -Int FEE)
+             set_free_balance(DESTINATION, DESTINATION_BALANCE +Int AMOUNT)
+         </k>
+         <totalIssuance> ISSUANCE => ISSUANCE -Int FEE </totalIssuance>
+         <transferFee> FEE </transferFee>
+         <accounts>
+           <account>
+             <accountID> ORIGIN </accountID>
+             <freeBalance> SOURCE_BALANCE </freeBalance>
+             ...
+           </account>
+           <account>
+             <accountID> DESTINATION </accountID>
+             <freeBalance> DESTINATION_BALANCE </freeBalance>
+             ...
+           </account>
+         </accounts>
       requires DESTINATION_BALANCE >Int 0 andBool
                #inWidth(64, AMOUNT +Int FEE) andBool
                SOURCE_BALANCE >=Int (AMOUNT +Int FEE)
     rule [transfer-create-account]:
-        <k> transfer(ORIGIN, DESTINATION, AMOUNT) =>
-            set_free_balance(ORIGIN, SOURCE_BALANCE -Int AMOUNT -Int CREATION_FEE)
-            set_free_balance(DESTINATION, AMOUNT)
-        </k>
-        <totalIssuance> ISSUANCE => ISSUANCE -Int CREATION_FEE </totalIssuance>
-        <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
-        <creationFee> CREATION_FEE </creationFee>
-        <accounts>
-          <account>
-            <accountID> ORIGIN </accountID>
-            <freeBalance> SOURCE_BALANCE </freeBalance>
-            ...
-          </account>
-          <account>
-            <accountID> DESTINATION </accountID>
-            <freeBalance> 0 </freeBalance>
-            <reservedBalance> 0 </reservedBalance>
-            ...
-          </account>
-        </accounts>
+         <k> transfer(ORIGIN, DESTINATION, AMOUNT) =>
+             set_free_balance(ORIGIN, SOURCE_BALANCE -Int AMOUNT -Int CREATION_FEE)
+             set_free_balance(DESTINATION, AMOUNT)
+         </k>
+         <totalIssuance> ISSUANCE => ISSUANCE -Int CREATION_FEE </totalIssuance>
+         <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
+         <creationFee> CREATION_FEE </creationFee>
+         <accounts>
+           <account>
+             <accountID> ORIGIN </accountID>
+             <freeBalance> SOURCE_BALANCE </freeBalance>
+             ...
+           </account>
+           <account>
+             <accountID> DESTINATION </accountID>
+             <freeBalance> 0 </freeBalance>
+             <reservedBalance> 0 </reservedBalance>
+             ...
+           </account>
+         </accounts>
       requires #inWidth(64, AMOUNT +Int CREATION_FEE) andBool
                SOURCE_BALANCE >=Int (AMOUNT +Int CREATION_FEE) andBool
                EXISTENTIAL_DEPOSIT >=Int AMOUNT
 ```
 
 Force a transfer from any account to any other account.  This can only be done by root.
+
+```k
+    syntax Action ::= "force_transfer" "(" AccountId "," AccountId "," AccountId "," Int ")"
+ // ----------------------------------------------------------------------------------------
+    rule [force-transfer]:
+         <k> force_transfer(ORIGIN, SOURCE, DESTINATION, AMOUNT) => transfer(SOURCE, DESTINATION, AMOUNT) </k>
+         <root-accounts> ROOTS </root-accounts>
+      requires ORIGIN in ROOTS
+```
 
 
 ```k
