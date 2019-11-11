@@ -14,6 +14,8 @@ module SET-BALANCE-SPEC
       <set-balance>
         <k> $ACTION:Action </k>
         <events> .List </events>
+        <return-value> .K </return-value>
+        <call-stack> .List </call-stack>
         <root-accounts> .Set </root-accounts>
         <existentialDeposit> 0 </existentialDeposit>
         <creationFee> 0 </creationFee>
@@ -25,6 +27,7 @@ module SET-BALANCE-SPEC
             <freeBalance> 0 </freeBalance>
             <reservedBalance> 0 </reservedBalance>
             <nonce> .Nonce </nonce>
+            <locks> .Set </locks>
           </account>
         </accounts>
       </set-balance>
@@ -258,6 +261,8 @@ The dispatch origin for this call must be `Signed` by the transactor.
   input config types. See related functions below.
 - It contains a limited number of reads and writes internally and no complex computation.
 
+**FIXME** implement existence requirements
+
 Related functions:
 
   - `ensure_can_withdraw` is always called internally but has a bounded complexity.
@@ -305,7 +310,8 @@ pub fn transfer(
          </accounts>
       requires DESTINATION_BALANCE >Int 0 andBool
                #inWidth(64, AMOUNT +Int FEE) andBool
-               SOURCE_BALANCE >=Int (AMOUNT +Int FEE)
+               SOURCE_BALANCE >=Int (AMOUNT +Int FEE) andBool
+               ensure_can_withdraw(ORIGIN, AMOUNT, Transfer, SOURCE_BALANCE -Int AMOUNT -Int FEE)
     rule [transfer-create-account]:
          <k> transfer(ORIGIN, DESTINATION, AMOUNT) =>
              set_free_balance(ORIGIN, SOURCE_BALANCE -Int AMOUNT -Int CREATION_FEE)
@@ -329,7 +335,8 @@ pub fn transfer(
          </accounts>
       requires #inWidth(64, AMOUNT +Int CREATION_FEE) andBool
                SOURCE_BALANCE >=Int (AMOUNT +Int CREATION_FEE) andBool
-               EXISTENTIAL_DEPOSIT >=Int AMOUNT
+               EXISTENTIAL_DEPOSIT >=Int AMOUNT andBool
+               ensure_can_withdraw(ORIGIN, AMOUNT, Transfer, SOURCE_BALANCE -Int AMOUNT -Int CREATION_FEE)
 ```
 
 Force a transfer from any account to any other account.  This can only be done by root.
@@ -348,15 +355,39 @@ Force a transfer from any account to any other account.  This can only be done b
 Function call and return.  Not yet implemented.
 
 ```k
-//  // ---------------------------------
-//     rule [call]:
-//          <k> .Action => 0 => 0
+    syntax CallFrame ::= frame(continuation: K)
+    syntax Action ::= "call" "(" Action ")"
+ // ---------------------------------
+    rule [call]:
+         <k> call(Action) ~> CONT => Action </k>
+         <call-stack> .List => ListItem(frame(CONT)) ... </call-stack>
+
+//     syntax ReturnValue ::= K
+//  // --------------------------
+//     rule [return-value]:
+//          <k> R:ReturnValue => . ... </k>
+//          <return-value> _ => R </return-value>
+
+//     rule [return]:
+//          <k> . => CONT </k>
+//          <call-stack> ListItem(frame(CONT)) => .List ... </call-stack>
 ```
 
 Ensure that a given amount can be withdrawn from an account.
 
+**FIXME** actually implement this ― this is currently a stub that always returns `?True`
 ```k
-    // syntax Action ::= "ensure_can_withdraw" "(" AccountId "," Int ","  ")"
+    syntax WithdrawReason ::= "TransactionPayment"
+                             | "Transfer"
+                             | "Reserve"
+                             | "Fee"
+                             | "Tip"
+
+
+    syntax Bool ::= "ensure_can_withdraw" "(" AccountId "," Int "," WithdrawReason "," Int ")" [function, functional]
+ // --------------------------------------------------------------------------------------
+    rule ensure_can_withdraw(AccountId, Int, WithdrawReason, Int) => ?True
+
 ```
 
 ### Slashing
