@@ -343,6 +343,73 @@ Force a transfer from any account to any other account.  This can only be done b
       requires ORIGIN in ROOTS
 ```
 
+# Call Frames
+
+Function call and return.  Not yet implemented.
+
+```k
+//  // ---------------------------------
+//     rule [call]:
+//          <k> .Action => 0 => 0
+```
+
+Ensure that a given amount can be withdrawn from an account.
+
+```k
+    // syntax Action ::= "ensure_can_withdraw" "(" AccountId "," Int ","  ")"
+```
+
+### Slashing
+
+Used to punish a node for violating the protocol.
+
+```k
+    syntax Action ::= "slash" "(" AccountId "," Int ")"
+ // ---------------------------------------------------
+    rule [slash]:
+         <k> slash(ACCOUNT, AMOUNT) => set_free_balance(ACCOUNT, FREE_BALANCE -Int AMOUNT) </k>
+         <accounts>
+           <account>
+             <accountID> ACCOUNT </accountID>
+             <freeBalance> FREE_BALANCE </freeBalance>
+             ...
+           </account>
+         </accounts>
+         <totalIssuance> TOTAL_ISSUANCE => TOTAL_ISSUANCE -Int AMOUNT </totalIssuance>
+      requires FREE_BALANCE >=Int AMOUNT
+    rule [slash-empty-free]:
+         <k> slash(ACCOUNT, AMOUNT) =>
+             set_free_balance(ACCOUNT, 0) ~>
+             set_reserved_balance(ACCOUNT, AMOUNT -Int FREE_BALANCE)
+         </k>
+         <accounts>
+           <account>
+             <accountID> ACCOUNT </accountID>
+             <freeBalance> FREE_BALANCE </freeBalance>
+             <reservedBalance> RESERVED_BALANCE </reservedBalance>
+             ...
+           </account>
+         </accounts>
+         <totalIssuance> TOTAL_ISSUANCE => TOTAL_ISSUANCE -Int AMOUNT </totalIssuance>
+      requires FREE_BALANCE <Int AMOUNT andBool FREE_BALANCE +Int RESERVED_BALANCE >=Int AMOUNT
+    rule [slash-reserved]:
+         <k> slash(ACCOUNT, AMOUNT) =>
+             set_free_balance(ACCOUNT, 0) ~>
+             set_reserved_balance(ACCOUNT, 0)
+         </k>
+         <accounts>
+           <account>
+             <accountID> ACCOUNT </accountID>
+             <freeBalance> FREE_BALANCE </freeBalance>
+             <reservedBalance> RESERVED_BALANCE </reservedBalance>
+             ...
+           </account>
+         </accounts>
+         <totalIssuance> TOTAL_ISSUANCE => TOTAL_ISSUANCE -Int FREE_BALANCE -Int RESERVED_BALANCE </totalIssuance>
+      requires FREE_BALANCE +Int RESERVED_BALANCE <Int AMOUNT
+```
+
+End of module
 
 ```k
 endmodule
