@@ -33,6 +33,23 @@ module SET-BALANCE-SPEC
       </set-balance>
 ```
 
+# Utilities
+
+## `if` - `then` `else` - end`
+
+The classic if-then-else statement, used for control flow.
+
+```k
+    syntax Action ::= "if" Bool "{" Action "}" "else" "{" Action "}"
+ // -----------------------------------------------------
+    rule [if]:
+         <k> if CONDITION { TRUE_BRANCH } else { FALSE_BRANCH } => TRUE_BRANCH </k>
+      requires CONDITION
+    rule [else]:
+         <k> if CONDITION { TRUE_BRANCH } else { FALSE_BRANCH } => FALSE_BRANCH </k>
+      requires !CONDITION
+```
+
 Data
 ----
 
