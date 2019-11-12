@@ -440,6 +440,51 @@ Used to punish a node for violating the protocol.
       requires FREE_BALANCE +Int RESERVED_BALANCE <Int AMOUNT
 ```
 
+# Reservation and unreservation of balances
+
+Used to move balance from free to reserved and visa versa.
+
+```k
+    syntax Action ::= "reserve" "(" AccountId "," Int ")"
+ // ---------------------------------------------------
+    rule [reserve]:
+         <k> reserve(ACCOUNT, AMOUNT) =>
+             set_reserved_balance(ACCOUNT, FREE_BALANCE +Int AMOUNT) ~>
+             set_free_balance(ACCOUNT, FREE_BALANCE -Int AMOUNT)
+         </k>
+         <accounts>
+           <account>
+             <accountID> ACCOUNT </accountID>
+             <freeBalance> FREE_BALANCE </freeBalance>
+             <reservedBalance> RESERVED_BALANCE </reservedBalance>
+             ...
+           </account>
+         </accounts>
+      requires FREE_BALANCE >=Int AMOUNT
+       andBool ensure_can_withdraw(ACCOUNT, AMOUNT, Reserve, FREE_BALANCE -Int AMOUNT)
+
+    syntax Int ::= "min" "(" Int "," Int ")" [function, functional]
+ // ---------------------------------------------------------------
+    rule [min-ge]: min(A, B) => B requires A >=Int B
+    rule [min-lt]: min(A, B) => A requires A <Int B
+
+    syntax Action ::= "unreserve" "(" AccountId "," Int ")"
+ // ---------------------------------------------------
+    rule [unreserve]:
+         <k> unreserve(ACCOUNT, AMOUNT) =>
+             set_free_balance(ACCOUNT, FREE_BALANCE +Int min(AMOUNT, RESERVED_BALANCE)) ~>
+             set_reserved_balance(ACCOUNT, FREE_BALANCE -Int min(AMOUNT, RESERVED_BALANCE))
+         </k>
+         <accounts>
+           <account>
+             <accountID> ACCOUNT </accountID>
+             <freeBalance> FREE_BALANCE </freeBalance>
+             <reservedBalance> RESERVED_BALANCE </reservedBalance>
+             ...
+           </account>
+         </accounts>
+```
+
 End of module
 
 ```k
