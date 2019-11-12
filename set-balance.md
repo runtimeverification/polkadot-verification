@@ -42,12 +42,8 @@ The classic if-then-else statement, used for control flow.
 ```k
     syntax Action ::= "if" Bool "{" Action "}" "else" "{" Action "}"
  // -----------------------------------------------------
-    rule [if]:
-         <k> if CONDITION { TRUE_BRANCH } else { FALSE_BRANCH } => TRUE_BRANCH </k>
-      requires CONDITION
-    rule [else]:
-         <k> if CONDITION { TRUE_BRANCH } else { FALSE_BRANCH } => FALSE_BRANCH </k>
-      requires !CONDITION
+    rule [if]: if true { TRUE_BRANCH } else { _ } => TRUE_BRANCH
+    rule [else]: if false { _ } else { FALSE_BRANCH } => FALSE_BRANCH
 ```
 
 Data
