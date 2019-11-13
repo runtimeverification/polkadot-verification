@@ -460,23 +460,28 @@ The first of these is also used by `slash`.
          </accounts>
          <totalIssuance> TOTAL_ISSUANCE => TOTAL_ISSUANCE -Int minInt(RESERVED_BALANCE, AMOUNT) </totalIssuance>
 
-    syntax Action ::= "repatriate_reserved" "(" AccountId "," Int ")"
+    syntax Action ::= "repatriate_reserved" "(" AccountId "," AccountId "," Int ")"
  // ------------------------------------------------------------
     rule [repatriate-reserved]:
-         <k> repatriate_reserved(ACCOUNT, AMOUNT)
-          => set_free_balance(ACCOUNT, FREE_BALANCE +Int minInt(RESERVED_BALANCE, AMOUNT))
-          ~> set_reserved_balance(ACCOUNT, RESERVED_BALANCE -Int minInt(RESERVED_BALANCE, AMOUNT))
+         <k> repatriate_reserved(SLASHED, BENEFICIARY, AMOUNT)
+          => set_free_balance(BENEFICIARY, BENEFICIARY_FREE_BALANCE +Int minInt(SLASHED_RESERVED_BALANCE, AMOUNT))
+          ~> set_reserved_balance(SLASHED, SLASHED_RESERVED_BALANCE -Int minInt(SLASHED_RESERVED_BALANCE, AMOUNT))
          ...
          </k>
          <accounts>
            <account>
-             <accountID> ACCOUNT </accountID>
-             <reservedBalance> RESERVED_BALANCE </reservedBalance>
-             <freeBalance> FREE_BALANCE </freeBalance>
+             <accountID> SLASHED </accountID>
+             <reservedBalance> SLASHED_RESERVED_BALANCE </reservedBalance>
+             ...
+           </account>
+           <account>
+             <accountID> BENEFICIARY </accountID>
+             <reservedBalance> BENEFICIARY_RESERVED_BALANCE </reservedBalance>
+             <freeBalance> BENEFICIARY_FREE_BALANCE </freeBalance>
              ...
            </account>
          </accounts>
-      requires FREE_BALANCE +Int RESERVED_BALANCE >Int 0
+      requires BENEFICIARY_FREE_BALANCE +Int BENEFICIARY_RESERVED_BALANCE >Int 0
 ```
 
 ### Slashing
