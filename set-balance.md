@@ -7,14 +7,15 @@ State Model
 ```k
 module SET-BALANCE-SPEC
     imports INT
-    imports LIST
-    imports SET
+    imports DOMAINS
+    imports COLLECTIONS
 
     configuration
       <set-balance>
         <k> $ACTION:Action </k>
+        <now> 0 </now>
         <events> .List </events>
-        <return-value> .K </return-value>
+        <return-value> .Result </return-value>
         <call-stack> .List </call-stack>
         <root-accounts> .Set </root-accounts>
         <existentialDeposit> 0 </existentialDeposit>
@@ -26,6 +27,7 @@ module SET-BALANCE-SPEC
             <accountID> .AccountId:AccountId </accountID>
             <freeBalance> 0 </freeBalance>
             <reservedBalance> 0 </reservedBalance>
+            <vestingBalance> 0 </vestingBalance>
             <nonce> .Nonce </nonce>
             <locks> .Set </locks>
           </account>
@@ -40,10 +42,15 @@ module SET-BALANCE-SPEC
 The classic if-then-else statement, used for control flow.
 
 ```k
-    syntax Action ::= "if" Bool "{" Action "}" "else" "{" Action "}"
- // -----------------------------------------------------
-    rule [if]: if true { TRUE_BRANCH } else { _ } => TRUE_BRANCH
-    rule [else]: if false { _ } else { FALSE_BRANCH } => FALSE_BRANCH
+//    syntax Action ::= "if" BoolExp "{" Action "}" "else" "{" Action "}" [strict(1)]
+// // -------------------------------------------------------------------------------
+//    rule [if]:   <k> if true  { TRUE_BRANCH } else { _            } => TRUE_BRANCH  ... </k>
+//    rule [else]: <k> if false { _           } else { FALSE_BRANCH } => FALSE_BRANCH ... </k>
+//
+//    some_larger_function(WHO, AMOUNT, AMOUNT2, AMOUNT3)
+// => result = set_free_balance(WHO, AMOUNT)
+// ~> if (result > 3) { some_other_call(WHO, AMOUNT2) } else { another_call(WHO, AMOUNT3) }
+// ~> yet_another_call(result, AMOUNT3)
 ```
 
 Data
@@ -83,8 +90,8 @@ A `Result` is the return value of an execution step.
 -   `Updated` indicates that an account was updated successfully.
 
 ```k
-    syntax Result ::= "AccountKilled" | "Updated"
- // ---------------------------------------------
+    syntax Result ::= ".Result" | "AccountKilled" | "Updated"
+ // ---------------------------------------------------------
 ```
 
 Actions and Results
@@ -112,7 +119,7 @@ A `Result` is considered an `Action`.
     syntax Action ::= "set_free_balance" "(" AccountId "," Int ")"
  // --------------------------------------------------------------
     rule [free-account-updated]:
-         <k> set_free_balance(WHO, BALANCE) => Updated ... </k>
+         <k> set_free_balance(WHO, BALANCE) => return(Updated) ... </k>
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
          <account>
            <accountID> WHO </accountID>
@@ -122,7 +129,7 @@ A `Result` is considered an `Action`.
       requires EXISTENTIAL_DEPOSIT <=Int BALANCE
 
     rule [free-account-killed]:
-         <k> set_free_balance(WHO, BALANCE) => AccountKilled ... </k>
+         <k> set_free_balance(WHO, BALANCE) => return(AccountKilled) ... </k>
          <events> ... (.List => ListItem(DustEvent(FREE_BALANCE))) </events>
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
          <account>
@@ -136,7 +143,7 @@ A `Result` is considered an `Action`.
        andBool 0 <Int RESERVED_BALANCE
 
     rule [free-account-reaped]:
-         <k> set_free_balance(WHO, BALANCE) => AccountKilled ... </k>
+         <k> set_free_balance(WHO, BALANCE) => return(AccountKilled) ... </k>
          <events> ... (.List => ListItem(DustEvent(FREE_BALANCE))) </events>
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
          <accounts>
@@ -163,7 +170,7 @@ A `Result` is considered an `Action`.
     syntax Action ::= "set_reserved_balance" "(" AccountId "," Int ")"
  // ------------------------------------------------------------------
     rule [reserved-account-updated]:
-         <k> set_reserved_balance(WHO, BALANCE) => Updated ... </k>
+         <k> set_reserved_balance(WHO, BALANCE) => return(Updated) ... </k>
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
          <account>
            <accountID> WHO </accountID>
@@ -173,7 +180,7 @@ A `Result` is considered an `Action`.
       requires EXISTENTIAL_DEPOSIT <=Int BALANCE
 
     rule [reserved-account-killed]:
-         <k> set_reserved_balance(WHO, BALANCE) => AccountKilled ... </k>
+         <k> set_reserved_balance(WHO, BALANCE) => return(AccountKilled) ... </k>
          <events> ... (.List => ListItem(DustEvent(RESERVED_BALANCE))) </events>
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
          <account>
@@ -187,7 +194,7 @@ A `Result` is considered an `Action`.
        andBool 0 <Int FREE_BALANCE
 
     rule [reserved-account-reaped]:
-         <k> set_reserved_balance(WHO, BALANCE) => AccountKilled ... </k>
+         <k> set_reserved_balance(WHO, BALANCE) => return(AccountKilled) ... </k>
          <events> ... (.List => ListItem(DustEvent(RESERVED_BALANCE))) </events>
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
          <accounts>
@@ -216,19 +223,23 @@ A `Result` is considered an `Action`.
     syntax Action ::= "set_balance" "(" AccountId "," AccountId "," Int "," Int ")"
  // -------------------------------------------------------------------------------
     rule [balance-set]:
-        <k> set_balance(ORIGIN, WHO, FREE_BALANCE, RESERVED_BALANCE) => set_balance_free(WHO, FREE_BALANCE) set_balance_reserved(WHO, RESERVED_BALANCE) ... </k>
+        <k> set_balance(ORIGIN, WHO, FREE_BALANCE, RESERVED_BALANCE)
+         => call(set_balance_free(WHO, FREE_BALANCE))
+         ~> call(set_balance_reserved(WHO, RESERVED_BALANCE))
+        ...
+        </k>
         <root-accounts> ROOTS </root-accounts>
       requires ORIGIN in ROOTS
 ```
 
-### `set_balance_free`
+Helpers for calling `set_free_balance` and `set_reserved_balance`.
 
 * Sets the new free balance
 * Emits an imbalance event
 * Helper function for `set_balance`
 
 ```k
-    syntax Action ::= "set_balance_free" "(" AccountId "," Int ")"
+    syntax Action ::= "set_balance_free"     "(" AccountId "," Int ")"
     syntax Action ::= "set_balance_reserved" "(" AccountId "," Int ")"
  // ------------------------------------------------------------------
     rule [balance-set-free]:
@@ -256,9 +267,7 @@ A `Result` is considered an `Action`.
 
 Amount locked at block `n`.
 
-
 ### `transfer`
-
 
 Transfer some liquid free balance to another account.
 
@@ -303,9 +312,10 @@ pub fn transfer(
     syntax Action ::= "transfer" "(" AccountId "," AccountId "," Int ")"
  // ---------------------------------------------------------------------
     rule [transfer-existing-account]:
-         <k> transfer(ORIGIN, DESTINATION, AMOUNT) =>
-             set_free_balance(ORIGIN, SOURCE_BALANCE -Int AMOUNT -Int FEE)
-             set_free_balance(DESTINATION, DESTINATION_BALANCE +Int AMOUNT)
+         <k> transfer(ORIGIN, DESTINATION, AMOUNT)
+          => call(set_free_balance(ORIGIN, SOURCE_BALANCE -Int AMOUNT -Int FEE))
+          ~> call(set_free_balance(DESTINATION, DESTINATION_BALANCE +Int AMOUNT))
+         ...
          </k>
          <totalIssuance> ISSUANCE => ISSUANCE -Int FEE </totalIssuance>
          <transferFee> FEE </transferFee>
@@ -321,14 +331,15 @@ pub fn transfer(
              ...
            </account>
          </accounts>
-      requires DESTINATION_BALANCE >Int 0 andBool
-               #inWidth(64, AMOUNT +Int FEE) andBool
-               SOURCE_BALANCE >=Int (AMOUNT +Int FEE) andBool
-               ensure_can_withdraw(ORIGIN, AMOUNT, Transfer, SOURCE_BALANCE -Int AMOUNT -Int FEE)
+      requires DESTINATION_BALANCE >Int 0
+       andBool SOURCE_BALANCE >=Int (AMOUNT +Int FEE)
+       andBool ensure_can_withdraw(ORIGIN, Transfer, SOURCE_BALANCE -Int AMOUNT -Int FEE)
+
     rule [transfer-create-account]:
-         <k> transfer(ORIGIN, DESTINATION, AMOUNT) =>
-             set_free_balance(ORIGIN, SOURCE_BALANCE -Int AMOUNT -Int CREATION_FEE)
-             set_free_balance(DESTINATION, AMOUNT)
+         <k> transfer(ORIGIN, DESTINATION, AMOUNT)
+          => call(set_free_balance(ORIGIN, SOURCE_BALANCE -Int AMOUNT -Int CREATION_FEE))
+          ~> call(set_free_balance(DESTINATION, AMOUNT))
+         ...
          </k>
          <totalIssuance> ISSUANCE => ISSUANCE -Int CREATION_FEE </totalIssuance>
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
@@ -346,10 +357,9 @@ pub fn transfer(
              ...
            </account>
          </accounts>
-      requires #inWidth(64, AMOUNT +Int CREATION_FEE) andBool
-               SOURCE_BALANCE >=Int (AMOUNT +Int CREATION_FEE) andBool
-               EXISTENTIAL_DEPOSIT >=Int AMOUNT andBool
-               ensure_can_withdraw(ORIGIN, AMOUNT, Transfer, SOURCE_BALANCE -Int AMOUNT -Int CREATION_FEE)
+      requires SOURCE_BALANCE >=Int (AMOUNT +Int CREATION_FEE)
+       andBool EXISTENTIAL_DEPOSIT >=Int AMOUNT
+       andBool ensure_can_withdraw(ORIGIN, Transfer, SOURCE_BALANCE -Int AMOUNT -Int CREATION_FEE)
 ```
 
 Force a transfer from any account to any other account.  This can only be done by root.
@@ -358,7 +368,7 @@ Force a transfer from any account to any other account.  This can only be done b
     syntax Action ::= "force_transfer" "(" AccountId "," AccountId "," AccountId "," Int ")"
  // ----------------------------------------------------------------------------------------
     rule [force-transfer]:
-         <k> force_transfer(ORIGIN, SOURCE, DESTINATION, AMOUNT) => transfer(SOURCE, DESTINATION, AMOUNT) </k>
+         <k> force_transfer(ORIGIN, SOURCE, DESTINATION, AMOUNT) => transfer(SOURCE, DESTINATION, AMOUNT) ... </k>
          <root-accounts> ROOTS </root-accounts>
       requires ORIGIN in ROOTS
 ```
@@ -369,38 +379,70 @@ Function call and return.  Not yet implemented.
 
 ```k
     syntax CallFrame ::= frame(continuation: K)
-    syntax Action ::= "call" "(" Action ")"
- // ---------------------------------
+    syntax Action ::= call   ( Action )
+                    | return ( Result )
+ // -----------------------------------
     rule [call]:
          <k> call(Action) ~> CONT => Action </k>
          <call-stack> .List => ListItem(frame(CONT)) ... </call-stack>
 
-//     syntax ReturnValue ::= K
-//  // --------------------------
-//     rule [return-value]:
-//          <k> R:ReturnValue => . ... </k>
-//          <return-value> _ => R </return-value>
+    rule [return]:
+         <k> return(R) ~> _ => CONT </k>
+         <return-value> _ => R </return-value>
+         <call-stack> ListItem(frame(CONT)) => .List ... </call-stack>
 
-//     rule [return]:
-//          <k> . => CONT </k>
-//          <call-stack> ListItem(frame(CONT)) => .List ... </call-stack>
+    rule [return-unit]:
+         <k> . => CONT </k>
+         <return-value> _ => .Result </return-value>
+         <call-stack> ListItem(frame(CONT)) => .List ... </call-stack>
 ```
 
 Ensure that a given amount can be withdrawn from an account.
 
 **FIXME** actually implement this ― this is currently a stub that always returns `?True`
+
 ```k
     syntax WithdrawReason ::= "TransactionPayment"
-                             | "Transfer"
-                             | "Reserve"
-                             | "Fee"
-                             | "Tip"
+                            | "Transfer"
+                            | "Reserve"
+                            | "Fee"
+                            | "Tip"
+ // -------------------------------
 
+    syntax Bool ::= "ensure_can_withdraw" "(" AccountId "," WithdrawReason "," Int ")" [function, functional]
+ // ---------------------------------------------------------------------------------------------------------
+    rule ensure_can_withdraw(_, _, _) => true [owise]
 
-    syntax Bool ::= "ensure_can_withdraw" "(" AccountId "," Int "," WithdrawReason "," Int ")" [function, functional]
- // --------------------------------------------------------------------------------------
-    rule ensure_can_withdraw(AccountId, Int, WithdrawReason, Int) => ?True
+    rule [[ ensure_can_withdraw(WHO, Transfer #Or Reserve, BALANCE) => false ]]
+         <account>
+           <accountID> WHO </accountID>
+           <vestingBalance> VESTING_BALANCE </vestingBalance>
+           ...
+         </account>
+      requires VESTING_BALANCE <Int BALANCE
 
+    rule [[ ensure_can_withdraw(WHO, REASON, BALANCE) => false ]]
+         <now> NOW </now>
+         <account>
+           <accountID> WHO </accountID>
+           <locks> ACCOUNT_LOCKS </locks>
+           ...
+         </account>
+      requires activeLocks(ACCOUNT_LOCKS, NOW, REASON, BALANCE)
+
+    syntax AccountLock ::= lock ( until: Int, amount: Int, reasons: Set )
+ // ---------------------------------------------------------------------
+
+    syntax Bool ::= activeLock (AccountLock, Int, WithdrawReason, Int      ) [function]
+                  | activeLocks(Set,         Int, WithdrawReason, Int      ) [function]
+                  | activeLocks(List,        Int, WithdrawReason, Int, Bool) [function, klabel(activeLocksAux)]
+ // -----------------------------------------------------------------------------------------------------------
+    rule activeLock(AL, NOW, REASON, BALANCE) => NOW <Int until(AL) andBool BALANCE <Int amount(AL) andBool REASON in reasons(AL)
+
+    rule activeLocks(ALS, NOW, REASON, BALANCE) => activeLocks(Set2List(ALS), NOW, REASON, BALANCE, false)
+
+    rule activeLocks(.List, _, _, _, RESULT) => RESULT
+    rule activeLocks((ListItem(AL) => .List) REST, NOW, REASON, BALANCE, RESULT => RESULT orBool activeLock(AL, NOW, REASON, BALANCE))
 ```
 
 ### Slashing
@@ -411,7 +453,7 @@ Used to punish a node for violating the protocol.
     syntax Action ::= "slash" "(" AccountId "," Int ")"
  // ---------------------------------------------------
     rule [slash]:
-         <k> slash(ACCOUNT, AMOUNT) => set_free_balance(ACCOUNT, FREE_BALANCE -Int AMOUNT) </k>
+         <k> slash(ACCOUNT, AMOUNT) => set_free_balance(ACCOUNT, FREE_BALANCE -Int AMOUNT) ... </k>
          <accounts>
            <account>
              <accountID> ACCOUNT </accountID>
@@ -421,10 +463,12 @@ Used to punish a node for violating the protocol.
          </accounts>
          <totalIssuance> TOTAL_ISSUANCE => TOTAL_ISSUANCE -Int AMOUNT </totalIssuance>
       requires FREE_BALANCE >=Int AMOUNT
+
     rule [slash-empty-free]:
-         <k> slash(ACCOUNT, AMOUNT) =>
-             set_free_balance(ACCOUNT, 0) ~>
-             set_reserved_balance(ACCOUNT, AMOUNT -Int FREE_BALANCE)
+         <k> slash(ACCOUNT, AMOUNT)
+          => set_free_balance(ACCOUNT, 0)
+          ~> set_reserved_balance(ACCOUNT, AMOUNT -Int FREE_BALANCE)
+         ...
          </k>
          <accounts>
            <account>
@@ -436,10 +480,12 @@ Used to punish a node for violating the protocol.
          </accounts>
          <totalIssuance> TOTAL_ISSUANCE => TOTAL_ISSUANCE -Int AMOUNT </totalIssuance>
       requires FREE_BALANCE <Int AMOUNT andBool FREE_BALANCE +Int RESERVED_BALANCE >=Int AMOUNT
+
     rule [slash-reserved]:
-         <k> slash(ACCOUNT, AMOUNT) =>
-             set_free_balance(ACCOUNT, 0) ~>
-             set_reserved_balance(ACCOUNT, 0)
+         <k> slash(ACCOUNT, AMOUNT)
+          => set_free_balance(ACCOUNT, 0)
+          ~> set_reserved_balance(ACCOUNT, 0)
+         ...
          </k>
          <accounts>
            <account>
@@ -458,8 +504,8 @@ Used to punish a node for violating the protocol.
 Used to move balance from free to reserved and visa versa.
 
 ```k
-    syntax Action ::= "reserve" "(" AccountId "," Int ")"
- // ---------------------------------------------------
+    syntax Action ::= reserve ( AccountId , Int )
+ // ---------------------------------------------
     rule [reserve]:
          <k> reserve(ACCOUNT, AMOUNT) =>
              set_reserved_balance(ACCOUNT, FREE_BALANCE +Int AMOUNT) ~>
@@ -474,19 +520,14 @@ Used to move balance from free to reserved and visa versa.
            </account>
          </accounts>
       requires FREE_BALANCE >=Int AMOUNT
-       andBool ensure_can_withdraw(ACCOUNT, AMOUNT, Reserve, FREE_BALANCE -Int AMOUNT)
+       andBool ensure_can_withdraw(ACCOUNT, Reserve, FREE_BALANCE -Int AMOUNT)
 
-    syntax Int ::= "min" "(" Int "," Int ")" [function, functional]
- // ---------------------------------------------------------------
-    rule [min-ge]: min(A, B) => B requires A >=Int B
-    rule [min-lt]: min(A, B) => A requires A <Int B
-
-    syntax Action ::= "unreserve" "(" AccountId "," Int ")"
- // ---------------------------------------------------
+    syntax Action ::= unreserve ( AccountId , Int )
+ // -----------------------------------------------
     rule [unreserve]:
          <k> unreserve(ACCOUNT, AMOUNT) =>
-             set_free_balance(ACCOUNT, FREE_BALANCE +Int min(AMOUNT, RESERVED_BALANCE)) ~>
-             set_reserved_balance(ACCOUNT, FREE_BALANCE -Int min(AMOUNT, RESERVED_BALANCE))
+             set_free_balance(ACCOUNT, FREE_BALANCE +Int minInt(AMOUNT, RESERVED_BALANCE)) ~>
+             set_reserved_balance(ACCOUNT, FREE_BALANCE -Int minInt(AMOUNT, RESERVED_BALANCE))
          </k>
          <accounts>
            <account>
