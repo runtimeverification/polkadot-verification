@@ -435,6 +435,50 @@ Ensure that a given amount can be withdrawn from an account.
     rule activeLocks((ListItem(AL) => .List) REST, NOW, REASON, BALANCE, RESULT => RESULT orBool activeLock(AL, NOW, REASON, BALANCE))
 ```
 
+Slashing and repatriation of reserved balances
+==============================================
+
+The first of these is also used by `slash`.
+
+* `slash_reserved`
+* `repatriate_reserved`
+
+```k
+    syntax Action ::= "slash_reserved" "(" AccountId "," Int ")"
+ // ------------------------------------------------------------
+    rule [slash-reserved]:
+         <k> slash_reserved(ACCOUNT, AMOUNT)
+          => set_reserved_balance(ACCOUNT, maxInt(0, RESERVED_BALANCE -Int AMOUNT))
+         ...
+         </k>
+         <accounts>
+           <account>
+             <accountID> ACCOUNT </accountID>
+             <reservedBalance> RESERVED_BALANCE </reservedBalance>
+             ...
+           </account>
+         </accounts>
+         <totalIssuance> TOTAL_ISSUANCE => TOTAL_ISSUANCE -Int minInt(RESERVED_BALANCE, AMOUNT) </totalIssuance>
+
+    syntax Action ::= "repatriate_reserved" "(" AccountId "," Int ")"
+ // ------------------------------------------------------------
+    rule [repatriate-reserved]:
+         <k> repatriate_reserved(ACCOUNT, AMOUNT)
+          => set_free_balance(ACCOUNT, FREE_BALANCE +Int minInt(RESERVED_BALANCE, AMOUNT))
+          ~> set_reserved_balance(ACCOUNT, RESERVED_BALANCE -Int minInt(RESERVED_BALANCE, AMOUNT))
+         ...
+         </k>
+         <accounts>
+           <account>
+             <accountID> ACCOUNT </accountID>
+             <reservedBalance> RESERVED_BALANCE </reservedBalance>
+             <freeBalance> FREE_BALANCE </freeBalance>
+             ...
+           </account>
+         </accounts>
+      requires FREE_BALANCE +Int RESERVED_BALANCE >Int 0
+```
+
 ### Slashing
 
 Used to punish a node for violating the protocol.
@@ -511,22 +555,6 @@ Used to move balance from free to reserved and visa versa.
              ...
            </account>
          </accounts>
-
-    syntax Action ::= "slash_reserved" "(" AccountId "," Int ")"
- // -----------------------------------------------
-    rule [slash-reserved]:
-         <k> slash_reserved(ACCOUNT, AMOUNT)
-          ~> set_reserved_balance(ACCOUNT, maxInt(0, RESERVED_BALANCE -Int AMOUNT))
-         ...
-         </k>
-         <accounts>
-           <account>
-             <accountID> ACCOUNT </accountID>
-             <reservedBalance> RESERVED_BALANCE </reservedBalance>
-             ...
-           </account>
-         </accounts>
-         <totalIssuance> TOTAL_ISSUANCE => TOTAL_ISSUANCE -Int minInt(RESERVED_BALANCE, AMOUNT) </totalIssuance>
 ```
 
 End of module
