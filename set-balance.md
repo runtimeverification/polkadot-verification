@@ -35,9 +35,11 @@ module SET-BALANCE-SPEC
       </set-balance>
 ```
 
-# Utilities
+Utilities
+=========
 
-## `if` - `then` `else` - end`
+`if` - `then` `else` - end`
+---------------------------
 
 The classic if-then-else statement, used for control flow.
 
@@ -119,7 +121,7 @@ A `Result` is considered an `Action`.
     syntax Action ::= "set_free_balance" "(" AccountId "," Int ")"
  // --------------------------------------------------------------
     rule [free-account-updated]:
-         <k> set_free_balance(WHO, BALANCE) => return(Updated) ... </k>
+         <k> set_free_balance(WHO, BALANCE) => . ... </k>
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
          <account>
            <accountID> WHO </accountID>
@@ -129,7 +131,7 @@ A `Result` is considered an `Action`.
       requires EXISTENTIAL_DEPOSIT <=Int BALANCE
 
     rule [free-account-killed]:
-         <k> set_free_balance(WHO, BALANCE) => return(AccountKilled) ... </k>
+         <k> set_free_balance(WHO, BALANCE) => . ... </k>
          <events> ... (.List => ListItem(DustEvent(FREE_BALANCE))) </events>
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
          <account>
@@ -143,7 +145,7 @@ A `Result` is considered an `Action`.
        andBool 0 <Int RESERVED_BALANCE
 
     rule [free-account-reaped]:
-         <k> set_free_balance(WHO, BALANCE) => return(AccountKilled) ... </k>
+         <k> set_free_balance(WHO, BALANCE) => . ... </k>
          <events> ... (.List => ListItem(DustEvent(FREE_BALANCE))) </events>
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
          <accounts>
@@ -170,7 +172,7 @@ A `Result` is considered an `Action`.
     syntax Action ::= "set_reserved_balance" "(" AccountId "," Int ")"
  // ------------------------------------------------------------------
     rule [reserved-account-updated]:
-         <k> set_reserved_balance(WHO, BALANCE) => return(Updated) ... </k>
+         <k> set_reserved_balance(WHO, BALANCE) => . ... </k>
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
          <account>
            <accountID> WHO </accountID>
@@ -180,7 +182,7 @@ A `Result` is considered an `Action`.
       requires EXISTENTIAL_DEPOSIT <=Int BALANCE
 
     rule [reserved-account-killed]:
-         <k> set_reserved_balance(WHO, BALANCE) => return(AccountKilled) ... </k>
+         <k> set_reserved_balance(WHO, BALANCE) => . ... </k>
          <events> ... (.List => ListItem(DustEvent(RESERVED_BALANCE))) </events>
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
          <account>
@@ -194,7 +196,7 @@ A `Result` is considered an `Action`.
        andBool 0 <Int FREE_BALANCE
 
     rule [reserved-account-reaped]:
-         <k> set_reserved_balance(WHO, BALANCE) => return(AccountKilled) ... </k>
+         <k> set_reserved_balance(WHO, BALANCE) => . ... </k>
          <events> ... (.List => ListItem(DustEvent(RESERVED_BALANCE))) </events>
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
          <accounts>
@@ -224,8 +226,8 @@ A `Result` is considered an `Action`.
  // -------------------------------------------------------------------------------
     rule [balance-set]:
         <k> set_balance(ORIGIN, WHO, FREE_BALANCE, RESERVED_BALANCE)
-         => call(set_balance_free(WHO, FREE_BALANCE))
-         ~> call(set_balance_reserved(WHO, RESERVED_BALANCE))
+         => set_balance_free(WHO, FREE_BALANCE)
+         ~> set_balance_reserved(WHO, RESERVED_BALANCE)
         ...
         </k>
         <root-accounts> ROOTS </root-accounts>
@@ -278,14 +280,11 @@ of the transfer, the account will be reaped.
 
 The dispatch origin for this call must be `Signed` by the transactor.
 
-# <weight>
 - Dependent on arguments but not critical, given proper implementations for
   input config types. See related functions below.
 - It contains a limited number of reads and writes internally and no complex computation.
 
 **FIXME** implement existence requirements
-
-Related functions:
 
   - `ensure_can_withdraw` is always called internally but has a bounded complexity.
   - Transferring balances to accounts that did not exist before will cause
@@ -293,28 +292,13 @@ Related functions:
   - Removing enough funds from an account will trigger
     `T::DustRemoval::on_unbalanced` and `T::OnFreeBalanceZero::on_free_balance_zero`.
 
-# </weight>
-
-```rust
-#[weight = SimpleDispatchInfo::FixedNormal(1_000_000)]
-pub fn transfer(
-   origin,
-   dest: <T::Lookup as StaticLookup>::Source,
-   #[compact] value: T::Balance
-) {
-   let transactor = ensure_signed(origin)?;
-   let dest = T::Lookup::lookup(dest)?;
-   <Self as Currency<_>>::transfer(&transactor, &dest, value)?;
-}
-```
-
 ```k
     syntax Action ::= "transfer" "(" AccountId "," AccountId "," Int ")"
  // ---------------------------------------------------------------------
     rule [transfer-existing-account]:
          <k> transfer(ORIGIN, DESTINATION, AMOUNT)
-          => call(set_free_balance(ORIGIN, SOURCE_BALANCE -Int AMOUNT -Int FEE))
-          ~> call(set_free_balance(DESTINATION, DESTINATION_BALANCE +Int AMOUNT))
+          => set_free_balance(ORIGIN, SOURCE_BALANCE -Int AMOUNT -Int FEE)
+          ~> set_free_balance(DESTINATION, DESTINATION_BALANCE +Int AMOUNT)
          ...
          </k>
          <totalIssuance> ISSUANCE => ISSUANCE -Int FEE </totalIssuance>
@@ -337,8 +321,8 @@ pub fn transfer(
 
     rule [transfer-create-account]:
          <k> transfer(ORIGIN, DESTINATION, AMOUNT)
-          => call(set_free_balance(ORIGIN, SOURCE_BALANCE -Int AMOUNT -Int CREATION_FEE))
-          ~> call(set_free_balance(DESTINATION, AMOUNT))
+          => set_free_balance(ORIGIN, SOURCE_BALANCE -Int AMOUNT -Int CREATION_FEE)
+          ~> set_free_balance(DESTINATION, AMOUNT)
          ...
          </k>
          <totalIssuance> ISSUANCE => ISSUANCE -Int CREATION_FEE </totalIssuance>
@@ -373,9 +357,10 @@ Force a transfer from any account to any other account.  This can only be done b
       requires ORIGIN in ROOTS
 ```
 
-# Call Frames
+Call Frames
+===========
 
-Function call and return.  Not yet implemented.
+Function call and return.
 
 ```k
     syntax CallFrame ::= frame(continuation: K)
@@ -430,7 +415,12 @@ Ensure that a given amount can be withdrawn from an account.
          </account>
       requires activeLocks(ACCOUNT_LOCKS, NOW, REASON, BALANCE)
 
-    syntax AccountLock ::= lock ( until: Int, amount: Int, reasons: Set )
+    syntax LockID ::= "Election"
+                    | "Staking"
+                    | "Democracy"
+                    | "Phragmen"
+
+    syntax AccountLock ::= lock ( id: LockID, until: Int, amount: Int, reasons: Set )
  // ---------------------------------------------------------------------
 
     syntax Bool ::= activeLock (AccountLock, Int, WithdrawReason, Int      ) [function]
@@ -467,39 +457,22 @@ Used to punish a node for violating the protocol.
     rule [slash-empty-free]:
          <k> slash(ACCOUNT, AMOUNT)
           => set_free_balance(ACCOUNT, 0)
-          ~> set_reserved_balance(ACCOUNT, AMOUNT -Int FREE_BALANCE)
+          ~> slash_reserved(ACCOUNT, AMOUNT -Int FREE_BALANCE)
          ...
          </k>
          <accounts>
            <account>
              <accountID> ACCOUNT </accountID>
              <freeBalance> FREE_BALANCE </freeBalance>
-             <reservedBalance> RESERVED_BALANCE </reservedBalance>
              ...
            </account>
          </accounts>
-         <totalIssuance> TOTAL_ISSUANCE => TOTAL_ISSUANCE -Int AMOUNT </totalIssuance>
-      requires FREE_BALANCE <Int AMOUNT andBool FREE_BALANCE +Int RESERVED_BALANCE >=Int AMOUNT
-
-    rule [slash-reserved]:
-         <k> slash(ACCOUNT, AMOUNT)
-          => set_free_balance(ACCOUNT, 0)
-          ~> set_reserved_balance(ACCOUNT, 0)
-         ...
-         </k>
-         <accounts>
-           <account>
-             <accountID> ACCOUNT </accountID>
-             <freeBalance> FREE_BALANCE </freeBalance>
-             <reservedBalance> RESERVED_BALANCE </reservedBalance>
-             ...
-           </account>
-         </accounts>
-         <totalIssuance> TOTAL_ISSUANCE => TOTAL_ISSUANCE -Int FREE_BALANCE -Int RESERVED_BALANCE </totalIssuance>
-      requires FREE_BALANCE +Int RESERVED_BALANCE <Int AMOUNT
+         <totalIssuance> TOTAL_ISSUANCE => TOTAL_ISSUANCE -Int FREE_BALANCE </totalIssuance>
+      requires FREE_BALANCE <Int AMOUNT
 ```
 
-# Reservation and unreservation of balances
+Reservation and unreservation of balances
+=========================================
 
 Used to move balance from free to reserved and visa versa.
 
@@ -507,9 +480,9 @@ Used to move balance from free to reserved and visa versa.
     syntax Action ::= reserve ( AccountId , Int )
  // ---------------------------------------------
     rule [reserve]:
-         <k> reserve(ACCOUNT, AMOUNT) =>
-             set_reserved_balance(ACCOUNT, FREE_BALANCE +Int AMOUNT) ~>
-             set_free_balance(ACCOUNT, FREE_BALANCE -Int AMOUNT)
+         <k> reserve(ACCOUNT, AMOUNT)
+          => set_reserved_balance(ACCOUNT, FREE_BALANCE +Int AMOUNT)
+          ~> set_free_balance(ACCOUNT, FREE_BALANCE -Int AMOUNT)
          </k>
          <accounts>
            <account>
@@ -525,9 +498,10 @@ Used to move balance from free to reserved and visa versa.
     syntax Action ::= unreserve ( AccountId , Int )
  // -----------------------------------------------
     rule [unreserve]:
-         <k> unreserve(ACCOUNT, AMOUNT) =>
-             set_free_balance(ACCOUNT, FREE_BALANCE +Int minInt(AMOUNT, RESERVED_BALANCE)) ~>
-             set_reserved_balance(ACCOUNT, FREE_BALANCE -Int minInt(AMOUNT, RESERVED_BALANCE))
+         <k> unreserve(ACCOUNT, AMOUNT)
+          => set_free_balance(ACCOUNT, FREE_BALANCE +Int minInt(AMOUNT, RESERVED_BALANCE))
+          ~> set_reserved_balance(ACCOUNT, FREE_BALANCE -Int minInt(AMOUNT, RESERVED_BALANCE))
+         ...
          </k>
          <accounts>
            <account>
@@ -537,6 +511,22 @@ Used to move balance from free to reserved and visa versa.
              ...
            </account>
          </accounts>
+
+    syntax Action ::= "slash_reserved" "(" AccountId "," Int ")"
+ // -----------------------------------------------
+    rule [slash-reserved]:
+         <k> slash_reserved(ACCOUNT, AMOUNT)
+          ~> set_reserved_balance(ACCOUNT, maxInt(0, RESERVED_BALANCE -Int AMOUNT))
+         ...
+         </k>
+         <accounts>
+           <account>
+             <accountID> ACCOUNT </accountID>
+             <reservedBalance> RESERVED_BALANCE </reservedBalance>
+             ...
+           </account>
+         </accounts>
+         <totalIssuance> TOTAL_ISSUANCE => TOTAL_ISSUANCE -Int minInt(RESERVED_BALANCE, AMOUNT) </totalIssuance>
 ```
 
 End of module
