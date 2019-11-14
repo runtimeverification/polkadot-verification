@@ -23,7 +23,7 @@ module SET-BALANCE-SPEC
         <totalIssuance> 0 </totalIssuance>
         <accounts>
           <account multiplicity="*" type="Map">
-            <accountID> ?AccountId </accountID>
+            <accountID> .AccountId:AccountId </accountID>
             <freeBalance> 0 </freeBalance>
             <reservedBalance> 0 </reservedBalance>
             <vestingBalance> 0 </vestingBalance>
@@ -63,11 +63,11 @@ Data
 - An `Event` records some happenning.
 
 ```k
-    syntax AccountId ::= Int
- // ------------------------
+    syntax AccountId ::= ".AccountId" | Int
+ // ---------------------------------------
 
     syntax Origin ::= AccountId | ".Root" | ".None"
- // ---------------------------------------------
+ // -----------------------------------------------
 
     syntax Nonce ::= ".Nonce" | Int
  // -------------------------------
@@ -308,7 +308,7 @@ The dispatch origin for this call must be `Signed` by the transactor.
              ...
            </account>
          </accounts>
-      requires (ORIGIN <Int DESTINATION orBool ORIGIN >Int DESTINATION)
+      requires ORIGIN =/=K DESTINATION
        andBool DESTINATION_BALANCE >Int 0
        andBool SOURCE_BALANCE >=Int (AMOUNT +Int FEE)
        andBool ensure_can_withdraw(ORIGIN, Transfer, SOURCE_BALANCE -Int AMOUNT -Int FEE)
@@ -335,7 +335,7 @@ The dispatch origin for this call must be `Signed` by the transactor.
              ...
            </account>
          </accounts>
-      requires (ORIGIN <Int DESTINATION orBool ORIGIN >Int DESTINATION)
+      requires ORIGIN =/=K DESTINATION
        andBool SOURCE_BALANCE >=Int (AMOUNT +Int CREATION_FEE)
        andBool EXISTENTIAL_DEPOSIT >=Int AMOUNT
        andBool ensure_can_withdraw(ORIGIN, Transfer, SOURCE_BALANCE -Int AMOUNT -Int CREATION_FEE)
@@ -408,10 +408,10 @@ Ensure that a given amount can be withdrawn from an account.
          </account>
       requires activeLocks(ACCOUNT_LOCKS, NOW, REASON, BALANCE)
 
-    syntax LockID ::= "Election"
-                    | "Staking"
-                    | "Democracy"
-                    | "Phragmen"
+    syntax LockID ::= ".Election"
+                    | ".Staking"
+                    | ".Democracy"
+                    | ".Phragmen"
 
     syntax AccountLock ::= lock ( id: LockID, until: Int, amount: Int, reasons: Set )
  // ---------------------------------------------------------------------
