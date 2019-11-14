@@ -17,14 +17,13 @@ module SET-BALANCE-SPEC
         <events> .List </events>
         <return-value> .Result </return-value>
         <call-stack> .List </call-stack>
-        <root-accounts> .Set </root-accounts>
         <existentialDeposit> 0 </existentialDeposit>
         <creationFee> 0 </creationFee>
         <transferFee> 0 </transferFee>
         <totalIssuance> 0 </totalIssuance>
         <accounts>
           <account multiplicity="*" type="Map">
-            <accountID> .AccountId:AccountId </accountID>
+            <accountID> ?AccountId </accountID>
             <freeBalance> 0 </freeBalance>
             <reservedBalance> 0 </reservedBalance>
             <vestingBalance> 0 </vestingBalance>
@@ -58,13 +57,17 @@ The classic if-then-else statement, used for control flow.
 Data
 ----
 
--   An `AccountId` is an optional `Int`.
--   A `Nonce` is an optional `Int`.
--   An `Event` records some happenning.
+- An `AccountId` is an `Int`.
+- An `Origin` is an `AccountId`, `Root`, or `None`.
+- A `Nonce` is an optional `Int`.
+- An `Event` records some happenning.
 
 ```k
-    syntax AccountId ::= ".AccountId" | Int
- // ---------------------------------------
+    syntax AccountId ::= Int
+ // ------------------------
+
+    syntax Origin ::= AccountId | ".Root" | ".None"
+ // ---------------------------------------------
 
     syntax Nonce ::= ".Nonce" | Int
  // -------------------------------
@@ -219,19 +222,16 @@ A `Result` is considered an `Action`.
 * Creates suitible imbalances (both positive and negative).
 * Calls `set_free_balance` with the new free balance.
 * Calls `set_reserved_balance` with the new reserved balance.
-* **FIXME**: these semantics **do not** include lookup of an `AccountId` from a `Source`.
 
 ```k
     syntax Action ::= "set_balance" "(" AccountId "," AccountId "," Int "," Int ")"
  // -------------------------------------------------------------------------------
     rule [balance-set]:
-        <k> set_balance(ORIGIN, WHO, FREE_BALANCE, RESERVED_BALANCE)
+        <k> set_balance(Root, WHO, FREE_BALANCE, RESERVED_BALANCE)
          => set_balance_free(WHO, FREE_BALANCE)
          ~> set_balance_reserved(WHO, RESERVED_BALANCE)
         ...
         </k>
-        <root-accounts> ROOTS </root-accounts>
-      requires ORIGIN in ROOTS
 ```
 
 Helpers for calling `set_free_balance` and `set_reserved_balance`.
@@ -280,21 +280,14 @@ of the transfer, the account will be reaped.
 
 The dispatch origin for this call must be `Signed` by the transactor.
 
-- Dependent on arguments but not critical, given proper implementations for
-  input config types. See related functions below.
-- It contains a limited number of reads and writes internally and no complex computation.
-
-**FIXME** implement existence requirements
-
-  - `ensure_can_withdraw` is always called internally but has a bounded complexity.
-  - Transferring balances to accounts that did not exist before will cause
-     `T::OnNewAccount::on_new_account` to be called.
-  - Removing enough funds from an account will trigger
-    `T::DustRemoval::on_unbalanced` and `T::OnFreeBalanceZero::on_free_balance_zero`.
-
 ```k
-    syntax Action ::= "transfer" "(" AccountId "," AccountId "," Int ")"
+    syntax ExitenceRequirement ::= ".AllowDeath"
+                                 | ".KeepAlive"
+
+    syntax Action ::= transfer(AccountId, AccountId, Int)
  // ---------------------------------------------------------------------
+    rule [transfer-self]:
+         <k> transfer(ORIGIN, ORIGIN, _) => . ... </k>
     rule [transfer-existing-account]:
          <k> transfer(ORIGIN, DESTINATION, AMOUNT)
           => set_free_balance(ORIGIN, SOURCE_BALANCE -Int AMOUNT -Int FEE)
@@ -315,7 +308,8 @@ The dispatch origin for this call must be `Signed` by the transactor.
              ...
            </account>
          </accounts>
-      requires DESTINATION_BALANCE >Int 0
+      requires (ORIGIN <Int DESTINATION orBool ORIGIN >Int DESTINATION)
+       andBool DESTINATION_BALANCE >Int 0
        andBool SOURCE_BALANCE >=Int (AMOUNT +Int FEE)
        andBool ensure_can_withdraw(ORIGIN, Transfer, SOURCE_BALANCE -Int AMOUNT -Int FEE)
 
@@ -341,7 +335,8 @@ The dispatch origin for this call must be `Signed` by the transactor.
              ...
            </account>
          </accounts>
-      requires SOURCE_BALANCE >=Int (AMOUNT +Int CREATION_FEE)
+      requires (ORIGIN <Int DESTINATION orBool ORIGIN >Int DESTINATION)
+       andBool SOURCE_BALANCE >=Int (AMOUNT +Int CREATION_FEE)
        andBool EXISTENTIAL_DEPOSIT >=Int AMOUNT
        andBool ensure_can_withdraw(ORIGIN, Transfer, SOURCE_BALANCE -Int AMOUNT -Int CREATION_FEE)
 ```
@@ -349,12 +344,10 @@ The dispatch origin for this call must be `Signed` by the transactor.
 Force a transfer from any account to any other account.  This can only be done by root.
 
 ```k
-    syntax Action ::= "force_transfer" "(" AccountId "," AccountId "," AccountId "," Int ")"
+    syntax Action ::= "force_transfer" "(" Origin "," AccountId "," AccountId "," Int ")"
  // ----------------------------------------------------------------------------------------
     rule [force-transfer]:
-         <k> force_transfer(ORIGIN, SOURCE, DESTINATION, AMOUNT) => transfer(SOURCE, DESTINATION, AMOUNT) ... </k>
-         <root-accounts> ROOTS </root-accounts>
-      requires ORIGIN in ROOTS
+         <k> force_transfer(.Root, SOURCE, DESTINATION, AMOUNT) => transfer(SOURCE, DESTINATION, AMOUNT) ... </k>
 ```
 
 Call Frames
