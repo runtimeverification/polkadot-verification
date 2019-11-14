@@ -257,7 +257,7 @@ The dispatch origin for this call must be `Signed` by the transactor.
                                  | ".KeepAlive"
 
     syntax Action ::= transfer(AccountId, AccountId, Int)
- // ---------------------------------------------------------------------
+ // ----------------------------------------------------
     rule [transfer-self]:
          <k> transfer(ORIGIN, ORIGIN, _) => . ... </k>
 
