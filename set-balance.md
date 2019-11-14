@@ -260,6 +260,7 @@ The dispatch origin for this call must be `Signed` by the transactor.
  // ---------------------------------------------------------------------
     rule [transfer-self]:
          <k> transfer(ORIGIN, ORIGIN, _) => . ... </k>
+
     rule [transfer-existing-account]:
          <k> transfer(ORIGIN, DESTINATION, AMOUNT)
           => set_free_balance(ORIGIN, SOURCE_BALANCE -Int AMOUNT -Int FEE)
@@ -384,9 +385,10 @@ Ensure that a given amount can be withdrawn from an account.
                     | ".Staking"
                     | ".Democracy"
                     | ".Phragmen"
+ // -----------------------------
 
     syntax AccountLock ::= lock ( id: LockID, until: Int, amount: Int, reasons: Set )
- // ---------------------------------------------------------------------
+ // ---------------------------------------------------------------------------------
 
     syntax Bool ::= activeLock (AccountLock, Int, WithdrawReason, Int      ) [function]
                   | activeLocks(Set,         Int, WithdrawReason, Int      ) [function]
@@ -426,7 +428,7 @@ The first of these is also used by `slash`.
          <totalIssuance> TOTAL_ISSUANCE => TOTAL_ISSUANCE -Int minInt(RESERVED_BALANCE, AMOUNT) </totalIssuance>
 
     syntax Action ::= "repatriate_reserved" "(" AccountId "," AccountId "," Int ")"
- // ------------------------------------------------------------
+ // -------------------------------------------------------------------------------
     rule [repatriate-reserved]:
          <k> repatriate_reserved(SLASHED, BENEFICIARY, AMOUNT)
           => set_free_balance(BENEFICIARY, BENEFICIARY_FREE_BALANCE +Int minInt(SLASHED_RESERVED_BALANCE, AMOUNT))
@@ -497,6 +499,7 @@ Used to move balance from free to reserved and visa versa.
          <k> reserve(ACCOUNT, AMOUNT)
           => set_reserved_balance(ACCOUNT, FREE_BALANCE +Int AMOUNT)
           ~> set_free_balance(ACCOUNT, FREE_BALANCE -Int AMOUNT)
+         ...
          </k>
          <accounts>
            <account>
