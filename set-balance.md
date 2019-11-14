@@ -34,26 +34,6 @@ module SET-BALANCE-SPEC
       </set-balance>
 ```
 
-Utilities
-=========
-
-`if` - `then` `else` - end`
----------------------------
-
-The classic if-then-else statement, used for control flow.
-
-```k
-//    syntax Action ::= "if" BoolExp "{" Action "}" "else" "{" Action "}" [strict(1)]
-// // -------------------------------------------------------------------------------
-//    rule [if]:   <k> if true  { TRUE_BRANCH } else { _            } => TRUE_BRANCH  ... </k>
-//    rule [else]: <k> if false { _           } else { FALSE_BRANCH } => FALSE_BRANCH ... </k>
-//
-//    some_larger_function(WHO, AMOUNT, AMOUNT2, AMOUNT3)
-// => result = set_free_balance(WHO, AMOUNT)
-// ~> if (result > 3) { some_other_call(WHO, AMOUNT2) } else { another_call(WHO, AMOUNT3) }
-// ~> yet_another_call(result, AMOUNT3)
-```
-
 Data
 ----
 
@@ -108,10 +88,6 @@ A `Result` is considered an `Action`.
 ```k
     syntax Action ::= Result
  // ------------------------
-
-    syntax Actions ::= List{Action, ""}
- // -----------------------------------
-    rule <k> A:Action AS:Actions => A ~> AS ... </k>
 ```
 
 ### `set_free_balance`
@@ -264,10 +240,6 @@ Helpers for calling `set_free_balance` and `set_reserved_balance`.
          </account>
       requires #inWidth(64, ISSUANCE +Int (RESERVED_BALANCE' -Int RESERVED_BALANCE))
 ```
-
-### `locked_at`
-
-Amount locked at block `n`.
 
 ### `transfer`
 
