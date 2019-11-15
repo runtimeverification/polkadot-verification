@@ -310,7 +310,7 @@ The dispatch origin for this call must be `Signed` by the transactor.
          </accounts>
       requires ORIGIN =/=K DESTINATION
        andBool SOURCE_BALANCE >=Int (AMOUNT +Int CREATION_FEE)
-       andBool EXISTENTIAL_DEPOSIT >=Int AMOUNT
+       andBool EXISTENTIAL_DEPOSIT <=Int AMOUNT
        andBool ensure_can_withdraw(ORIGIN, Transfer, SOURCE_BALANCE -Int AMOUNT -Int CREATION_FEE)
 ```
 
