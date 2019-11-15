@@ -449,6 +449,9 @@ The first of these is also used by `slash`.
            </account>
          </accounts>
       requires BENEFICIARY_FREE_BALANCE +Int BENEFICIARY_RESERVED_BALANCE >Int 0
+
+    rule [repatriate-reserved-same-account]:
+         <k> repatriate_reserved(SLASHED, SLASHED, AMOUNT) => unreserve(SLASHED, AMOUNT) ... </k>
 ```
 
 ### Slashing
