@@ -255,21 +255,36 @@ of the transfer, the account will be reaped.
 The dispatch origin for this call must be `Signed` by the transactor.
 
 ```k
-    syntax ExitenceRequirement ::= ".AllowDeath"
-                                 | ".KeepAlive"
+    syntax ExistenceRequirement ::= ".AllowDeath"
+                                  | ".KeepAlive"
 
     syntax Action ::= transfer(Origin, AccountId, Int)
- // ----------------------------------------------------
+                    | "transfer_keep_alive" "(" Origin "," AccountId "," Int ")"
+                    | rawTransfer(AccountId, AccountId, Int, ExistenceRequirement)
+ // ------------------------------------------------------------------------------
+    rule [transfer-to-raw]:
+         <k> transfer(ORIGIN:AccountId, DESTINATION, AMOUNT)
+          => rawTransfer(ORIGIN, DESTINATION, AMOUNT, .AllowDeath)
+         ...
+         </k>
+
+    rule [transfer-keep-alive]:
+         <k> transfer_keep_alive(ORIGIN:AccountId, DESTINATION, AMOUNT)
+          => rawTransfer(ORIGIN, DESTINATION, AMOUNT, .KeepAlive)
+         ...
+         </k>
+
     rule [transfer-self]:
-         <k> transfer(ORIGIN:AccountId, ORIGIN, _) => . ... </k>
+         <k> rawTransfer(ORIGIN:AccountId, ORIGIN, _, _) => . ... </k>
 
     rule [transfer-existing-account]:
-         <k> transfer(ORIGIN:AccountId, DESTINATION, AMOUNT)
+         <k> rawTransfer(ORIGIN, DESTINATION, AMOUNT, EXISTENCE_REQUIREMENT)
           => set_free_balance(ORIGIN, SOURCE_BALANCE -Int AMOUNT -Int FEE)
           ~> set_free_balance(DESTINATION, DESTINATION_BALANCE +Int AMOUNT)
          ...
          </k>
          <totalIssuance> ISSUANCE => ISSUANCE -Int FEE </totalIssuance>
+         <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
          <transferFee> FEE </transferFee>
          <accounts>
            <account>
@@ -287,9 +302,9 @@ The dispatch origin for this call must be `Signed` by the transactor.
        andBool DESTINATION_BALANCE >Int 0
        andBool SOURCE_BALANCE >=Int (AMOUNT +Int FEE)
        andBool ensure_can_withdraw(ORIGIN, Transfer, SOURCE_BALANCE -Int AMOUNT -Int FEE)
-
+       andBool (EXISTENCE_REQUIREMENT =/=K .AllowDeath orBool SOURCE_BALANCE -Int AMOUNT -Int FEE >Int EXISTENTIAL_DEPOSIT)
     rule [transfer-create-account]:
-         <k> transfer(ORIGIN:AccountId, DESTINATION, AMOUNT)
+         <k> rawTransfer(ORIGIN:AccountId, DESTINATION, AMOUNT, EXISTENCE_REQUIREMENT)
           => set_free_balance(ORIGIN, SOURCE_BALANCE -Int AMOUNT -Int CREATION_FEE)
           ~> set_free_balance(DESTINATION, AMOUNT)
          ...
@@ -314,6 +329,7 @@ The dispatch origin for this call must be `Signed` by the transactor.
        andBool SOURCE_BALANCE >=Int (AMOUNT +Int CREATION_FEE)
        andBool EXISTENTIAL_DEPOSIT <=Int AMOUNT
        andBool ensure_can_withdraw(ORIGIN, Transfer, SOURCE_BALANCE -Int AMOUNT -Int CREATION_FEE)
+       andBool (EXISTENCE_REQUIREMENT =/=K .AllowDeath orBool SOURCE_BALANCE -Int AMOUNT -Int CREATION_FEE >Int EXISTENTIAL_DEPOSIT)
 ```
 
 Force a transfer from any account to any other account.  This can only be done by root.
