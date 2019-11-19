@@ -115,6 +115,7 @@ A `Result` is considered an `Action`.
          <k> set_free_balance(WHO, BALANCE) => . ... </k>
          <events> ... (.List => ListItem(DustEvent(FREE_BALANCE))) </events>
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
+         <totalIssuance> TOTAL_ISSUANCE => TOTAL_ISSUANCE -Int BALANCE </totalIssuance>
          <account>
            <accountID> WHO </accountID>
            <nonce> _ => .Nonce </nonce>
@@ -129,6 +130,7 @@ A `Result` is considered an `Action`.
          <k> set_free_balance(WHO, BALANCE) => . ... </k>
          <events> ... (.List => ListItem(DustEvent(FREE_BALANCE))) </events>
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
+         <totalIssuance> TOTAL_ISSUANCE => TOTAL_ISSUANCE -Int BALANCE </totalIssuance>
          <accounts>
            ( <account>
                <accountID> WHO </accountID>
@@ -166,6 +168,7 @@ A `Result` is considered an `Action`.
          <k> set_reserved_balance(WHO, BALANCE) => . ... </k>
          <events> ... (.List => ListItem(DustEvent(RESERVED_BALANCE))) </events>
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
+         <totalIssuance> TOTAL_ISSUANCE => TOTAL_ISSUANCE -Int BALANCE </totalIssuance>
          <account>
            <accountID> WHO </accountID>
            <nonce> _ => .Nonce </nonce>
@@ -180,6 +183,7 @@ A `Result` is considered an `Action`.
          <k> set_reserved_balance(WHO, BALANCE) => . ... </k>
          <events> ... (.List => ListItem(DustEvent(RESERVED_BALANCE))) </events>
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
+         <totalIssuance> TOTAL_ISSUANCE => TOTAL_ISSUANCE -Int BALANCE </totalIssuance>
          <accounts>
            ( <account>
                <accountID> WHO </accountID>
@@ -576,7 +580,7 @@ Vesting
          </account>
 
     syntax Int ::= "vesting_balance" "(" AccountId ")" [function, functional]
- // ---------------------------------------------------------------------
+ // -------------------------------------------------------------------------
     rule [[ vesting_balance(WHO) => minInt(FREE_BALANCE, locked_at(WHO)) ]]
          <account>
            <accountID> WHO </accountID>
