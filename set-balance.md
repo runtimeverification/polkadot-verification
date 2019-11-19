@@ -586,7 +586,26 @@ Vesting
            <accountID> WHO </accountID>
            <freeBalance> FREE_BALANCE </freeBalance>
            ...
+        </account>
+```
+
+Deposits
+--------
+
+Deposit into an existing account.
+
+```k
+    syntax Action ::= "deposit_into_existing" "(" AccountId "," Int ")"
+ // -------------------------------------------------------------------
+    rule [deposit-into-existing]:
+         <k> deposit_into_existing(WHO, AMOUNT) => . ... </k>
+         <totalIssuance> TOTAL_ISSUANCE => TOTAL_ISSUANCE +Int AMOUNT </totalIssuance>
+         <account>
+           <accountID> WHO </accountID>
+           <freeBalance> FREE_BALANCE => FREE_BALANCE +Int AMOUNT </freeBalance>
+           ...
          </account>
+      requires FREE_BALANCE >Int 0
 ```
 
 End of module
