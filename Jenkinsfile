@@ -17,6 +17,7 @@ pipeline {
       }
     }
     stage('Dependencies') {
+      when { changeRequest() }
       parallel {
         stage('KWasm') {
           steps {
@@ -35,6 +36,7 @@ pipeline {
       }
     }
     stage('Build') {
+      when { changeRequest() }
       parallel {
         stage('KWasm (normal)') {
           steps {
@@ -60,6 +62,7 @@ pipeline {
       }
     }
     stage('Test') {
+      when { changeRequest() }
       parallel {
         stage('Can Build Specs') {
           options { timeout(time: 1, unit: 'MINUTES') }
