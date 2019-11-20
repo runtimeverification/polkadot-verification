@@ -564,10 +564,6 @@ Vesting
 * `vesting_balance` ― get the balance that cannot currently be withdrawn.
 
 ```k
-    syntax Int ::= saturatingSub ( Int , Int )
- // --------------------------------------
-    rule saturatingSub(X, Y) => X -Int minInt(X, Y)
-
     syntax Int ::= "locked_at" "(" AccountId ")" [function, functional]
  // -------------------------------------------------------------------
     rule [[ locked_at(WHO) => maxInt(0, VESTING_BALANCE -Int maxInt(0, NOW -Int STARTING_BLOCK)) ]]
