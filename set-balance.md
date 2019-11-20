@@ -566,7 +566,7 @@ Vesting
 ```k
     syntax Int ::= "locked_at" "(" AccountId ")" [function, functional]
  // -------------------------------------------------------------------
-    rule [[ locked_at(WHO) => maxInt(0, VESTING_BALANCE -Int (PER_BLOCK * maxInt(0, NOW -Int STARTING_BLOCK))) ]]
+    rule [[ locked_at(WHO) => maxInt(0, VESTING_BALANCE -Int (PER_BLOCK *Int maxInt(0, NOW -Int STARTING_BLOCK))) ]]
          <now> NOW </now>
          <account>
            <accountID> WHO </accountID>
