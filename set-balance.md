@@ -307,6 +307,7 @@ The dispatch origin for this call must be `Signed` by the transactor.
        andBool SOURCE_BALANCE >=Int (AMOUNT +Int FEE)
        andBool ensure_can_withdraw(ORIGIN, Transfer, SOURCE_BALANCE -Int AMOUNT -Int FEE)
        andBool (EXISTENCE_REQUIREMENT =/=K .AllowDeath orBool SOURCE_BALANCE -Int AMOUNT -Int FEE >Int EXISTENTIAL_DEPOSIT)
+
     rule [transfer-create-account]:
          <k> rawTransfer(ORIGIN:AccountId, DESTINATION, AMOUNT, EXISTENCE_REQUIREMENT)
           => set_free_balance(ORIGIN, SOURCE_BALANCE -Int AMOUNT -Int CREATION_FEE)
