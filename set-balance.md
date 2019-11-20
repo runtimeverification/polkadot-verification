@@ -27,6 +27,8 @@ module SET-BALANCE-SPEC
             <freeBalance> 0 </freeBalance>
             <reservedBalance> 0 </reservedBalance>
             <vestingBalance> 0 </vestingBalance>
+            <startingBlock> 0 </startingBlock>
+            <perBlock> 0 </perBlock>
             <nonce> .Nonce </nonce>
             <locks> .Set </locks>
           </account>
@@ -113,6 +115,7 @@ A `Result` is considered an `Action`.
          <k> set_free_balance(WHO, BALANCE) => . ... </k>
          <events> ... (.List => ListItem(DustEvent(FREE_BALANCE))) </events>
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
+         <totalIssuance> TOTAL_ISSUANCE => TOTAL_ISSUANCE -Int BALANCE </totalIssuance>
          <account>
            <accountID> WHO </accountID>
            <nonce> _ => .Nonce </nonce>
@@ -127,6 +130,7 @@ A `Result` is considered an `Action`.
          <k> set_free_balance(WHO, BALANCE) => . ... </k>
          <events> ... (.List => ListItem(DustEvent(FREE_BALANCE))) </events>
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
+         <totalIssuance> TOTAL_ISSUANCE => TOTAL_ISSUANCE -Int BALANCE </totalIssuance>
          <accounts>
            ( <account>
                <accountID> WHO </accountID>
@@ -164,6 +168,7 @@ A `Result` is considered an `Action`.
          <k> set_reserved_balance(WHO, BALANCE) => . ... </k>
          <events> ... (.List => ListItem(DustEvent(RESERVED_BALANCE))) </events>
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
+         <totalIssuance> TOTAL_ISSUANCE => TOTAL_ISSUANCE -Int BALANCE </totalIssuance>
          <account>
            <accountID> WHO </accountID>
            <nonce> _ => .Nonce </nonce>
@@ -178,6 +183,7 @@ A `Result` is considered an `Action`.
          <k> set_reserved_balance(WHO, BALANCE) => . ... </k>
          <events> ... (.List => ListItem(DustEvent(RESERVED_BALANCE))) </events>
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
+         <totalIssuance> TOTAL_ISSUANCE => TOTAL_ISSUANCE -Int BALANCE </totalIssuance>
          <accounts>
            ( <account>
                <accountID> WHO </accountID>
@@ -241,7 +247,7 @@ Helpers for calling `set_free_balance` and `set_reserved_balance`.
       requires #inWidth(64, ISSUANCE +Int (RESERVED_BALANCE' -Int RESERVED_BALANCE))
 ```
 
-### `transfer`
+### `transfer_raw`
 
 Transfer some liquid free balance to another account.
 
@@ -253,21 +259,36 @@ of the transfer, the account will be reaped.
 The dispatch origin for this call must be `Signed` by the transactor.
 
 ```k
-    syntax ExitenceRequirement ::= ".AllowDeath"
-                                 | ".KeepAlive"
+    syntax ExistenceRequirement ::= "AllowDeath"
+                                  | "KeepAlive"
 
-    syntax Action ::= transfer(AccountId, AccountId, Int)
- // ----------------------------------------------------
+    syntax Action ::= transfer(Origin, AccountId, Int)
+                    | "transfer_keep_alive" "(" Origin "," AccountId "," Int ")"
+                    | rawTransfer(AccountId, AccountId, Int, ExistenceRequirement)
+ // ------------------------------------------------------------------------------
+    rule [transfer-to-raw]:
+         <k> transfer(ORIGIN:AccountId, DESTINATION, AMOUNT)
+          => rawTransfer(ORIGIN, DESTINATION, AMOUNT, AllowDeath)
+         ...
+         </k>
+
+    rule [transfer-keep-alive]:
+         <k> transfer_keep_alive(ORIGIN:AccountId, DESTINATION, AMOUNT)
+          => rawTransfer(ORIGIN, DESTINATION, AMOUNT, KeepAlive)
+         ...
+         </k>
+
     rule [transfer-self]:
-         <k> transfer(ORIGIN, ORIGIN, _) => . ... </k>
+         <k> rawTransfer(ORIGIN:AccountId, ORIGIN, _, _) => . ... </k>
 
     rule [transfer-existing-account]:
-         <k> transfer(ORIGIN, DESTINATION, AMOUNT)
+         <k> rawTransfer(ORIGIN, DESTINATION, AMOUNT, EXISTENCE_REQUIREMENT)
           => set_free_balance(ORIGIN, SOURCE_BALANCE -Int AMOUNT -Int FEE)
           ~> set_free_balance(DESTINATION, DESTINATION_BALANCE +Int AMOUNT)
          ...
          </k>
          <totalIssuance> ISSUANCE => ISSUANCE -Int FEE </totalIssuance>
+         <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
          <transferFee> FEE </transferFee>
          <accounts>
            <account>
@@ -285,9 +306,10 @@ The dispatch origin for this call must be `Signed` by the transactor.
        andBool DESTINATION_BALANCE >Int 0
        andBool SOURCE_BALANCE >=Int (AMOUNT +Int FEE)
        andBool ensure_can_withdraw(ORIGIN, Transfer, SOURCE_BALANCE -Int AMOUNT -Int FEE)
+       andBool (EXISTENCE_REQUIREMENT =/=K AllowDeath orBool SOURCE_BALANCE -Int AMOUNT -Int FEE >Int EXISTENTIAL_DEPOSIT)
 
     rule [transfer-create-account]:
-         <k> transfer(ORIGIN, DESTINATION, AMOUNT)
+         <k> rawTransfer(ORIGIN:AccountId, DESTINATION, AMOUNT, EXISTENCE_REQUIREMENT)
           => set_free_balance(ORIGIN, SOURCE_BALANCE -Int AMOUNT -Int CREATION_FEE)
           ~> set_free_balance(DESTINATION, AMOUNT)
          ...
@@ -312,6 +334,7 @@ The dispatch origin for this call must be `Signed` by the transactor.
        andBool SOURCE_BALANCE >=Int (AMOUNT +Int CREATION_FEE)
        andBool EXISTENTIAL_DEPOSIT <=Int AMOUNT
        andBool ensure_can_withdraw(ORIGIN, Transfer, SOURCE_BALANCE -Int AMOUNT -Int CREATION_FEE)
+       andBool (EXISTENCE_REQUIREMENT =/=K AllowDeath orBool SOURCE_BALANCE -Int AMOUNT -Int CREATION_FEE >Int EXISTENTIAL_DEPOSIT)
 ```
 
 Force a transfer from any account to any other account.  This can only be done by root.
@@ -324,7 +347,7 @@ Force a transfer from any account to any other account.  This can only be done b
 ```
 
 Call Frames
-===========
+-----------
 
 Function call and return.
 
@@ -403,7 +426,7 @@ Ensure that a given amount can be withdrawn from an account.
 ```
 
 Slashing and repatriation of reserved balances
-==============================================
+----------------------------------------------
 
 The first of these is also used by `slash`.
 
@@ -492,7 +515,7 @@ Used to punish a node for violating the protocol.
 ```
 
 Reservation and unreservation of balances
-=========================================
+-----------------------------------------
 
 Used to move balance from free to reserved and visa versa.
 
@@ -532,6 +555,54 @@ Used to move balance from free to reserved and visa versa.
              ...
            </account>
          </accounts>
+```
+
+Vesting
+-------
+
+* `locked_at` ― amount currently locked
+* `vesting_balance` ― get the balance that cannot currently be withdrawn.
+
+```k
+    syntax Int ::= "locked_at" "(" AccountId ")" [function, functional]
+ // -------------------------------------------------------------------
+    rule [[ locked_at(WHO) => maxInt(0, VESTING_BALANCE -Int (PER_BLOCK *Int maxInt(0, NOW -Int STARTING_BLOCK))) ]]
+         <now> NOW </now>
+         <account>
+           <accountID> WHO </accountID>
+           <vestingBalance> VESTING_BALANCE </vestingBalance>
+           <startingBlock> STARTING_BLOCK </startingBlock>
+           <perBlock> PER_BLOCK </perBlock>
+           ...
+         </account>
+
+    syntax Int ::= "vesting_balance" "(" AccountId ")" [function, functional]
+ // -------------------------------------------------------------------------
+    rule [[ vesting_balance(WHO) => minInt(FREE_BALANCE, locked_at(WHO)) ]]
+         <account>
+           <accountID> WHO </accountID>
+           <freeBalance> FREE_BALANCE </freeBalance>
+           ...
+        </account>
+```
+
+Deposits
+--------
+
+Deposit into an existing account.
+
+```k
+    syntax Action ::= "deposit_into_existing" "(" AccountId "," Int ")"
+ // -------------------------------------------------------------------
+    rule [deposit-into-existing]:
+         <k> deposit_into_existing(WHO, AMOUNT) => . ... </k>
+         <totalIssuance> TOTAL_ISSUANCE => TOTAL_ISSUANCE +Int AMOUNT </totalIssuance>
+         <account>
+           <accountID> WHO </accountID>
+           <freeBalance> FREE_BALANCE => FREE_BALANCE +Int AMOUNT </freeBalance>
+           ...
+         </account>
+      requires FREE_BALANCE >Int 0
 ```
 
 End of module
