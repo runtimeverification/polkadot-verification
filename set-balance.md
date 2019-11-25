@@ -85,10 +85,11 @@ Actions and Results
 -------------------
 
 An `Action` is an execution step (or the result of an execution step).
-A `Result` is considered an `Action`.
+An `EntryAction` is an `Action` that can be invoked externally.
+A `Result` is considered an `Action`, as is an `EntryAction`.
 
 ```k
-    syntax Action ::= Result
+    syntax Action ::= Result | EntryAction
  // ------------------------
 ```
 
@@ -206,7 +207,7 @@ A `Result` is considered an `Action`.
 * Calls `set_reserved_balance` with the new reserved balance.
 
 ```k
-    syntax Action ::= "set_balance" "(" AccountId "," AccountId "," Int "," Int ")"
+    syntax EntryAction ::= "set_balance" "(" AccountId "," AccountId "," Int "," Int ")"
  // -------------------------------------------------------------------------------
     rule [balance-set]:
         <k> set_balance(Root, WHO, FREE_BALANCE, RESERVED_BALANCE)
@@ -262,9 +263,10 @@ The dispatch origin for this call must be `Signed` by the transactor.
     syntax ExistenceRequirement ::= "AllowDeath"
                                   | "KeepAlive"
 
-    syntax Action ::= transfer(Origin, AccountId, Int)
-                    | "transfer_keep_alive" "(" Origin "," AccountId "," Int ")"
-                    | rawTransfer(AccountId, AccountId, Int, ExistenceRequirement)
+    syntax EntryAction ::= transfer(Origin, AccountId, Int)
+                         | "transfer_keep_alive" "(" Origin "," AccountId "," Int ")"
+
+    syntax Action ::= rawTransfer(AccountId, AccountId, Int, ExistenceRequirement)
  // ------------------------------------------------------------------------------
     rule [transfer-to-raw]:
          <k> transfer(ORIGIN:AccountId, DESTINATION, AMOUNT)
@@ -340,7 +342,7 @@ The dispatch origin for this call must be `Signed` by the transactor.
 Force a transfer from any account to any other account.  This can only be done by root.
 
 ```k
-    syntax Action ::= "force_transfer" "(" Origin "," AccountId "," AccountId "," Int ")"
+    syntax EntryAction ::= "force_transfer" "(" Origin "," AccountId "," AccountId "," Int ")"
  // ----------------------------------------------------------------------------------------
     rule [force-transfer]:
          <k> force_transfer(.Root, SOURCE, DESTINATION, AMOUNT) => transfer(SOURCE, DESTINATION, AMOUNT) ... </k>
@@ -483,7 +485,7 @@ The first of these is also used by `slash`.
 Used to punish a node for violating the protocol.
 
 ```k
-    syntax Action ::= "slash" "(" AccountId "," Int ")"
+    syntax EntryAction ::= slash ( AccountId , Int )
  // ---------------------------------------------------
     rule [slash]:
          <k> slash(ACCOUNT, AMOUNT) => set_free_balance(ACCOUNT, FREE_BALANCE -Int AMOUNT) ... </k>
@@ -592,7 +594,7 @@ Deposits
 Deposit into an existing account.
 
 ```k
-    syntax Action ::= "deposit_into_existing" "(" AccountId "," Int ")"
+    syntax EntryAction ::= "deposit_into_existing" "(" AccountId "," Int ")"
  // -------------------------------------------------------------------
     rule [deposit-into-existing]:
          <k> deposit_into_existing(WHO, AMOUNT) => . ... </k>
