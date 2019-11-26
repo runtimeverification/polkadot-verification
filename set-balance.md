@@ -81,6 +81,102 @@ A `Result` is the return value of an execution step.
  // ---------------------------------------------------------
 ```
 
+Public Getters
+--------------
+
+### `total_balance`
+
+Retrieves the total balance of an account.  This includes both the free and
+reserved balances.
+
+```k
+    syntax Int ::= "total_balance" "(" AccountId ")" [function, functional]
+ // -----------------------------------------------------------------------
+    rule [[ total_balance(WHO) => FREE_BALANCE +Int RESERVED_BALANCE ]]
+         <account>
+           <accountID> WHO </accountID>
+           <freeBalance> FREE_BALANCE </freeBalance>
+           <reservedBalance> RESERVED_BALANCE </reservedBalance>
+           ...
+         </account>
+```
+
+### `can_slash`
+
+Determines if an account’s free balance is over the value provided.  This is
+often used to determine if an account has enough balance to cover a potential
+slash, hence the name.
+
+```k
+    syntax Bool ::= "can_slash" "(" AccountId "," Int ")" [function, functional]
+ // ----------------------------------------------------------------------------
+    rule [[ can_slash(WHO, AMOUNT) => FREE_BALANCE >=Int AMOUNT ]]
+         <account>
+           <accountID> WHO </accountID>
+           <freeBalance> FREE_BALANCE </freeBalance>
+           ...
+         </account>
+```
+
+### `total_issuance`
+
+Retrieves the total outstanding amount of currency outstanding.  This will
+always be equal to the sum of all free and reserved balances in all active
+accounts, except when the balances module is executing.
+
+```k
+    syntax Int ::= "total_issuance" [function, functional]
+ // ------------------------------------------------------
+    rule [[ total_issuance => TOTAL_ISSUANCE ]]
+         <totalIssuance> TOTAL_ISSUANCE </totalIssuance>
+```
+
+### `minimum_balance`
+
+Retrieves the minimum balance, also known as the existential deposit.
+
+Other than when this module is executing, no account will ever have a balance
+strictly between this and zero.
+
+```k
+    syntax Int ::= "minimum_balance" [function, functional]
+ // -------------------------------------------------------
+    rule [[ minimum_balance => EXISTENTIAL_DEPOSIT ]]
+         <totalIssuance> EXISTENTIAL_DEPOSIT </totalIssuance>
+```
+
+### `issue`
+
+Issues currency, creating an imbalance.
+
+This is not specified, since these semantics do not include the concept of an
+imbalance.  Without the concept of destructors and move semantics, it would be
+almost impossible to use correctly.
+
+### `burn`
+
+Burns currency.
+
+This is not part of the semantics for the same reason `burn` is not.
+
+### `free_balance`
+
+Gets the free balance of an account.
+
+Other than when this module is executing, this will never be strictly between
+`EXISTENTIAL_DEPOSIT` and zero.
+
+```k
+    syntax Int ::= "free_balance" "(" AccountId ")" [function, functional]
+ // ----------------------------------------------------------------------
+    rule [[ free_balance(WHO) => FREE_BALANCE ]]
+         <account>
+           <accountID> WHO </accountID>
+           <freeBalance> FREE_BALANCE </freeBalance>
+           ...
+         </account>
+```
+
 Actions and Results
 -------------------
 
@@ -90,7 +186,7 @@ A `Result` is considered an `Action`, as is an `EntryAction`.
 
 ```k
     syntax Action ::= Result | EntryAction
- // ------------------------
+ // --------------------------------------
 ```
 
 ### `set_free_balance`
@@ -183,7 +279,6 @@ A `Result` is considered an `Action`, as is an `EntryAction`.
     rule [reserved-account-reaped]:
          <k> set_reserved_balance(WHO, BALANCE) => . ... </k>
          <events> ... (.List => ListItem(DustEvent(RESERVED_BALANCE))) </events>
-         <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
          <totalIssuance> TOTAL_ISSUANCE => TOTAL_ISSUANCE -Int BALANCE </totalIssuance>
          <accounts>
            ( <account>
@@ -196,7 +291,7 @@ A `Result` is considered an `Action`, as is an `EntryAction`.
            )
            ...
          </accounts>
-      requires BALANCE <Int EXISTENTIAL_DEPOSIT
+      requires BALANCE <Int minimum_balance 
 ```
 
 ### `set_balance`
@@ -229,13 +324,8 @@ Helpers for calling `set_free_balance` and `set_reserved_balance`.
  // ------------------------------------------------------------------
     rule [balance-set-free]:
          <k> set_balance_free(WHO, FREE_BALANCE') => set_free_balance(WHO, FREE_BALANCE') ... </k>
-         <totalIssuance> ISSUANCE => ISSUANCE +Int (FREE_BALANCE' -Int FREE_BALANCE) </totalIssuance>
-         <account>
-           <accountID> WHO </accountID>
-           <freeBalance> FREE_BALANCE </freeBalance>
-           ...
-         </account>
-      requires #inWidth(64, ISSUANCE +Int (FREE_BALANCE' -Int FREE_BALANCE))
+         <totalIssuance> ISSUANCE => ISSUANCE +Int (FREE_BALANCE' -Int free_balance(WHO)) </totalIssuance>
+      requires #inWidth(64, ISSUANCE +Int (FREE_BALANCE' -Int free_balance(WHO)))
 
     rule [balance-set-reserved]:
          <k> set_balance_reserved(WHO, RESERVED_BALANCE') => set_reserved_balance(WHO, RESERVED_BALANCE') ... </k>
@@ -290,7 +380,6 @@ The dispatch origin for this call must be `Signed` by the transactor.
          ...
          </k>
          <totalIssuance> ISSUANCE => ISSUANCE -Int FEE </totalIssuance>
-         <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
          <transferFee> FEE </transferFee>
          <accounts>
            <account>
@@ -308,7 +397,7 @@ The dispatch origin for this call must be `Signed` by the transactor.
        andBool DESTINATION_BALANCE >Int 0
        andBool SOURCE_BALANCE >=Int (AMOUNT +Int FEE)
        andBool ensure_can_withdraw(ORIGIN, Transfer, SOURCE_BALANCE -Int AMOUNT -Int FEE)
-       andBool (EXISTENCE_REQUIREMENT =/=K AllowDeath orBool SOURCE_BALANCE -Int AMOUNT -Int FEE >Int EXISTENTIAL_DEPOSIT)
+       andBool (EXISTENCE_REQUIREMENT ==K AllowDeath orBool SOURCE_BALANCE -Int AMOUNT -Int FEE >Int minimum_balance)
 
     rule [transfer-create-account]:
          <k> rawTransfer(ORIGIN:AccountId, DESTINATION, AMOUNT, EXISTENCE_REQUIREMENT)
@@ -331,13 +420,16 @@ The dispatch origin for this call must be `Signed` by the transactor.
              <reservedBalance> 0 </reservedBalance>
              ...
            </account>
+           ...
          </accounts>
       requires ORIGIN =/=K DESTINATION
        andBool SOURCE_BALANCE >=Int (AMOUNT +Int CREATION_FEE)
        andBool EXISTENTIAL_DEPOSIT <=Int AMOUNT
        andBool ensure_can_withdraw(ORIGIN, Transfer, SOURCE_BALANCE -Int AMOUNT -Int CREATION_FEE)
-       andBool (EXISTENCE_REQUIREMENT =/=K AllowDeath orBool SOURCE_BALANCE -Int AMOUNT -Int CREATION_FEE >Int EXISTENTIAL_DEPOSIT)
+       andBool (EXISTENCE_REQUIREMENT ==K AllowDeath orBool SOURCE_BALANCE -Int AMOUNT -Int CREATION_FEE >=Int EXISTENTIAL_DEPOSIT)
 ```
+
+### `force_transfer`
 
 Force a transfer from any account to any other account.  This can only be done by root.
 
@@ -346,6 +438,31 @@ Force a transfer from any account to any other account.  This can only be done b
  // ----------------------------------------------------------------------------------------
     rule [force-transfer]:
          <k> force_transfer(.Root, SOURCE, DESTINATION, AMOUNT) => transfer(SOURCE, DESTINATION, AMOUNT) ... </k>
+```
+
+### `withdraw`
+
+Withdraw funds from an account.
+
+```k
+    syntax EntryAction ::= withdraw(AccountId, Int, WithdrawReason, ExistenceRequirement)
+ // -------------------------------------------------------------------------------------
+    rule [withdraw]: // K really needs where clauses
+         <k> withdraw(WHO, AMOUNT, REASON, EXISTENCE_REQUIREMENT)
+          => withdrawInner(WHO, AMOUNT, AMOUNT -Int free_balance(WHO), REASON, EXISTENCE_REQUIREMENT)
+         </k>
+
+    syntax Action ::= withdrawInner(AccountId, Int, Int, WithdrawReason, ExistenceRequirement)
+ // -------------------------------------------------------------------------------------
+    rule [withdrawInner]:
+         <k> withdrawInner(WHO, AMOUNT, NEW_BALANCE, REASON, EXISTENCE_REQUIREMENT)
+          => set_free_balance(WHO, NEW_BALANCE)
+         ...
+         </k>
+         <totalIssuance> ISSUANCE => ISSUANCE -Int AMOUNT </totalIssuance>
+      requires NEW_BALANCE >=Int 0
+       andBool ensure_can_withdraw(WHO, REASON, NEW_BALANCE)
+       andBool (EXISTENCE_REQUIREMENT ==K AllowDeath orBool NEW_BALANCE >=Int minimum_balance)
 ```
 
 Call Frames
@@ -375,7 +492,8 @@ Function call and return.
 
 Ensure that a given amount can be withdrawn from an account.
 
-**FIXME** actually implement this ― this is currently a stub that always returns `?True`
+**FIXME**: we do not account for multiple withdrawl reasons, due to K’s
+lacking polymorphism.
 
 ```k
     syntax WithdrawReason ::= "TransactionPayment"
@@ -384,6 +502,7 @@ Ensure that a given amount can be withdrawn from an account.
                             | "Fee"
                             | "Tip"
  // -------------------------------
+
 
     syntax Bool ::= "ensure_can_withdraw" "(" AccountId "," WithdrawReason "," Int ")" [function, functional]
  // ---------------------------------------------------------------------------------------------------------
@@ -406,10 +525,10 @@ Ensure that a given amount can be withdrawn from an account.
          </account>
       requires activeLocks(ACCOUNT_LOCKS, NOW, REASON, BALANCE)
 
-    syntax LockID ::= ".Election"
-                    | ".Staking"
-                    | ".Democracy"
-                    | ".Phragmen"
+    syntax LockID ::= "Election"
+                    | "Staking"
+                    | "Democracy"
+                    | "Phragmen"
  // -----------------------------
 
     syntax AccountLock ::= lock ( id: LockID, until: Int, amount: Int, reasons: Set )
@@ -516,8 +635,7 @@ Used to punish a node for violating the protocol.
       requires FREE_BALANCE <Int AMOUNT
 ```
 
-Reservation and unreservation of balances
------------------------------------------
+### Reservation and unreservation of balances
 
 Used to move balance from free to reserved and visa versa.
 
