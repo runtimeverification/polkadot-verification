@@ -101,6 +101,24 @@ reserved balances.
          </account>
 ```
 
+### `free_balance`
+
+Gets the free balance of an account.
+
+Other than when this module is executing, this will never be strictly between
+`EXISTENTIAL_DEPOSIT` and zero.
+
+```k
+    syntax Int ::= "free_balance" "(" AccountId ")" [function, functional]
+ // ----------------------------------------------------------------------
+    rule [[ free_balance(WHO) => FREE_BALANCE ]]
+         <account>
+           <accountID> WHO </accountID>
+           <freeBalance> FREE_BALANCE </freeBalance>
+           ...
+         </account>
+```
+
 ### `can_slash`
 
 Determines if an account’s free balance is over the value provided.  This is
@@ -142,7 +160,7 @@ strictly between this and zero.
     syntax Int ::= "minimum_balance" [function, functional]
  // -------------------------------------------------------
     rule [[ minimum_balance => EXISTENTIAL_DEPOSIT ]]
-         <totalIssuance> EXISTENTIAL_DEPOSIT </totalIssuance>
+         <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
 ```
 
 ### `issue`
@@ -158,24 +176,6 @@ almost impossible to use correctly.
 Burns currency.
 
 This is not part of the semantics for the same reason `burn` is not.
-
-### `free_balance`
-
-Gets the free balance of an account.
-
-Other than when this module is executing, this will never be strictly between
-`EXISTENTIAL_DEPOSIT` and zero.
-
-```k
-    syntax Int ::= "free_balance" "(" AccountId ")" [function, functional]
- // ----------------------------------------------------------------------
-    rule [[ free_balance(WHO) => FREE_BALANCE ]]
-         <account>
-           <accountID> WHO </accountID>
-           <freeBalance> FREE_BALANCE </freeBalance>
-           ...
-         </account>
-```
 
 Actions and Results
 -------------------
