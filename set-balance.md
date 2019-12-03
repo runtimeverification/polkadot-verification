@@ -303,7 +303,7 @@ A `Result` is considered an `Action`, as is an `EntryAction`.
 
 ```k
     syntax EntryAction ::= "set_balance" "(" AccountId "," AccountId "," Int "," Int ")"
- // -------------------------------------------------------------------------------
+ // ------------------------------------------------------------------------------------
     rule [balance-set]:
         <k> set_balance(Root, WHO, FREE_BALANCE, RESERVED_BALANCE)
          => set_balance_free(WHO, FREE_BALANCE)
@@ -355,6 +355,7 @@ The dispatch origin for this call must be `Signed` by the transactor.
 
     syntax EntryAction ::= transfer(Origin, AccountId, Int)
                          | "transfer_keep_alive" "(" Origin "," AccountId "," Int ")"
+ // ---------------------------------------------------------------------------------
 
     syntax Action ::= rawTransfer(AccountId, AccountId, Int, ExistenceRequirement)
  // ------------------------------------------------------------------------------
@@ -435,7 +436,7 @@ Force a transfer from any account to any other account.  This can only be done b
 
 ```k
     syntax EntryAction ::= "force_transfer" "(" Origin "," AccountId "," AccountId "," Int ")"
- // ----------------------------------------------------------------------------------------
+ // ------------------------------------------------------------------------------------------
     rule [force-transfer]:
          <k> force_transfer(.Root, SOURCE, DESTINATION, AMOUNT) => transfer(SOURCE, DESTINATION, AMOUNT) ... </k>
 ```
@@ -453,7 +454,7 @@ Withdraw funds from an account.
          </k>
 
     syntax Action ::= withdrawInner(AccountId, Int, Int, WithdrawReason, ExistenceRequirement)
- // -------------------------------------------------------------------------------------
+ // ------------------------------------------------------------------------------------------
     rule [withdrawInner]:
          <k> withdrawInner(WHO, AMOUNT, NEW_BALANCE, REASON, EXISTENCE_REQUIREMENT)
           => set_free_balance(WHO, NEW_BALANCE)
@@ -529,7 +530,7 @@ lacking polymorphism.
                     | "Staking"
                     | "Democracy"
                     | "Phragmen"
- // -----------------------------
+ // ----------------------------
 
     syntax AccountLock ::= lock ( id: LockID, until: Int, amount: Int, reasons: Set )
  // ---------------------------------------------------------------------------------
@@ -605,7 +606,7 @@ Used to punish a node for violating the protocol.
 
 ```k
     syntax EntryAction ::= slash ( AccountId , Int )
- // ---------------------------------------------------
+ // ------------------------------------------------
     rule [slash]:
          <k> slash(ACCOUNT, AMOUNT) => set_free_balance(ACCOUNT, FREE_BALANCE -Int AMOUNT) ... </k>
          <accounts>
@@ -713,7 +714,7 @@ Deposit into an existing account.
 
 ```k
     syntax EntryAction ::= "deposit_into_existing" "(" AccountId "," Int ")"
- // -------------------------------------------------------------------
+ // ------------------------------------------------------------------------
     rule [deposit-into-existing]:
          <k> deposit_into_existing(WHO, AMOUNT) => . ... </k>
          <totalIssuance> TOTAL_ISSUANCE => TOTAL_ISSUANCE +Int AMOUNT </totalIssuance>
