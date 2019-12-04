@@ -30,14 +30,8 @@ export PATH=./deps/wasm-semantics/deps/k/k-distribution/target/release/k/bin:$PA
 export PYTHONPATH=./deps/wasm-semantics/deps/k/k-distribution/target/release/k/lib
 ```
 
-Then generate the haskell coverage file:
+Then try merging rules for a given test:
 
 ```sh
-make deps/wasm-semantics/tests/simple/constants.wast.coverage-haskell
-```
-
-Then try merging the rules:
-
-```sh
-./mergeRules.py max-subseq deps/wasm-semantics/tests/simple/constants.wast.coverage-haskell
+make test-merge-rules -j8
 ```
