@@ -80,7 +80,7 @@ pipeline {
             '''
           }
         }
-        stage('Merge Rules Simple') {
+        stage('Merge Rules') {
           options { timeout(time: 20, unit: 'MINUTES') }
           steps {
             sh '''
