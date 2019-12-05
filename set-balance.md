@@ -5,7 +5,7 @@ State Model
 -----------
 
 ```k
-module SET-BALANCE-SPEC
+module SET-BALANCE
     imports INT
     imports DOMAINS
     imports COLLECTIONS
