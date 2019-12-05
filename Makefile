@@ -140,30 +140,35 @@ $(KWASM_SUBMODULE)/tests/simple/%.wast.coverage-$(SYMBOLIC_BACKEND): $(KWASM_SUB
 
 SPEC_NAMES := set-balance
 
-SPECS_DIR := $(BUILD_DIR)/specs
-ALL_SPECS := $(patsubst %, $(SPECS_DIR)/%-spec.k, $(SPEC_NAMES))
+SPECS_DIR      := $(BUILD_DIR)/specs
+SPECS_SOURCE   := $(patsubst %, $(SPECS_DIR)/%.k, $(SPEC_NAMES))
+SPECS_PROOFS   := $(patsubst %, $(SPECS_DIR)/%-spec.k, $(SPEC_NAMES))
+SPECS_KOMPILED := $(patsubst %, $(SPECS_DIR)/%-kompiled/definition.kore, $(SPEC_NAMES))
 
-specs: $(ALL_SPECS)
+defn-specs:    $(SPECS_SOURCE)
+kompile-specs: $(SPECS_KOMPILED)
+prove-specs:   $(SPECS_PROOFS:=.prove)
 
-$(SPECS_DIR)/%-spec.k: %.md
+$(SPECS_DIR)/%.k: %.md
 	@mkdir -p $(SPECS_DIR)
 	pandoc --from markdown --to $(TANGLER) --metadata=code:.k $< > $@
+
+$(SPECS_DIR)/%-kompiled/definition.kore: $(SPECS_DIR)/%.k
+	kompile --backend $(SYMBOLIC_BACKEND) -I $(SPECS_DIR)             \
+	    --main-module   $(shell echo $* | tr '[:lower:]' '[:upper:]') \
+	    --syntax-module $(shell echo $* | tr '[:lower:]' '[:upper:]') \
+	    -I $(K_RELEASE)/include/builtin                               \
+	    $<
+
+$(SPECS_DIR)/%-spec.k.prove: $(SPECS_DIR)/%-spec.k $(SPECS_DIR)/%-kompiled/definition.kore
+	kprove --directory $(SPECS_DIR) $<
 
 # Testing
 # -------
 
 CHECK := git --no-pager diff --no-index --ignore-all-space
 
-test: test-can-build-specs test-fuse-rules
-
-test-can-build-specs: $(ALL_SPECS:=.can-build)
-
-$(SPECS_DIR)/%-spec.k.can-build: $(SPECS_DIR)/%-spec.k
-	kompile --backend $(SYMBOLIC_BACKEND) -I $(SPECS_DIR)                  \
-	    --main-module   $(shell echo $* | tr '[:lower:]' '[:upper:]')-SPEC \
-	    --syntax-module $(shell echo $* | tr '[:lower:]' '[:upper:]')-SPEC \
-	    $<
-	rm -rf $*-kompiled
+test: test-fuse-rules prove-specs
 
 all_simple_tests := $(wildcard $(KWASM_SUBMODULE)/tests/simple/*.wast)
 bad_simple_tests := $(KWASM_SUBMODULE)/tests/simple/arithmetic.wast     \
