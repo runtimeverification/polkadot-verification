@@ -161,7 +161,7 @@ $(SPECS_DIR)/%-kompiled/definition.kore: $(SPECS_DIR)/%.k
 	    $<
 
 $(SPECS_DIR)/%-spec.k.prove: $(SPECS_DIR)/%-spec.k $(SPECS_DIR)/%-kompiled/definition.kore
-	kprove --directory $(SPECS_DIR) $<
+	kprove --directory $(SPECS_DIR) $< --def-module VERIFICATION
 
 # Testing
 # -------
