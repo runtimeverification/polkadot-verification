@@ -92,13 +92,7 @@ reserved balances.
 ```k
     syntax Int ::= "total_balance" "(" AccountId ")" [function, functional]
  // -----------------------------------------------------------------------
-    rule [[ total_balance(WHO) => FREE_BALANCE +Int RESERVED_BALANCE ]]
-         <account>
-           <accountID> WHO </accountID>
-           <freeBalance> FREE_BALANCE </freeBalance>
-           <reservedBalance> RESERVED_BALANCE </reservedBalance>
-           ...
-         </account>
+    rule total_balance(WHO) => free_balance(WHO) +Int reserved_balance(WHO)
 ```
 
 ### `free_balance`
@@ -111,10 +105,30 @@ Other than when this module is executing, this will never be strictly between
 ```k
     syntax Int ::= "free_balance" "(" AccountId ")" [function, functional]
  // ----------------------------------------------------------------------
+    rule    free_balance(_)   => 0 [owise]
     rule [[ free_balance(WHO) => FREE_BALANCE ]]
          <account>
            <accountID> WHO </accountID>
            <freeBalance> FREE_BALANCE </freeBalance>
+           ...
+         </account>
+```
+
+### `reserved_balance`
+
+Gets the reserved balance of an account.
+
+Other than when this module is executing, this will never be strictly between
+`EXISTENTIAL_DEPOSIT` and zero.
+
+```k
+    syntax Int ::= "reserved_balance" "(" AccountId ")" [function, functional]
+ // --------------------------------------------------------------------------
+    rule    reserved_balance(_)   => 0 [owise]
+    rule [[ reserved_balance(WHO) => FREE_BALANCE ]]
+         <account>
+           <accountID> WHO </accountID>
+           <reservedBalance> FREE_BALANCE </reservedBalance>
            ...
          </account>
 ```
@@ -128,6 +142,7 @@ slash, hence the name.
 ```k
     syntax Bool ::= "can_slash" "(" AccountId "," Int ")" [function, functional]
  // ----------------------------------------------------------------------------
+    rule    can_slash(_, _)        => false
     rule [[ can_slash(WHO, AMOUNT) => FREE_BALANCE >=Int AMOUNT ]]
          <account>
            <accountID> WHO </accountID>
@@ -291,7 +306,7 @@ A `Result` is considered an `Action`, as is an `EntryAction`.
            )
            ...
          </accounts>
-      requires BALANCE <Int minimum_balance 
+      requires BALANCE <Int minimum_balance
 ```
 
 ### `set_balance`
@@ -329,13 +344,8 @@ Helpers for calling `set_free_balance` and `set_reserved_balance`.
 
     rule [balance-set-reserved]:
          <k> set_balance_reserved(WHO, RESERVED_BALANCE') => set_reserved_balance(WHO, RESERVED_BALANCE') ... </k>
-         <totalIssuance> ISSUANCE => ISSUANCE +Int (RESERVED_BALANCE' -Int RESERVED_BALANCE) </totalIssuance>
-         <account>
-           <accountID> WHO </accountID>
-           <reservedBalance> RESERVED_BALANCE </reservedBalance>
-           ...
-         </account>
-      requires #inWidth(64, ISSUANCE +Int (RESERVED_BALANCE' -Int RESERVED_BALANCE))
+         <totalIssuance> ISSUANCE => ISSUANCE +Int (RESERVED_BALANCE' -Int reserved_balance(WHO)) </totalIssuance>
+      requires #inWidth(64, ISSUANCE +Int (RESERVED_BALANCE' -Int reserved_balance(WHO)))
 ```
 
 ### `transfer_raw`
