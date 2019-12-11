@@ -491,6 +491,7 @@ Withdraw funds from an account.
     rule [withdraw]: // K really needs where clauses
          <k> withdraw(WHO, AMOUNT, REASON, EXISTENCE_REQUIREMENT)
           => withdrawInner(WHO, AMOUNT, AMOUNT -Int free_balance(WHO), REASON, EXISTENCE_REQUIREMENT)
+         ...
          </k>
 
     syntax Action ::= withdrawInner(AccountId, Int, Int, WithdrawReason, ExistenceRequirement)
