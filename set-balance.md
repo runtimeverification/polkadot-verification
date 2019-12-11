@@ -204,6 +204,25 @@ A `Result` is considered an `Action`, as is an `EntryAction`.
  // --------------------------------------
 ```
 
+### `account_exists`
+
+```k
+    syntax Bool ::= "account_exists" "(" AccountId ")" [function, functional]
+ // -------------------------------------------------------------------------
+    rule    account_exists(_)   => false [owise]
+    rule [[ account_exists(WHO) => true ]]
+         <account> <accountID> WHO </accountID> ... </account>
+```
+
+### `create_account`
+
+```k
+    syntax Action ::= "create_account" "(" AccountId ")"
+ // ----------------------------------------------------
+    rule <k> create_account(WHO) => . ... </k>
+         <accounts> ( .Bag => <account> <accountID> WHO </accountID> ... </account> ) ... </accounts>
+```
+
 ### `set_free_balance`
 
 -   Updates an accounts balance if the new balance is above the existential threshold.
@@ -213,6 +232,9 @@ A `Result` is considered an `Action`, as is an `EntryAction`.
 ```k
     syntax Action ::= "set_free_balance" "(" AccountId "," Int ")"
  // --------------------------------------------------------------
+    rule <k> (. => create_account(WHO)) ~> set_free_balance(WHO, _) ... </k>
+      requires notBool account_exists(WHO)
+
     rule [free-account-updated]:
          <k> set_free_balance(WHO, BALANCE) => . ... </k>
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
@@ -266,6 +288,9 @@ A `Result` is considered an `Action`, as is an `EntryAction`.
 ```k
     syntax Action ::= "set_reserved_balance" "(" AccountId "," Int ")"
  // ------------------------------------------------------------------
+    rule <k> (. => create_account(WHO)) ~> set_reserved_balance(WHO, _) ... </k>
+      requires notBool account_exists(WHO)
+
     rule [reserved-account-updated]:
          <k> set_reserved_balance(WHO, BALANCE) => . ... </k>
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
@@ -381,8 +406,13 @@ The dispatch origin for this call must be `Signed` by the transactor.
          ...
          </k>
 
+    rule <k> (. => create_account(DESTINATION)) ~> rawTransfer(ORIGIN, DESTINATION, _, _) ... </k>
+      requires         account_exists(ORIGIN)
+       andBool notBool account_exists(DESTINATION)
+
     rule [transfer-self]:
          <k> rawTransfer(ORIGIN:AccountId, ORIGIN, _, _) => . ... </k>
+      requires account_exists(ORIGIN)
 
     rule [transfer-existing-account]:
          <k> rawTransfer(ORIGIN, DESTINATION, AMOUNT, EXISTENCE_REQUIREMENT)
