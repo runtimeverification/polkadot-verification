@@ -365,12 +365,12 @@ Helpers for calling `set_free_balance` and `set_reserved_balance`.
     rule [balance-set-free]:
          <k> set_balance_free(WHO, FREE_BALANCE') => set_free_balance(WHO, FREE_BALANCE') ... </k>
          <totalIssuance> ISSUANCE => ISSUANCE +Int (FREE_BALANCE' -Int free_balance(WHO)) </totalIssuance>
-      requires #inWidth(64, ISSUANCE +Int (FREE_BALANCE' -Int free_balance(WHO)))
+      requires #inWidth(96, ISSUANCE +Int (FREE_BALANCE' -Int free_balance(WHO)))
 
     rule [balance-set-reserved]:
          <k> set_balance_reserved(WHO, RESERVED_BALANCE') => set_reserved_balance(WHO, RESERVED_BALANCE') ... </k>
          <totalIssuance> ISSUANCE => ISSUANCE +Int (RESERVED_BALANCE' -Int reserved_balance(WHO)) </totalIssuance>
-      requires #inWidth(64, ISSUANCE +Int (RESERVED_BALANCE' -Int reserved_balance(WHO)))
+      requires #inWidth(96, ISSUANCE +Int (RESERVED_BALANCE' -Int reserved_balance(WHO)))
 ```
 
 ### `transfer_raw`
