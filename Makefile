@@ -122,21 +122,19 @@ $(POLKADOT_RUNTIME_WASM):
 
 MERGE_RULES_TECHNIQUE := max-productivity
 
-# TODO: Hacky way for selecting coverage file  because `--coverage-file` is not respected at all
-#       So we have to forcibly remove any existing coverage files, and pick up the generated one with a wildcard
-#       Would be better without the `rm -rf ...`, and with these:
-#           $(KPOL) run --backend $(CONCRETE_BACKEND) $(SIMPLE_TESTS)/$*.wast --coverage-file $(SIMPLE_TESTS)/$*.wast.$(CONCRETE_BACKEND)-coverage
-#           ./translateCoverage.py _ _ $(SIMPLE_TESTS)/$*.wast.$(SYMBOLIC_BACKEND)-coverage
+# TODO: Hacky way for selecting coverage file.
+.SECONDARY: deps/wasm-semantics/tests/simple/integers.wast.coverage-llvm
 $(KWASM_SUBMODULE)/tests/simple/%.wast.coverage-$(CONCRETE_BACKEND): $(KWASM_SUBMODULE)/tests/simple/%.wast
-	rm -rf $(DEFN_DIR)/coverage/$(CONCRETE_BACKEND)/$(MAIN_DEFN_FILE)-kompiled/*_coverage.txt
-	SUBDEFN=coverage $(KPOL) run --backend $(CONCRETE_BACKEND) $<
-	mv $(DEFN_DIR)/coverage/$(CONCRETE_BACKEND)/$(MAIN_DEFN_FILE)-kompiled/*_coverage.txt $@
+	rm -rf $@-dir
+	mkdir -p $@-dir
+	K_COVERAGEDIR=$@-dir SUBDEFN=coverage $(KPOL) run --backend $(CONCRETE_BACKEND) $<
+	mv $@-dir/*_coverage.txt $@
+	rm -rf $@-dir
 
 $(KWASM_SUBMODULE)/tests/simple/%.wast.coverage-$(SYMBOLIC_BACKEND): $(KWASM_SUBMODULE)/tests/simple/%.wast.coverage-$(CONCRETE_BACKEND)
 	./translateCoverage.py $(DEFN_DIR)/coverage/$(CONCRETE_BACKEND)/$(MAIN_DEFN_FILE)-kompiled \
 	                       $(DEFN_DIR)/kwasm/$(SYMBOLIC_BACKEND)/$(MAIN_DEFN_FILE)-kompiled    \
 	                       $< > $@
-	# SUBDEFN=coverage $(KPOL) run --backend $(SYMBOLIC_BACKEND) $*.wast.coverage-$(SYMBOLIC_BACKEND) --rule-sequence
 
 $(KWASM_SUBMODULE)/tests/simple/%.wast.merged-rules: $(KWASM_SUBMODULE)/tests/simple/%.wast.coverage-$(SYMBOLIC_BACKEND)
 	./mergeRules.py $(MERGE_RULES_TECHNIQUE) $< &> $@
