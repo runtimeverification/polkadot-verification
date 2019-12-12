@@ -3,7 +3,8 @@
 import json
 import sys
 
-from pykWasm import *
+from pykWasm      import *
+from pyk.coverage import *
 
 if __name__ == '__main__':
     src_kompiled_dir = sys.argv[1]  # usually .build/defn/coverage/llvm/wasm-with-k-io-kompiled
