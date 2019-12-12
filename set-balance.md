@@ -92,13 +92,7 @@ reserved balances.
 ```k
     syntax Int ::= "total_balance" "(" AccountId ")" [function, functional]
  // -----------------------------------------------------------------------
-    rule [[ total_balance(WHO) => FREE_BALANCE +Int RESERVED_BALANCE ]]
-         <account>
-           <accountID> WHO </accountID>
-           <freeBalance> FREE_BALANCE </freeBalance>
-           <reservedBalance> RESERVED_BALANCE </reservedBalance>
-           ...
-         </account>
+    rule total_balance(WHO) => free_balance(WHO) +Int reserved_balance(WHO)
 ```
 
 ### `free_balance`
@@ -111,10 +105,30 @@ Other than when this module is executing, this will never be strictly between
 ```k
     syntax Int ::= "free_balance" "(" AccountId ")" [function, functional]
  // ----------------------------------------------------------------------
+    rule    free_balance(_)   => 0 [owise]
     rule [[ free_balance(WHO) => FREE_BALANCE ]]
          <account>
            <accountID> WHO </accountID>
            <freeBalance> FREE_BALANCE </freeBalance>
+           ...
+         </account>
+```
+
+### `reserved_balance`
+
+Gets the reserved balance of an account.
+
+Other than when this module is executing, this will never be strictly between
+`EXISTENTIAL_DEPOSIT` and zero.
+
+```k
+    syntax Int ::= "reserved_balance" "(" AccountId ")" [function, functional]
+ // --------------------------------------------------------------------------
+    rule    reserved_balance(_)   => 0 [owise]
+    rule [[ reserved_balance(WHO) => FREE_BALANCE ]]
+         <account>
+           <accountID> WHO </accountID>
+           <reservedBalance> FREE_BALANCE </reservedBalance>
            ...
          </account>
 ```
@@ -128,6 +142,7 @@ slash, hence the name.
 ```k
     syntax Bool ::= "can_slash" "(" AccountId "," Int ")" [function, functional]
  // ----------------------------------------------------------------------------
+    rule    can_slash(_, _)        => false
     rule [[ can_slash(WHO, AMOUNT) => FREE_BALANCE >=Int AMOUNT ]]
          <account>
            <accountID> WHO </accountID>
@@ -189,6 +204,25 @@ A `Result` is considered an `Action`, as is an `EntryAction`.
  // --------------------------------------
 ```
 
+### `account_exists`
+
+```k
+    syntax Bool ::= "account_exists" "(" AccountId ")" [function, functional]
+ // -------------------------------------------------------------------------
+    rule    account_exists(_)   => false [owise]
+    rule [[ account_exists(WHO) => true ]]
+         <account> <accountID> WHO </accountID> ... </account>
+```
+
+### `create_account`
+
+```k
+    syntax Action ::= "create_account" "(" AccountId ")"
+ // ----------------------------------------------------
+    rule <k> create_account(WHO) => . ... </k>
+         <accounts> ( .Bag => <account> <accountID> WHO </accountID> ... </account> ) ... </accounts>
+```
+
 ### `set_free_balance`
 
 -   Updates an accounts balance if the new balance is above the existential threshold.
@@ -198,6 +232,9 @@ A `Result` is considered an `Action`, as is an `EntryAction`.
 ```k
     syntax Action ::= "set_free_balance" "(" AccountId "," Int ")"
  // --------------------------------------------------------------
+    rule <k> (. => create_account(WHO)) ~> set_free_balance(WHO, _) ... </k>
+      requires notBool account_exists(WHO)
+
     rule [free-account-updated]:
          <k> set_free_balance(WHO, BALANCE) => . ... </k>
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
@@ -251,6 +288,9 @@ A `Result` is considered an `Action`, as is an `EntryAction`.
 ```k
     syntax Action ::= "set_reserved_balance" "(" AccountId "," Int ")"
  // ------------------------------------------------------------------
+    rule <k> (. => create_account(WHO)) ~> set_reserved_balance(WHO, _) ... </k>
+      requires notBool account_exists(WHO)
+
     rule [reserved-account-updated]:
          <k> set_reserved_balance(WHO, BALANCE) => . ... </k>
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
@@ -291,7 +331,7 @@ A `Result` is considered an `Action`, as is an `EntryAction`.
            )
            ...
          </accounts>
-      requires BALANCE <Int minimum_balance 
+      requires BALANCE <Int minimum_balance
 ```
 
 ### `set_balance`
@@ -325,17 +365,12 @@ Helpers for calling `set_free_balance` and `set_reserved_balance`.
     rule [balance-set-free]:
          <k> set_balance_free(WHO, FREE_BALANCE') => set_free_balance(WHO, FREE_BALANCE') ... </k>
          <totalIssuance> ISSUANCE => ISSUANCE +Int (FREE_BALANCE' -Int free_balance(WHO)) </totalIssuance>
-      requires #inWidth(64, ISSUANCE +Int (FREE_BALANCE' -Int free_balance(WHO)))
+      requires #inWidth(96, ISSUANCE +Int (FREE_BALANCE' -Int free_balance(WHO)))
 
     rule [balance-set-reserved]:
          <k> set_balance_reserved(WHO, RESERVED_BALANCE') => set_reserved_balance(WHO, RESERVED_BALANCE') ... </k>
-         <totalIssuance> ISSUANCE => ISSUANCE +Int (RESERVED_BALANCE' -Int RESERVED_BALANCE) </totalIssuance>
-         <account>
-           <accountID> WHO </accountID>
-           <reservedBalance> RESERVED_BALANCE </reservedBalance>
-           ...
-         </account>
-      requires #inWidth(64, ISSUANCE +Int (RESERVED_BALANCE' -Int RESERVED_BALANCE))
+         <totalIssuance> ISSUANCE => ISSUANCE +Int (RESERVED_BALANCE' -Int reserved_balance(WHO)) </totalIssuance>
+      requires #inWidth(96, ISSUANCE +Int (RESERVED_BALANCE' -Int reserved_balance(WHO)))
 ```
 
 ### `transfer_raw`
@@ -371,8 +406,13 @@ The dispatch origin for this call must be `Signed` by the transactor.
          ...
          </k>
 
+    rule <k> (. => create_account(DESTINATION)) ~> rawTransfer(ORIGIN, DESTINATION, _, _) ... </k>
+      requires         account_exists(ORIGIN)
+       andBool notBool account_exists(DESTINATION)
+
     rule [transfer-self]:
          <k> rawTransfer(ORIGIN:AccountId, ORIGIN, _, _) => . ... </k>
+      requires account_exists(ORIGIN)
 
     rule [transfer-existing-account]:
          <k> rawTransfer(ORIGIN, DESTINATION, AMOUNT, EXISTENCE_REQUIREMENT)
@@ -451,6 +491,7 @@ Withdraw funds from an account.
     rule [withdraw]: // K really needs where clauses
          <k> withdraw(WHO, AMOUNT, REASON, EXISTENCE_REQUIREMENT)
           => withdrawInner(WHO, AMOUNT, AMOUNT -Int free_balance(WHO), REASON, EXISTENCE_REQUIREMENT)
+         ...
          </k>
 
     syntax Action ::= withdrawInner(AccountId, Int, Int, WithdrawReason, ExistenceRequirement)
