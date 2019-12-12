@@ -18,7 +18,7 @@ K_BIN     := $(K_RELEASE)/bin
 K_LIB     := $(K_RELEASE)/lib
 
 KWASM_DIR  := .
-KWASM_MAKE := make --directory $(KWASM_SUBMODULE) BUILD_DIR=../../$(BUILD_DIR)
+KWASM_MAKE := make --directory $(KWASM_SUBMODULE) BUILD_DIR=../../$(BUILD_DIR) K_RELEASE=../../$(K_RELEASE)
 
 export K_RELEASE
 export KWASM_DIR
