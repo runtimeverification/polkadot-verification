@@ -64,11 +64,11 @@ pipeline {
     stage('Test') {
       when { changeRequest() }
       parallel {
-        stage('Can Build Specs') {
-          options { timeout(time: 1, unit: 'MINUTES') }
+        stage('Prove High Level Specs') {
+          options { timeout(time: 4, unit: 'MINUTES') }
           steps {
             sh '''
-              make test-can-build-specs -j6
+              make prove-specs -j6
             '''
           }
         }
