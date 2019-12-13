@@ -2,14 +2,20 @@
 
 import difflib
 import json
+import os
 import pyk
 import sys
+import tempfile
 
 from pyk.kast import KApply, KConstant, KRewrite, KSequence, KToken, KVariable, _notif, _warning, _fatal
 
 ################################################################################
 # Should be Upstreamed                                                         #
 ################################################################################
+
+def prettyPrintRule(kRule, symbolTable):
+    kRule['body'] = pyk.pushDownRewrites(kRule['body'])
+    return pyk.prettyPrintKast(pyk.minimizeRule(kRule), symbolTable)
 
 def kompile_definition(definition_dir, backend, main_defn_file, main_module, kompileArgs = [], teeOutput = True, kRelease = None):
     command = 'kompile'
@@ -20,6 +26,60 @@ def kompile_definition(definition_dir, backend, main_defn_file, main_module, kom
     kCommand = [ command , '--backend' , backend , '--directory' , definition_dir , '-I' , definition_dir , '--main-module' , main_module , main_defn_file ] + kompileArgs
     _notif('Running: ' + ' '.join(kCommand))
     return pyk._teeProcessStdout(kCommand, tee = teeOutput)
+
+def getRuleById(definition, rule_id):
+    for module in definition['modules']:
+        for sentence in module['localSentences']:
+            if pyk.isKRule(sentence) and 'att' in sentence:
+                atts = sentence['att']['att']
+                if 'UNIQUE_ID' in atts and atts['UNIQUE_ID'] == rule_id:
+                    return sentence
+
+def _runK2(command, definition, kArgs = [], teeOutput = True, kRelease = None):
+    if kRelease is not None:
+        command = kRelease + '/bin/' + command
+    elif 'K_RELEASE' in os.environ:
+        command = os.environ['K_RELEASE'] + '/bin/' + command
+    kCommand = [ command , definition ] + kArgs
+    _notif('Running: ' + ' '.join(kCommand))
+    return pyk._teeProcessStdout(kCommand, tee = teeOutput)
+
+def mergeRulesKoreExec(definition_dir, ruleList, kArgs = [], teeOutput = True, kRelease = None, symbolTable = None, definition = None):
+    if symbolTable is not None and definition is not None:
+        _notif('Merging rules:')
+        for rule in ruleList:
+            print()
+            print('rule: ' + rule)
+            print(prettyPrintRule(getRuleById(definition, rule), symbolTable))
+            sys.stdout.flush()
+    with tempfile.NamedTemporaryFile(mode = 'w') as tempf:
+        tempf.write('\n'.join(ruleList))
+        tempf.flush()
+        sys.stdout.write('\n'.join(ruleList))
+        sys.stdout.flush()
+        return _runK2('kore-exec', definition_dir, kArgs = ['--merge-rules', tempf.name] + kArgs, teeOutput = teeOutput, kRelease = kRelease)
+
+def mergeRules(definition_dir, main_defn_file, main_module, subsequence, symbolTable = None, definition = None):
+    (rc, stdout, stderr) = mergeRulesKoreExec(definition_dir + '/' + main_defn_file + '-kompiled/definition.kore', subsequence, kArgs = ['--module', main_module], symbolTable = symbolTable, definition = definition)
+    if rc == 0:
+        with tempfile.NamedTemporaryFile(mode = 'w') as tempf:
+            tempf.write(stdout)
+            tempf.flush()
+            (_, stdout, stderr) = pyk.kast(definition_dir, tempf.name, kastArgs = ['--input', 'kore', '--output', 'json'])
+            merged_rule = json.loads(stdout)['term']
+            rule_pattern = KRewrite(KApply('#And', [KVariable('#CONSTRAINT'), KVariable('#INITTERM')]), KVariable('#FINALTERM'))
+            rule_subst = pyk.match(rule_pattern, merged_rule)
+            rule_body = pyk.KRewrite(rule_subst['#INITTERM'], rule_subst['#FINALTERM'])
+            gen_rule = pyk.KRule(rule_body, requires = rule_subst['#CONSTRAINT'])
+            if symbolTable is not None:
+                _notif('Merged rule:')
+                print(prettyPrintRule(gen_rule, symbolTable))
+                sys.stdout.flush()
+            return gen_rule
+    else:
+        print(stderr)
+        _warning('Cannot merge rules!')
+        return None
 
 ################################################################################
 # Load Definition Specific Stuff                                               #

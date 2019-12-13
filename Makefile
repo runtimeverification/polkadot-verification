@@ -3,7 +3,8 @@
         build                                                        \
         polkadot-runtime-source polkadot-runtime-loaded              \
         specs                                                        \
-        test test-can-build-specs test-python-config test-rule-lists
+        test test-can-build-specs test-python-config test-rule-lists \
+        test-merge-rules test-merge-all-rules
 
 # Settings
 # --------
@@ -119,21 +120,24 @@ $(POLKADOT_RUNTIME_WASM):
 # Generate Execution Traces
 # -------------------------
 
-# TODO: Hacky way for selecting coverage file  because `--coverage-file` is not respected at all
-#       So we have to forcibly remove any existing coverage files, and pick up the generated one with a wildcard
-#       Would be better without the `rm -rf ...`, and with these:
-#           $(KPOL) run --backend $(CONCRETE_BACKEND) $(SIMPLE_TESTS)/$*.wast --coverage-file $(SIMPLE_TESTS)/$*.wast.$(CONCRETE_BACKEND)-coverage
-#           ./translateCoverage.py _ _ $(SIMPLE_TESTS)/$*.wast.$(SYMBOLIC_BACKEND)-coverage
+MERGE_RULES_TECHNIQUE := max-productivity
+
+# TODO: Hacky way for selecting coverage file.
+.SECONDARY: deps/wasm-semantics/tests/simple/integers.wast.coverage-llvm
 $(KWASM_SUBMODULE)/tests/simple/%.wast.coverage-$(CONCRETE_BACKEND): $(KWASM_SUBMODULE)/tests/simple/%.wast
-	rm -rf $(DEFN_DIR)/coverage/$(CONCRETE_BACKEND)/$(MAIN_DEFN_FILE)-kompiled/*_coverage.txt
-	SUBDEFN=coverage $(KPOL) run --backend $(CONCRETE_BACKEND) $<
-	mv $(DEFN_DIR)/coverage/$(CONCRETE_BACKEND)/$(MAIN_DEFN_FILE)-kompiled/*_coverage.txt $@
+	rm -rf $@-dir
+	mkdir -p $@-dir
+	K_COVERAGEDIR=$@-dir SUBDEFN=coverage $(KPOL) run --backend $(CONCRETE_BACKEND) $<
+	mv $@-dir/*_coverage.txt $@
+	rm -rf $@-dir
 
 $(KWASM_SUBMODULE)/tests/simple/%.wast.coverage-$(SYMBOLIC_BACKEND): $(KWASM_SUBMODULE)/tests/simple/%.wast.coverage-$(CONCRETE_BACKEND)
 	./translateCoverage.py $(DEFN_DIR)/coverage/$(CONCRETE_BACKEND)/$(MAIN_DEFN_FILE)-kompiled \
 	                       $(DEFN_DIR)/kwasm/$(SYMBOLIC_BACKEND)/$(MAIN_DEFN_FILE)-kompiled    \
 	                       $< > $@
-	# SUBDEFN=coverage $(KPOL) run --backend $(SYMBOLIC_BACKEND) $*.wast.coverage-$(SYMBOLIC_BACKEND) --rule-sequence
+
+$(KWASM_SUBMODULE)/tests/simple/%.wast.merged-rules: $(KWASM_SUBMODULE)/tests/simple/%.wast.coverage-$(SYMBOLIC_BACKEND)
+	./mergeRules.py $(MERGE_RULES_TECHNIQUE) $< &> $@
 
 # Specification Build
 # -------------------
@@ -168,7 +172,7 @@ $(SPECS_DIR)/%-spec.k.prove: $(SPECS_DIR)/%-spec.k $(SPECS_DIR)/%-kompiled/defin
 
 CHECK := git --no-pager diff --no-index --ignore-all-space
 
-test: test-fuse-rules prove-specs test-python-config
+test: test-merge-rules prove-specs test-python-config
 
 all_simple_tests := $(wildcard $(KWASM_SUBMODULE)/tests/simple/*.wast)
 bad_simple_tests := $(KWASM_SUBMODULE)/tests/simple/arithmetic.wast     \
@@ -182,6 +186,11 @@ bad_simple_tests := $(KWASM_SUBMODULE)/tests/simple/arithmetic.wast     \
 simple_tests     := $(filter-out $(bad_simple_tests), $(all_simple_tests))
 
 test-rule-lists: $(simple_tests:=.coverage-$(SYMBOLIC_BACKEND))
+test-merge-rules: $(simple_tests:=.merged-rules)
+test-merge-all-rules: $(KWASM_SUBMODULE)/tests/simple/merge-all-rules
+
+$(KWASM_SUBMODULE)/tests/simple/merge-all-rules: $(simple_tests:=.coverage-$(SYMBOLIC_BACKEND))
+	./mergeRules.py $(MERGE_RULES_TECHNIQUE) $^ &> $@
 
 # Python Configuration Build
 # --------------------------
