@@ -127,7 +127,7 @@ MERGE_RULES_TECHNIQUE := max-productivity
 $(KWASM_SUBMODULE)/tests/simple/%.wast.coverage-$(CONCRETE_BACKEND): $(KWASM_SUBMODULE)/tests/simple/%.wast
 	rm -rf $@-dir
 	mkdir -p $@-dir
-	K_COVERAGEDIR=$@-dir SUBDEFN=coverage $(KPOL) run --backend $(CONCRETE_BACKEND) $<
+	K_LOG_DIR=$@-dir SUBDEFN=coverage $(KPOL) run --backend $(CONCRETE_BACKEND) $<
 	mv $@-dir/*_coverage.txt $@
 	rm -rf $@-dir
 
