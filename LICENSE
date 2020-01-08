@@ -7,13 +7,7 @@ Open Source License
 Copyright (c) 2019-2020 Runtime Verification, Inc.
 All rights reserved.
 
-Developed by:
-
-    K Team (http://kframework.org)
-    with members from:
-
-      * University of Illinois at Urbana-Champaign (http://fsl.cs.illinois.edu/)
-      * Runtime Verification, Inc (https://www.runtimeverification.com)
+Developed by: Runtime Verification, Inc (https://www.runtimeverification.com)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal with
@@ -22,7 +16,6 @@ use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
 of the Software, and to permit persons to whom the Software is furnished to do
 so, subject to the following conditions:
 
-
     * Redistributions of source code must retain the above copyright notice,
       this list of conditions and the following disclaimers.
 
@@ -30,10 +23,9 @@ so, subject to the following conditions:
       this list of conditions and the following disclaimers in the
       documentation and/or other materials provided with the distribution.
 
-    * Neither the names of the K Team, Runtime Verification, the University of
-      Illinois at Urbana-Champaign, nor the names of its contributors may be
-      used to endorse or promote products derived from this Software without
-      specific prior written permission.
+    * The name of the Runtime Verification may be used to endorse or promote
+      products derived from this Software without specific prior written
+      permission.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -54,6 +46,5 @@ license, and restrictions which apply to that code.
 
 The disclaimer of warranty in the University of Illinois Open Source License
 applies to all code in the Polkadot Verification Project, and nothing in any of
-the other licenses gives permission to use the names of the K Team, Runtime
-Verification, or the University of Illinois to endorse or promote products
-derived from this Software.
+the other licenses gives permission to use the name of Runtime Verification to
+endorse or promote products derived from this Software.
