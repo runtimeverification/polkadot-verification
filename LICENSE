@@ -5,9 +5,12 @@ University of Illinois/NCSA
 Open Source License
 
 Copyright (c) 2019-2020 Runtime Verification, Inc.
+            , 2019-2010 Parity Technologies Limited.
+
 All rights reserved.
 
 Developed by: Runtime Verification, Inc (https://www.runtimeverification.com)
+            , Parity Technologies Limited (https://www.parity.io)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal with
@@ -23,9 +26,9 @@ so, subject to the following conditions:
       this list of conditions and the following disclaimers in the
       documentation and/or other materials provided with the distribution.
 
-    * The name of the Runtime Verification may be used to endorse or promote
-      products derived from this Software without specific prior written
-      permission.
+    * Neither the names of Runtime Verification nor Parity Technologies may be
+      used to endorse or promote products derived from this Software without
+      specific prior written permission.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -46,5 +49,5 @@ license, and restrictions which apply to that code.
 
 The disclaimer of warranty in the University of Illinois Open Source License
 applies to all code in the Polkadot Verification Project, and nothing in any of
-the other licenses gives permission to use the name of Runtime Verification to
-endorse or promote products derived from this Software.
+the other licenses gives permission to use the names of Runtime Verification or
+Parity Technologies to endorse or promote products derived from this Software.
