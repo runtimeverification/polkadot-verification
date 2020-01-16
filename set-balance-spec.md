@@ -36,8 +36,7 @@ This property shows that `set_balance` will not result in a zero-balance attack.
 
 ```k
     rule <k> set_balance(Root, WHO, FREE_BALANCE', RESERVED_BALANCE') => . ... </k>
-         <events> _ => _ </events>
-         <totalIssuance> TOTAL_ISSUANCE </totalIssuance>
+         <totalIssuance> TOTAL_ISSUANCE => TOTAL_ISSUANCE +Int ( FREE_BALANCE' -Int FREE_BALANCE ) +Int ( RESERVED_BALANCE' -Int RESERVED_BALANCE ) </totalIssuance>
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
          <account>
            <accountID> WHO </accountID>
@@ -46,9 +45,38 @@ This property shows that `set_balance` will not result in a zero-balance attack.
            ...
          </account>
       requires #inWidth(96, TOTAL_ISSUANCE +Int (FREE_BALANCE' -Int FREE_BALANCE))
-       andBool #inWidth(96, (TOTAL_ISSUANCE +Int (FREE_BALANCE' -Int FREE_BALANCE)) +Int (RESERVED_BALANCE' -Int RESERVED_BALANCE))
+       andBool #inWidth(96, TOTAL_ISSUANCE +Int (FREE_BALANCE' -Int FREE_BALANCE) +Int (RESERVED_BALANCE' -Int RESERVED_BALANCE))
        andBool EXISTENTIAL_DEPOSIT <=Int FREE_BALANCE'
        andBool EXISTENTIAL_DEPOSIT <=Int RESERVED_BALANCE'
+```
+
+```
+    rule <k> set_balance_reserved ( WHO , RESERVED_BALANCE' ) => . ... </k>
+         <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
+         <totalIssuance> TOTAL_ISSUANCE +Int ( FREE_BALANCE' -Int FREE_BALANCE ) => TOTAL_ISSUANCE +Int ( FREE_BALANCE' -Int FREE_BALANCE ) +Int ( RESERVED_BALANCE' -Int RESERVED_BALANCE ) </totalIssuance>
+         <account>
+           <accountID> WHO </accountID>
+           <freeBalance> FREE_BALANCE' </freeBalance>
+           <reservedBalance> RESERVED_BALANCE => RESERVED_BALANCE' </reservedBalance>
+           ...
+         </account>
+      requires #inWidth(96, TOTAL_ISSUANCE +Int (FREE_BALANCE' -Int FREE_BALANCE) +Int (RESERVED_BALANCE' -Int RESERVED_BALANCE))
+       andBool EXISTENTIAL_DEPOSIT <=Int RESERVED_BALANCE'
+```
+
+```k
+    rule <k> set_balance_reserved ( WHO , RESERVED_BALANCE' ) => . ... </k>
+         <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
+         <totalIssuance> TOTAL_ISSUANCE +Int ( FREE_BALANCE' -Int FREE_BALANCE ) </totalIssuance>
+         <account>
+         <accountID> WHO </accountID>
+           <freeBalance> FREE_BALANCE' </freeBalance>
+           <reservedBalance> RESERVED_BALANCE </reservedBalance>
+           ...
+         </account> DotVar3
+    requires 0 <=Int TOTAL_ISSUANCE +Int ( FREE_BALANCE' -Int FREE_BALANCE ) andBool TOTAL_ISSUANCE +Int ( FREE_BALANCE' -Int FREE_BALANCE ) <Int 79228162514264337593543950336
+     andBool 0 <=Int TOTAL_ISSUANCE +Int ( FREE_BALANCE' -Int FREE_BALANCE ) andBool TOTAL_ISSUANCE +Int ( FREE_BALANCE' -Int FREE_BALANCE ) <Int 79228162514264337593543950336 andBool ( 0 <=Int TOTAL_ISSUANCE +Int ( FREE_BALANCE' -Int FREE_BALANCE ) +Int ( RESERVED_BALANCE' -Int RESERVED_BALANCE ) andBool TOTAL_ISSUANCE +Int ( FREE_BALANCE' -Int FREE_BALANCE ) +Int ( RESERVED_BALANCE' -Int RESERVED_BALANCE ) <Int 79228162514264337593543950336 ) andBool EXISTENTIAL_DEPOSIT <=Int FREE_BALANCE' andBool EXISTENTIAL_DEPOSIT <=Int RESERVED_BALANCE'
+     andBool EXISTENTIAL_DEPOSIT <=Int FREE_BALANCE'
 ```
 
 ```k
