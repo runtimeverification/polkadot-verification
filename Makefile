@@ -137,7 +137,7 @@ $(KWASM_SUBMODULE)/tests/simple/%.wast.coverage-$(SYMBOLIC_BACKEND): $(KWASM_SUB
 	                       $< > $@
 
 $(KWASM_SUBMODULE)/tests/simple/%.wast.merged-rules: $(KWASM_SUBMODULE)/tests/simple/%.wast.coverage-$(SYMBOLIC_BACKEND)
-	./mergeRules.py $(MERGE_RULES_TECHNIQUE) $< &> $@
+	./mergeRules.py $(MERGE_RULES_TECHNIQUE) $< > $@
 
 # Specification Build
 # -------------------
@@ -190,7 +190,7 @@ test-merge-rules: $(simple_tests:=.merged-rules)
 test-merge-all-rules: $(KWASM_SUBMODULE)/tests/simple/merge-all-rules
 
 $(KWASM_SUBMODULE)/tests/simple/merge-all-rules: $(simple_tests:=.coverage-$(SYMBOLIC_BACKEND))
-	./mergeRules.py $(MERGE_RULES_TECHNIQUE) $^ &> $@
+	./mergeRules.py $(MERGE_RULES_TECHNIQUE) $^ > $@
 
 # Python Configuration Build
 # --------------------------
