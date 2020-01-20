@@ -4,6 +4,7 @@ import pyk
 import random
 import sys
 from pykWasm import *
+from pykWasm import _fatal, _notif, _warning
 
 sys.setrecursionlimit(150000000)
 
@@ -14,19 +15,25 @@ function_name = '$srml_balances::Module<T_I>::set_free_balance::h740a36cc4860a8f
 wasm_invoke = lambda fid: KApply('(invoke_)_WASM__Int', [KToken(str(fid), 'Int')])
 wasm_push = lambda type, value: KApply('(_)_WASM-TEXT__PlainInstr', [KApply('_.const__WASM__IValType_Int', [KApply(type + '_WASM-DATA_', []), value])])
 
+def wasm_stmts_join(stmtType = 'Stmt'):
+    return '___WASM_' + stmtType + 's_' + stmtType + '_' + stmtType + 's'
+
+def wasm_stmts_unit():
+    return '.List{"___WASM_EmptyStmts_EmptyStmt_EmptyStmts"}_EmptyStmts'
+
 def wasm_stmts(vs, stmtType = 'Stmt'):
     if len(vs) == 0:
-        return KConstant('.List{"___WASM__EmptyStmt_EmptyStmts"}_EmptyStmts')
+        return KConstant(wasm_stmts_unit())
     inst  = vs[0]
     insts = vs[1:]
-    return KApply('___WASM__' + stmtType + '_' + stmtType + 's', [inst, wasm_stmts(insts)])
+    return KApply(wasm_stmts_join(stmtType = stmtType), [inst, wasm_stmts(insts)])
 
 def wasm_stmts_flattened(stmts, stmtType = 'Stmt'):
     if not pyk.isKApply(stmts):
         _fatal('Must be a KApply')
-    if stmts['label'] == '___WASM__' + stmtType + '_' + stmtType + 's':
+    if stmts['label'] == wasm_stmts_join(stmtType = stmtType):
         return [ stmts['args'][0] ] + wasm_stmts_flattened(stmts['args'][1])
-    elif stmts['label'] == '.List{"___WASM__EmptyStmt_EmptyStmts"}_EmptyStmts':
+    elif stmts['label'] == wasm_stmts_unit():
         return []
     else:
         _fatal('Not of type ' + stmtType + '!')
@@ -53,7 +60,8 @@ invokingSubstitution = { 'V1' : KToken(str(random.randint(0, 2 ** 32)), 'Int')
 
 init_config = pyk.substitute(init_config, invokingSubstitution)
 
-print(pyk.prettyPrintKast(init_config, ALL_symbols))
-(_, after_running, _) = krun({ 'format' : 'KAST' , 'version': 1, 'term': init_config }, '--parser', 'cat')
-print(pyk.prettyPrintKast(after_running, ALL_symbols))
+print(init_config)
+print(pyk.prettyPrintKast(init_config, WASM_symbols_llvm_no_coverage))
+(_, after_running, _) = krun({ 'format' : 'KAST' , 'version': 1, 'term': init_config })
+print(pyk.prettyPrintKast(after_running, WASM_symbols_llvm_no_coverage))
 sys.stdout.flush()
