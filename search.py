@@ -12,8 +12,8 @@ kastProgram = pyk.readKastTerm('src/polkadot-runtime.wat.json')
 
 function_name = '$srml_balances::Module<T_I>::set_free_balance::h740a36cc4860a8fe'
 
-wasm_invoke = lambda fid: KApply('(invoke_)_WASM__Int', [KToken(str(fid), 'Int')])
-wasm_push = lambda type, value: KApply('(_)_WASM-TEXT__PlainInstr', [KApply('_.const__WASM__IValType_Int', [KApply(type + '_WASM-DATA_', []), value])])
+wasm_invoke = lambda fid: KApply('(invoke_)_WASM_Instr_Int', [KToken(str(fid), 'Int')])
+wasm_push = lambda type, value: KApply('(_)_WASM-TEXT_FoldedInstr_PlainInstr', [KApply('_.const__WASM_PlainInstr_IValType_Int', [KApply(type + '_WASM-DATA_IValType', []), value])])
 
 def wasm_stmts_join(stmtType = 'Stmt'):
     return '___WASM_' + stmtType + 's_' + stmtType + '_' + stmtType + 's'
