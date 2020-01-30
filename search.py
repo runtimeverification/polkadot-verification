@@ -8,8 +8,6 @@ from pykWasm import _fatal, _notif, _warning
 
 sys.setrecursionlimit(1500000000)
 
-kastProgram = pyk.readKastTerm('src/polkadot-runtime.wat.json')
-
 function_names = [ '$pallet_balances::Module<T_I>::set_free_balance::h143784e9433faed6'
                  , '$pallet_balances::Module<T_I>::call_functions::h5c8befb10787dea0'
                  , '$pallet_balances::Module<T_I>::storage_metadata::h082815e2817e5c19'
@@ -44,32 +42,26 @@ def wasm_stmts_flattened(stmts, stmtType = 'Stmt'):
     else:
         _fatal('Not of type ' + stmtType + '!')
 
-(symbolic_config, init_subst) = get_init_config()
+loaded_program = pyk.readKastTerm('src/polkadot-runtime.loaded.json')
+(symbolic_config, init_subst) = pyk.splitConfigFrom(loaded_program)
 
-init_stmts = wasm_stmts_flattened(kastProgram)
-
-invoking_steps = init_stmts                          \
-               + [ wasm_push('i32', KVariable('V1'))
+invoking_steps = [ wasm_push('i32', KVariable('V1'))
                  , wasm_push('i64', KVariable('V2'))
                  , wasm_push('i64', KVariable('V3'))
                  , wasm_invoke(156)
                  ]
-
-init_subst['K_CELL'] = KSequence([wasm_stmts(invoking_steps)])
-
-init_config = pyk.substitute(symbolic_config, init_subst)
 
 invokingSubstitution = { 'V1' : KToken(str(random.randint(0, 2 ** 32)), 'Int')
                        , 'V2' : KToken(str(random.randint(0, 2 ** 64)), 'Int')
                        , 'V3' : KToken(str(random.randint(0, 2 ** 64)), 'Int')
                        }
 
-init_config = pyk.substitute(init_config, invokingSubstitution)
+init_subst['K_CELL'] = pyk.substitute(KSequence([wasm_stmts(invoking_steps)]), invokingSubstitution)
+print(pyk.prettyPrintKast(init_subst['K_CELL'], WASM_symbols_llvm_no_coverage))
+init_config = pyk.substitute(symbolic_config, init_subst)
 
-print(pyk.prettyPrintKast(init_config, WASM_symbols_llvm_no_coverage))
-sys.stdout.flush()
-(_, after_running, _) = krun({ 'format' : 'KAST' , 'version': 1, 'term': init_config }, '--term')
+(_, final_state, _) = krun({ 'format' : 'KAST' , 'version': 1, 'term': init_config })
+(final_config, final_subst) = pyk.splitConfigFrom(final_state)
+print(pyk.prettyPrintKast(final_subst['K_CELL'], WASM_symbols_llvm_no_coverage))
 sys.stdout.flush()
 sys.stderr.flush()
-print(pyk.prettyPrintKast(after_running, WASM_symbols_llvm_no_coverage))
-sys.stdout.flush()
