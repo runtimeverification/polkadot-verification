@@ -27,7 +27,7 @@ RUN    cd /home/user/.tmp-haskell \
     && stack build --only-snapshot
 
 RUN    cd /home/user                                                                 \
-    && git clone --recursive 'https://github.com/WebAssembly/wabt' --branch='1.0.10' \
+    && git clone --recursive 'https://github.com/WebAssembly/wabt' --branch='1.0.13' \
     && cd wabt                                                                       \
     && mkdir build && cd build                                                       \
     && cmake .. && cmake --build .

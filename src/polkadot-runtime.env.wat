@@ -1,42 +1,58 @@
 (module
   (type (;0;) (func (param i32 i32 i32) (result i32)))
   (type (;1;) (func (param i32 i32) (result i32)))
-  (type (;2;) (func (param i32)))
-  (type (;3;) (func (param i32 i32)))
+  (type (;2;) (func (param i32 i32)))
+  (type (;3;) (func (param i32)))
   (type (;4;) (func (param i32) (result i64)))
-  (type (;5;) (func (param i32 i32 i32)))
-  (type (;6;) (func (param i32 i32 i32 i32)))
-  (type (;7;) (func (param i32 i32 i32 i32) (result i32)))
-  (type (;8;) (func (param i32 i32 i32 i32 i32) (result i32)))
-  (type (;9;) (func (param i32) (result i32)))
-  (type (;10;) (func))
-  (type (;11;) (func (param i64 i32) (result i32)))
-  (type (;12;) (func (param i32 i32) (result i64)))
-  (type (;13;) (func (param i32 i64 i64 i32 i32 i32 i32)))
-  (type (;14;) (func (param i32 i32 i32 i64 i64)))
-  (type (;15;) (func (param i32 i64 i64)))
-  (type (;16;) (func (param i32 i64 i64 i32)))
-  (type (;17;) (func (param i32 i64 i64 i64 i64)))
-  (type (;18;) (func (param i32 i64 i64 i64 i64 i32)))
-  (func $ext_blake2_256                      (export "ext_blake2_256"                     ) (type 5)) ;; no return
-  (func $ext_twox_128                        (export "ext_twox_128"                       ) (type 5)) ;; no return
-  (func $ext_get_allocated_storage           (export "ext_get_allocated_storage"          ) (type 0)) ;; return i32
-  (func $ext_set_storage                     (export "ext_set_storage"                    ) (type 6)) ;; no return
-  (func $ext_clear_storage                   (export "ext_clear_storage"                  ) (type 3)) ;; no return
-  (func $ext_storage_root                    (export "ext_storage_root"                   ) (type 2)) ;; no return
-  (func $ext_storage_changes_root            (export "ext_storage_changes_root"           ) (type 0)) ;; return i32
-  (func $ext_sr25519_verify                  (export "ext_sr25519_verify"                 ) (type 7)) ;; return i32
-  (func $ext_ed25519_verify                  (export "ext_ed25519_verify"                 ) (type 7)) ;; return i32
-  (func $ext_get_storage_into                (export "ext_get_storage_into"               ) (type 8)) ;; return i32
-  (func $ext_print_utf8                      (export "ext_print_utf8"                     ) (type 3)) ;; no return
-  (func $ext_print_hex                       (export "ext_print_hex"                      ) (type 3)) ;; no return
-  (func $ext_ed25519_generate                (export "ext_ed25519_generate"               ) (type 6)) ;; no return
-  (func $ext_sr25519_generate                (export "ext_sr25519_generate"               ) (type 6)) ;; no return
-  (func $ext_blake2_256_enumerated_trie_root (export "ext_blake2_256_enumerated_trie_root") (type 6)) ;; no return
-  (func $ext_clear_prefix                    (export "ext_clear_prefix"                   ) (type 3)) ;; no return
-  (func $ext_malloc                          (export "ext_malloc"                         ) (type 9)) ;; return i32
-  (func $ext_free                            (export "ext_free"                           ) (type 2)) ;; no return
+  (type (;5;) (func (param i64) (result i32)))
+  (type (;6;) (func (param i64 i64)))
+  (type (;7;) (func (param i64) (result i64)))
+  (type (;8;) (func (param i64)))
+  (type (;9;) (func (result i64)))
+  (type (;10;) (func (param i32 i64) (result i32)))
+  (type (;11;) (func (param i32 i64 i32) (result i32)))
+  (type (;12;) (func (param i32 i64 i64)))
+  (type (;13;) (func (param i64 i64 i32) (result i64)))
+  (type (;14;) (func (param i32 i32) (result i64)))
+  (type (;15;) (func (param i32) (result i32)))
+  (type (;16;) (func))
+  (type (;17;) (func (param i32 i32 i32)))
+  (type (;18;) (func (param i32 i32 i32 i32 i32)))
+  (type (;19;) (func (param i64 i32) (result i32)))
+  (type (;20;) (func (param i32 i32 i32 i32 i32) (result i32)))
+  (type (;21;) (func (param i32 i32 i32 i32) (result i32)))
+  (type (;22;) (func (param i32 i32 i32 i32)))
+  (type (;23;) (func (param i32 i64)))
+  (type (;24;) (func (param i32 i32 i32 i32 i32 i32)))
+  (type (;25;) (func (param i32 i64 i64 i32 i32 i32)))
+  (type (;26;) (func (param i32 i32 i32 i64 i64)))
+  (type (;27;) (func (param i32 i32 i32 i64 i64 i32)))
+  (type (;28;) (func (param i32 i64 i64 i32)))
+  (type (;29;) (func (param i32 i64 i64 i64 i64)))
+  (type (;30;) (func (param i32 i64 i64 i64 i64 i32)))
+  ( func $ext_hashing_twox_128_version_1                          (export "ext_hashing_twox_128_version_1"                         )  (type 5 ) )
+  ( func $ext_hashing_blake2_256_version_1                        (export "ext_hashing_blake2_256_version_1"                       )  (type 5 ) )
+  ( func $ext_storage_set_version_1                               (export "ext_storage_set_version_1"                              )  (type 6 ) )
+  ( func $ext_storage_get_version_1                               (export "ext_storage_get_version_1"                              )  (type 7 ) )
+  ( func $ext_storage_clear_version_1                             (export "ext_storage_clear_version_1"                            )  (type 8 ) )
+  ( func $ext_storage_root_version_1                              (export "ext_storage_root_version_1"                             )  (type 9 ) )
+  ( func $ext_storage_changes_root_version_1                      (export "ext_storage_changes_root_version_1"                     )  (type 7 ) )
+  ( func $ext_misc_print_utf8_version_1                           (export "ext_misc_print_utf8_version_1"                          )  (type 8 ) )
+  ( func $ext_misc_print_hex_version_1                            (export "ext_misc_print_hex_version_1"                           )  (type 8 ) )
+  ( func $ext_misc_print_num_version_1                            (export "ext_misc_print_num_version_1"                           )  (type 8 ) )
+  ( func $ext_crypto_sr25519_generate_version_1                   (export "ext_crypto_sr25519_generate_version_1"                  )  (type 10) )
+  ( func $ext_crypto_ed25519_generate_version_1                   (export "ext_crypto_ed25519_generate_version_1"                  )  (type 10) )
+  ( func $ext_crypto_ed25519_verify_version_1                     (export "ext_crypto_ed25519_verify_version_1"                    )  (type 11) )
+  ( func $ext_crypto_sr25519_verify_version_1                     (export "ext_crypto_sr25519_verify_version_1"                    )  (type 11) )
+  ( func $ext_storage_clear_prefix_version_1                      (export "ext_storage_clear_prefix_version_1"                     )  (type 8 ) )
+  ( func $ext_trie_blake2_256_ordered_root_version_1              (export "ext_trie_blake2_256_ordered_root_version_1"             )  (type 5 ) )
+  ( func $ext_logging_log_version_1                               (export "ext_logging_log_version_1"                              )  (type 12) )
+  ( func $ext_storage_read_version_1                              (export "ext_storage_read_version_1"                             )  (type 13) )
+  ( func $ext_crypto_secp256k1_ecdsa_recover_compressed_version_1 (export "ext_crypto_secp256k1_ecdsa_recover_compressed_version_1")  (type 14) )
+  ( func $ext_allocator_malloc_version_1                          (export "ext_allocator_malloc_version_1"                         )  (type 15) )
+  ( func $ext_allocator_free_version_1                            (export "ext_allocator_free_version_1"                           )  (type 3 ) )
 )
 
 (register "env")
+
 
