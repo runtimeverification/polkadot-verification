@@ -6,7 +6,7 @@ import sys
 from pykWasm import *
 from pykWasm import _fatal, _notif, _warning
 
-sys.setrecursionlimit(150000000)
+sys.setrecursionlimit(1500000000)
 
 kastProgram = pyk.readKastTerm('src/polkadot-runtime.wat.json')
 
