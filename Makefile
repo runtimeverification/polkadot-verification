@@ -196,7 +196,7 @@ $(KWASM_SUBMODULE)/tests/simple/merge-all-rules: $(simple_tests:=.coverage-$(SYM
 # -------------------------
 
 test-search:
-    python3 search.py
+	python3 search.py
 
 # Python Configuration Build
 # --------------------------
