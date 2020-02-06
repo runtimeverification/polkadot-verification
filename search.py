@@ -62,6 +62,9 @@ init_config = pyk.substitute(symbolic_config, init_subst)
 
 (_, final_state, _) = krun({ 'format' : 'KAST' , 'version': 1, 'term': init_config })
 (final_config, final_subst) = pyk.splitConfigFrom(final_state)
-print(pyk.prettyPrintKast(final_subst['K_CELL'], WASM_symbols_llvm_no_coverage))
+
+final_subst['MEMS_CELL'] = KToken('OMITTED', 'MemsCell')
+final_state = pyk.substitute(final_config, final_subst)
+print(pyk.prettyPrintKast(final_state, WASM_symbols_llvm_no_coverage))
 sys.stdout.flush()
 sys.stderr.flush()
