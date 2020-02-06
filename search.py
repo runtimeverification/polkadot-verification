@@ -16,8 +16,9 @@ function_names = [ '$pallet_balances::Module<T_I>::set_free_balance::h143784e943
 
 function_name = function_names[0]
 
+wasm_push   = lambda type, value: KApply('(_)_WASM-TEXT_FoldedInstr_PlainInstr', [KApply('_.const__WASM_PlainInstr_IValType_Int', [KConstant(type + '_WASM-DATA_IValType'), value])])
+wasm_call   = lambda fname: KApply('(_)_WASM-TEXT_FoldedInstr_PlainInstr', [KApply('call__WASM_PlainInstr_Index', [KToken(fname, 'IdentifierToken')])])
 wasm_invoke = lambda fid: KApply('(invoke_)_WASM_Instr_Int', [KToken(str(fid), 'Int')])
-wasm_push = lambda type, value: KApply('(_)_WASM-TEXT_FoldedInstr_PlainInstr', [KApply('_.const__WASM_PlainInstr_IValType_Int', [KConstant(type + '_WASM-DATA_IValType'), value])])
 
 def wasm_stmts_join(stmtType = 'Stmt'):
     return '___WASM_' + stmtType + 's_' + stmtType + '_' + stmtType + 's'
@@ -48,7 +49,7 @@ loaded_program = pyk.readKastTerm('src/polkadot-runtime.loaded.json')
 invoking_steps = [ wasm_push('i32', KVariable('V1'))
                  , wasm_push('i64', KVariable('V2'))
                  , wasm_push('i64', KVariable('V3'))
-                 , wasm_invoke(156)
+                 # , wasm_call(function_name)
                  ]
 
 invokingSubstitution = { 'V1' : KToken(str(random.randint(0, 2 ** 32)), 'Int')
@@ -56,11 +57,13 @@ invokingSubstitution = { 'V1' : KToken(str(random.randint(0, 2 ** 32)), 'Int')
                        , 'V3' : KToken(str(random.randint(0, 2 ** 64)), 'Int')
                        }
 
-init_subst['K_CELL'] = pyk.substitute(KSequence([wasm_stmts(invoking_steps)]), invokingSubstitution)
+init_subst['K_CELL'] = pyk.substitute(KSequence(invoking_steps), invokingSubstitution)
 print(pyk.prettyPrintKast(init_subst['K_CELL'], WASM_symbols_llvm_no_coverage))
 init_config = pyk.substitute(symbolic_config, init_subst)
 
-(_, final_state, _) = krun({ 'format' : 'KAST' , 'version': 1, 'term': init_config })
+(_, final_state, _) = krun({ 'format' : 'KAST' , 'version': 1, 'term': init_config }, '--term', '--debug')
+sys.stdout.flush()
+sys.stderr.flush()
 (final_config, final_subst) = pyk.splitConfigFrom(final_state)
 
 final_subst['MEMS_CELL'] = KToken('OMITTED', 'MemsCell')
