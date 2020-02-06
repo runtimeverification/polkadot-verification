@@ -1,10 +1,10 @@
 
-.PHONY: clean distclean deps deps-polkadot                           \
-        build                                                        \
-        polkadot-runtime-source polkadot-runtime-loaded              \
-        specs                                                        \
-        test test-can-build-specs test-python-config test-rule-lists \
-        test-merge-rules test-merge-all-rules
+.PHONY: clean distclean deps deps-polkadot                       \
+        build                                                    \
+        polkadot-runtime-source polkadot-runtime-loaded          \
+        prove-specs defn-specs kompile-specs                     \
+        test test-python-config test-rule-lists test-merge-rules \
+        test-merge-all-rules test-search
 
 # Settings
 # --------
@@ -172,7 +172,7 @@ $(SPECS_DIR)/%-spec.k.prove: $(SPECS_DIR)/%-spec.k $(SPECS_DIR)/%-kompiled/defin
 
 CHECK := git --no-pager diff --no-index --ignore-all-space
 
-test: test-merge-rules prove-specs test-python-config
+test: test-merge-rules prove-specs test-python-config test-search
 
 all_simple_tests := $(wildcard $(KWASM_SUBMODULE)/tests/simple/*.wast)
 bad_simple_tests := $(KWASM_SUBMODULE)/tests/simple/arithmetic.wast     \
@@ -191,6 +191,12 @@ test-merge-all-rules: $(KWASM_SUBMODULE)/tests/simple/merge-all-rules
 
 $(KWASM_SUBMODULE)/tests/simple/merge-all-rules: $(simple_tests:=.coverage-$(SYMBOLIC_BACKEND))
 	./mergeRules.py $(MERGE_RULES_TECHNIQUE) $^ > $@
+
+# Search Through Executions
+# -------------------------
+
+test-search:
+    python3 search.py
 
 # Python Configuration Build
 # --------------------------
