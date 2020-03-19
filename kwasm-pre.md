@@ -12,6 +12,7 @@ module KWASM-PRE-SYNTAX
 endmodule
 
 module KWASM-PRE
+    imports K-IO
     imports WASM-TEST
 
     configuration
