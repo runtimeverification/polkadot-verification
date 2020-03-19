@@ -58,8 +58,8 @@ def iterated_compile(src_definition_dir, dst_definition_dir, main_defn_file, mai
 if __name__ == '__main__':
     src_definition_dir = sys.argv[1]      # .build/defn/coverage/llvm
     dst_definition_dir = sys.argv[2]      # .build/defn/kwasm/haskell
-    main_defn_file     = sys.argv[3]      # wasm-with-k-io
-    main_module        = sys.argv[4]      # WASM-WITH-K-IO
+    main_defn_file     = sys.argv[3]      # kwasm-pre
+    main_module        = sys.argv[4]      # KWASM-PRE
     input_program      = sys.argv[5]      # deps/wasm-semantics/tests/simple/constants.wast
     subsequence_length = int(sys.argv[6]) # 2
     iterations         = int(sys.argv[7]) # 5
