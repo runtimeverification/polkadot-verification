@@ -64,9 +64,9 @@ deps-polkadot:
 
 KOMPILE_OPTIONS :=
 
-MAIN_MODULE        := WASM-WITH-K-IO
-MAIN_SYNTAX_MODULE := WASM-WITH-K-IO-SYNTAX
-MAIN_DEFN_FILE     := wasm-with-k-io
+MAIN_MODULE        := KWASM-PRE
+MAIN_SYNTAX_MODULE := KWASM-PRE-SYNTAX
+MAIN_DEFN_FILE     := kwasm-pre
 
 SUBDEFN := kwasm
 export SUBDEFN

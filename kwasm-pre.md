@@ -1,17 +1,17 @@
-KWasm with K-IO
-===============
+KWasm with Polkadot Runtime Environment (PRE)
+=============================================
 
-**TODO**: This module is a HACK to get coverage to work properly.
+This module enables calling PRE host functions from KWasm code.
 
 ```k
 requires "test.k"
 
-module WASM-WITH-K-IO-SYNTAX
-    imports WASM-WITH-K-IO
+module KWASM-PRE-SYNTAX
+    imports KWASM-PRE
     imports WASM-TEST-SYNTAX
 endmodule
 
-module WASM-WITH-K-IO
+module KWASM-PRE
     imports WASM-TEST
 
     configuration
