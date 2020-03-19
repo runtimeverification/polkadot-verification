@@ -25,7 +25,7 @@ module KWASM-PRE
  // ------------------------------------------
     rule <k> pre . PRECALL => #push(#revs(#zero(unnameValTypes(FRANGE)))) ... </k>
          <trace> ... (.List => ListItem(PRECALL)) </trace>
-         <moduleRegistry> ... "env" |-> MODID ... </moduleRegistry>
+         <moduleRegistry> ... #unparseWasmString("\"env\"") |-> MODID ... </moduleRegistry>
          <moduleInst>
            <modIdx> MODID </modIdx>
            <funcIds> FIDS </funcIds>
