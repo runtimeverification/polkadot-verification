@@ -88,6 +88,14 @@ pipeline {
             '''
           }
         }
+        stage('Run Search') {
+          options { timeout(time: 10, unit: 'MINUTES') }
+          steps {
+            sh '''
+              make test-search
+            '''
+          }
+        }
       }
     }
   }
