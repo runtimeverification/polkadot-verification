@@ -1,35 +1,35 @@
-KWasm with Polkadot Runtime Environment (PRE)
-=============================================
+KWasm with Polkadot Host
+========================
 
-This module enables calling PRE host functions from KWasm code.
+This module enables calling Polkadot Host host functions from KWasm code.
 
 ```k
 requires "test.k"
 
-module KWASM-PRE-SYNTAX
-    imports KWASM-PRE
+module KWASM-POLKADOT-HOST-SYNTAX
+    imports KWASM-POLKADOT-HOST
     imports WASM-TEST-SYNTAX
 endmodule
 
-module KWASM-PRE
+module KWASM-POLKADOT-HOST
     imports K-IO
     imports WASM-TEST
 
     configuration
-      <polkadot-runtime-environment>
+      <polkadot-host>
         <wasm/>
         <trace> .List </trace>
-      </polkadot-runtime-environment>
+      </polkadot-host>
 
-    syntax PlainInstr ::= "pre" "." Identifier
- // ------------------------------------------
-    rule <k> pre . PRECALL => #push(#revs(#zero(unnameValTypes(FRANGE)))) ... </k>
-         <trace> ... (.List => ListItem(PRECALL)) </trace>
+    syntax PlainInstr ::= "phost" "." Identifier
+ // --------------------------------------------
+    rule <k> phost . HOSTCALL => #push(#revs(#zero(unnameValTypes(FRANGE)))) ... </k>
+         <trace> ... (.List => ListItem(HOSTCALL)) </trace>
          <moduleRegistry> ... #unparseWasmString("\"env\"") |-> MODID ... </moduleRegistry>
          <moduleInst>
            <modIdx> MODID </modIdx>
            <funcIds> FIDS </funcIds>
-           <funcAddrs> ... #ContextLookup(FIDS, PRECALL) |-> FADDR ... </funcAddrs>
+           <funcAddrs> ... #ContextLookup(FIDS, HOSTCALL) |-> FADDR ... </funcAddrs>
            ...
          </moduleInst>
          <funcDef>
