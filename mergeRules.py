@@ -7,18 +7,6 @@ from pykWasm import *
 from pykWasm import _notif, _warning, _fatal
 
 ################################################################################
-# Direct rule merging                                                          #
-################################################################################
-
-def merge_rules_direct(definition_dir, main_defn_file, main_module, rule_sequences):
-    merged_rules = []
-    for rule_sequence in rule_sequences:
-        gen_rule = mergeRules(definition_dir, main_defn_file, main_module, rule_sequence)
-        if gen_rule is not None:
-            merged_rules.append(gen_rule)
-    return merged_rules
-
-################################################################################
 # Rule Merging based on maximal non-overlapping subsequences                   #
 ################################################################################
 
@@ -70,14 +58,10 @@ def merge_rules_max_subsequences(definition_dir, main_defn_file, main_module, ru
 
     Output: List of merged rules for maximal subsequences of the given length.
     """
-    merged_rules = []
+    maximal_subsequences = []
     for rule_sequence in rule_sequences:
-        maximal_subsequences = maximal_nonoverlapping_subsequences(rule_sequence, subsequence_length = subsequence_length)
-        for subsequence in maximal_subsequences:
-            gen_rule = mergeRules(definition_dir, main_defn_file, main_module, rule_sequence)
-            if gen_rule is not None:
-                merged_rules.append(gen_rule)
-    return merged_rules
+        maximal_subsequences.extend(maximal_nonoverlapping_subsequences(rule_sequence, subsequence_length = subsequence_length))
+    return tryMergeRules(definition_dir, main_defn_file, main_module, maximal_subsequences)
 
 ################################################################################
 # Merging rules based on max productivity                                      #
@@ -172,13 +156,8 @@ def merge_rules_max_productivity(definition_dir, main_defn_file, main_module, ru
     for rule_sequence in rule_sequences:
         for rule in rule_sequence:
             if len(rule.split('|')) > 1:
-                merged_rule_traces.add(rule)
-    merged_rules = []
-    for rule in merged_rule_traces:
-        gen_rule = mergeRules(definition_dir, main_defn_file, main_module, rule.split('|'), symbolTable = WASM_symbols_haskell_no_coverage, definition = WASM_definition_haskell_no_coverage)
-        if gen_rule is not None:
-            merged_rules.append(gen_rule)
-    return merged_rules
+                merged_rule_traces.add(rule.split('|'))
+    return tryMergeRules(definition_dir, main_defn_file, main_module, list(merged_rule_traces))
 
 ################################################################################
 # Main functionality                                                           #
@@ -195,7 +174,7 @@ if __name__ == '__main__':
             rule_traces.append(rules)
 
     if merge_type == 'direct':
-        merged_rules = merge_rules_direct(WASM_definition_haskell_no_coverage_dir, 'kwasm-polkadot-host', 'KWASM-POLKADOT-HOST', rule_traces)
+        merged_rules = tryMergeRules(WASM_definition_haskell_no_coverage_dir, 'kwasm-polkadot-host', 'KWASM-POLKADOT-HOST', rule_traces)
     elif merge_type == 'max-subseq':
         merged_rules = merge_rules_max_subsequences(WASM_definition_haskell_no_coverage_dir, 'kwasm-polkadot-host', 'KWASM-POLKADOT-HOST', rule_traces, subsequence_length = 2)
     elif merge_type == 'max-productivity':
