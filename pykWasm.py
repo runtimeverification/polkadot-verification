@@ -91,11 +91,11 @@ WASM_definition_llvm_coverage_dir    = '.build/defn/coverage/llvm'
 WASM_definition_haskell_no_coverage_dir = '.build/defn/kwasm/haskell'
 WASM_definition_haskell_coverage_dir    = '.build/defn/coverage/haskell'
 
-WASM_definition_llvm_no_coverage = pyk.readKastTerm(WASM_definition_llvm_no_coverage_dir + '/wasm-with-k-io-kompiled/compiled.json')
-WASM_definition_llvm_coverage    = pyk.readKastTerm(WASM_definition_llvm_coverage_dir + '/wasm-with-k-io-kompiled/compiled.json')
+WASM_definition_llvm_no_coverage = pyk.readKastTerm(WASM_definition_llvm_no_coverage_dir + '/kwasm-polkadot-host-kompiled/compiled.json')
+WASM_definition_llvm_coverage    = pyk.readKastTerm(WASM_definition_llvm_coverage_dir + '/kwasm-polkadot-host-kompiled/compiled.json')
 
-WASM_definition_haskell_no_coverage = pyk.readKastTerm(WASM_definition_haskell_no_coverage_dir + '/wasm-with-k-io-kompiled/compiled.json')
-WASM_definition_haskell_coverage    = pyk.readKastTerm(WASM_definition_haskell_coverage_dir + '/wasm-with-k-io-kompiled/compiled.json')
+WASM_definition_haskell_no_coverage = pyk.readKastTerm(WASM_definition_haskell_no_coverage_dir + '/kwasm-polkadot-host-kompiled/compiled.json')
+WASM_definition_haskell_coverage    = pyk.readKastTerm(WASM_definition_haskell_coverage_dir + '/kwasm-polkadot-host-kompiled/compiled.json')
 
 WASM_symbols_llvm_no_coverage = pyk.buildSymbolTable(WASM_definition_llvm_no_coverage)
 WASM_symbols_llvm_coverage    = pyk.buildSymbolTable(WASM_definition_llvm_coverage)
@@ -134,7 +134,7 @@ def kast(inputJson, *kastArgs):
     return pyk.kastJSON('.build/defn/kwasm/llvm', inputJson, kastArgs = list(kastArgs), kRelease = 'deps/wasm-semantics/deps/k/k-distribution/target/release/k')
 
 def krun(inputJson, *krunArgs):
-    return pyk.krunJSON('.build/defn/kwasm/llvm', inputJson, krunArgs = list(krunArgs), kRelease = 'deps/wasm-semantics/deps/k/k-distribution/target/release/k', teeOutput = False)
+    return pyk.krunJSON('.build/defn/kwasm/llvm', inputJson, krunArgs = list(krunArgs), kRelease = 'deps/wasm-semantics/deps/k/k-distribution/target/release/k')
 
 def kprove(inputJson, *krunArgs):
     return pyk.kproveJSON('.build/defn/kwasm/llvm', inputJson, kproveArgs = list(kproveArgs), kRelease = 'deps/wasm-semantics/deps/k/k-distribution/target/release/k')

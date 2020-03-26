@@ -3,6 +3,7 @@
 import pyk
 import random
 import sys
+
 from pykWasm import *
 from pykWasm import _fatal, _notif, _warning
 
@@ -49,7 +50,7 @@ loaded_program = pyk.readKastTerm('src/polkadot-runtime.loaded.json')
 invoking_steps = [ wasm_push('i32', KVariable('V1'))
                  , wasm_push('i64', KVariable('V2'))
                  , wasm_push('i64', KVariable('V3'))
-                 # , wasm_call(function_name)
+                 , wasm_call(function_name)
                  ]
 
 invokingSubstitution = { 'V1' : KToken(str(random.randint(0, 2 ** 32)), 'Int')
