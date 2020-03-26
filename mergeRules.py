@@ -156,8 +156,9 @@ def merge_rules_max_productivity(definition_dir, main_defn_file, main_module, ru
     for rule_sequence in rule_sequences:
         for rule in rule_sequence:
             if len(rule.split('|')) > 1:
-                merged_rule_traces.add(rule.split('|'))
-    return tryMergeRules(definition_dir, main_defn_file, main_module, list(merged_rule_traces))
+                merged_rule_traces.add(rule)
+    merge_rules = [ rule.split('|') for rule in merged_rule_traces ]
+    return tryMergeRules(definition_dir, main_defn_file, main_module, merge_rules)
 
 ################################################################################
 # Main functionality                                                           #
@@ -174,11 +175,11 @@ if __name__ == '__main__':
             rule_traces.append(rules)
 
     if merge_type == 'direct':
-        merged_rules = tryMergeRules(WASM_definition_haskell_no_coverage_dir, 'kwasm-polkadot-host', 'KWASM-POLKADOT-HOST', rule_traces)
+        merged_rules = tryMergeRules(WASM_definition_haskell_no_coverage_dir, WASM_definition_main_file, WASM_definition_main_module, rule_traces)
     elif merge_type == 'max-subseq':
-        merged_rules = merge_rules_max_subsequences(WASM_definition_haskell_no_coverage_dir, 'kwasm-polkadot-host', 'KWASM-POLKADOT-HOST', rule_traces, subsequence_length = 2)
+        merged_rules = merge_rules_max_subsequences(WASM_definition_haskell_no_coverage_dir, WASM_definition_main_file, WASM_definition_main_module, rule_traces, subsequence_length = 2)
     elif merge_type == 'max-productivity':
-        merged_rules = merge_rules_max_productivity(WASM_definition_haskell_no_coverage_dir, 'kwasm-polkadot-host', 'KWASM-POLKADOT-HOST', rule_traces, min_merged_success_rate = 0.25, min_occurance_rate = 0.05)
+        merged_rules = merge_rules_max_productivity(WASM_definition_haskell_no_coverage_dir, WASM_definition_main_file, WASM_definition_main_module, rule_traces, min_merged_success_rate = 0.25, min_occurance_rate = 0.05)
     else:
         _fatal('Unknown merge technique: ' + merge_type)
 
