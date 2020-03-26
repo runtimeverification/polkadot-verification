@@ -7,6 +7,8 @@ import sys
 from pykWasm import *
 from pykWasm import _fatal, _notif, _warning
 
+from mergeRules import *
+
 sys.setrecursionlimit(1500000000)
 
 function_names = [ '$pallet_balances::Module<T_I>::set_free_balance::h143784e9433faed6'
@@ -62,13 +64,15 @@ init_subst['K_CELL'] = pyk.substitute(KSequence(invoking_steps), invokingSubstit
 print(pyk.prettyPrintKast(init_subst['K_CELL'], WASM_symbols_llvm_no_coverage))
 init_config = pyk.substitute(symbolic_config, init_subst)
 
-(_, final_state, _) = krun({ 'format' : 'KAST' , 'version': 1, 'term': init_config }, '--term', '--debug')
-sys.stdout.flush()
-sys.stderr.flush()
-(final_config, final_subst) = pyk.splitConfigFrom(final_state)
-
-final_subst['MEMS_CELL'] = KToken('OMITTED', 'MemsCell')
-final_state = pyk.substitute(final_config, final_subst)
-print(pyk.prettyPrintKast(final_state, WASM_symbols_llvm_no_coverage))
+coverageFile = krunCoverage({ 'format' : 'KAST' , 'version': 1, 'term': init_config }, '--term')
+ruleSeq = pyk.translateCoverageFromPaths(WASM_definition_llvm_coverage_dir + '/' + WASM_definition_main_file + '-kompiled', WASM_definition_haskell_no_coverage_dir + '/' + WASM_definition_main_file + '-kompiled', coverageFile)
+mergedRules = merge_rules_max_productivity(WASM_definition_haskell_no_coverage_dir, WASM_definition_main_file, WASM_definition_main_module, [ruleSeq], min_merged_success_rate = 0.25, min_occurance_rate = 0.05)
+print()
+for mr in mergedRules:
+    print('Merged Rule:')
+    print('============')
+    print()
+    print(prettyPrintRule(mr, WASM_symbols_haskell_no_coverage))
+print()
 sys.stdout.flush()
 sys.stderr.flush()
