@@ -119,10 +119,10 @@ WASM_symbols_haskell_coverage    = pyk.buildSymbolTable(WASM_definition_haskell_
 ################################################################################
 
 def kast(inputJson, *kastArgs):
-    return pyk.kastJSON(WASM_definition_llvm_no_coverage, inputJson, kastArgs = list(kastArgs), kRelease = 'deps/wasm-semantics/deps/k/k-distribution/target/release/k')
+    return pyk.kastJSON(WASM_definition_llvm_no_coverage_dir, inputJson, kastArgs = list(kastArgs), kRelease = 'deps/wasm-semantics/deps/k/k-distribution/target/release/k')
 
 def krun(inputJson, *krunArgs):
-    return pyk.krunJSON(WASM_definition_llvm_no_coverage, inputJson, krunArgs = list(krunArgs), kRelease = 'deps/wasm-semantics/deps/k/k-distribution/target/release/k')
+    return pyk.krunJSON(WASM_definition_llvm_no_coverage_dir, inputJson, krunArgs = list(krunArgs), kRelease = 'deps/wasm-semantics/deps/k/k-distribution/target/release/k')
 
 def findCoverageFiles(path):
     files = os.listdir(path)
