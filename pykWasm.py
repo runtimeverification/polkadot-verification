@@ -152,22 +152,6 @@ if __name__ == '__main__':
     initial_configuration = pyk.substitute(generatedTop, initSubst)
     kast_json = { 'format': 'KAST', 'version': 1, 'term': initial_configuration }
 
-    # Use official K unparser to get string for initial configuration
-    # (returnCode, kastPrinted, _) = kast(kast_json, '--input', 'json', '--output', 'pretty')
-    # if returnCode != 0:
-    #     _fatal('kast returned non-zero exit code reading/printing the initial configuration')
-    #     sys.exit(returnCode)
-
-    # Use fast pyk unparser to get string for initial configuration
     fastPrinted = pyk.prettyPrintKast(initial_configuration['args'][0], WASM_symbols_llvm_no_coverage)
     _notif('fastPrinted output')
     print(fastPrinted)
-
-    # Check that fast and official unparsers agree, or see how much they disagree.
-    # kastPrinted = kastPrinted.strip()
-    # if fastPrinted != kastPrinted:
-    #     _warning('kastPrinted and fastPrinted differ!')
-    #     for line in difflib.unified_diff(kastPrinted.split('\n'), fastPrinted.split('\n'), fromfile='kast', tofile='fast', lineterm='\n'):
-    #         sys.stderr.write(line + '\n')
-    #     sys.stderr.flush()
-
