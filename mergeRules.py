@@ -170,14 +170,14 @@ if __name__ == '__main__':
 
     merge_seqs = []
     if merge_type == 'direct':
-        rule_seqs = rule_traces
+        merge_seqs = rule_traces
     elif merge_type == 'max-subseq':
         merged_seqs = merge_rules_max_subsequences(rule_traces, subsequence_length = 2)
     elif merge_type == 'max-productivity':
         merged_seqs = merge_rules_max_productivity(rule_traces, min_merged_success_rate = 0.25, min_occurance_rate = 0.05)
     else:
         _fatal('Unknown merge technique: ' + merge_type)
-    merged_rules = tryMergeRules(WASM_definition_haskell_no_coverage_dir, WASM_definition_main_file, WASM_definition_main_module, rule_traces)
+    merged_rules = tryMergeRules(WASM_definition_haskell_no_coverage_dir, WASM_definition_main_file, WASM_definition_main_module, merge_seqs)
 
     _notif('Merged rules!')
     for merged_rule in merged_rules:
