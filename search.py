@@ -69,8 +69,10 @@ for i in range(numExec):
     ruleSeq = pyk.translateCoverageFromPaths(WASM_definition_llvm_coverage_dir + '/' + WASM_definition_main_file + '-kompiled', WASM_definition_haskell_no_coverage_dir + '/' + WASM_definition_main_file + '-kompiled', coverageFile)
     ruleSeqs.add('|'.join(ruleSeq))
 
-ruleSeqs = [ ruleSeq.split('|') for ruleSeq in ruleSeqs ]
-ruleMerges = merge_rules_max_productivity(ruleSeqs, min_merged_success_rate = 0.25, min_occurance_rate = 0.05)
+[ ruleSeq ] = [ ruleSeq.split('|') for ruleSeq in ruleSeqs ]
+ruleSeqs = [ ruleSeq[0:i] for i in range(50,70,5) ]
+# ruleMerges = merge_rules_max_productivity(ruleSeqs, min_merged_success_rate = 0.25, min_occurance_rate = 0.05)
+ruleMerges = ruleSeqs
 mergedRules = tryMergeRules(WASM_definition_haskell_no_coverage_dir, WASM_definition_main_file, WASM_definition_main_module, ruleMerges)
 print('Found ' + str(len(ruleSeqs)) + ' unique executions.')
 print()

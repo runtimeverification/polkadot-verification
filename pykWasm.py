@@ -6,6 +6,7 @@ import os
 import pyk
 import sys
 import tempfile
+import time
 
 from pyk.kast import KApply, KConstant, KRewrite, KSequence, KToken, KVariable, _notif, _warning, _fatal
 
@@ -84,9 +85,16 @@ def mergeRules(definition_dir, main_defn_file, main_module, subsequence, symbolT
 def tryMergeRules(definition_dir, main_defn_file, main_module, rule_sequences):
     merged_rules = []
     for rule_sequence in rule_sequences:
+        start_time = time.time()
         gen_rule = mergeRules(definition_dir, main_defn_file, main_module, rule_sequence)
+        end_time = time.time()
         if gen_rule is not None:
             merged_rules.append(gen_rule)
+            print()
+            print('# rules: ' + str(len(rule_sequence)))
+            print('merge time: ' + str(end_time - start_time))
+            print()
+            sys.stdout.flush()
     return merged_rules
 
 ################################################################################
