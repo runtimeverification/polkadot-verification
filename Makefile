@@ -1,5 +1,5 @@
 
-.PHONY: clean distclean deps deps-polkadot                       \
+.PHONY: all clean distclean deps deps-polkadot                   \
         build                                                    \
         polkadot-runtime-source polkadot-runtime-loaded          \
         prove-specs defn-specs kompile-specs                     \
@@ -37,6 +37,8 @@ export TANGLER
 export LUA_PATH
 
 KPOL := ./kpol
+
+all: build
 
 clean:
 	rm -rf $(DEFN_DIR) tests/*.out
