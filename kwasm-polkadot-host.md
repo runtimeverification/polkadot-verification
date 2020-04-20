@@ -5,6 +5,7 @@ This module enables calling Polkadot Host host functions from KWasm code.
 
 ```k
 requires "test.k"
+requires "kwasm-lemmas.k"
 
 module KWASM-POLKADOT-HOST-SYNTAX
     imports KWASM-POLKADOT-HOST
@@ -14,6 +15,7 @@ endmodule
 module KWASM-POLKADOT-HOST
     imports K-IO
     imports WASM-TEST
+    imports KWASM-LEMMAS
 
     configuration
       <polkadot-host>
