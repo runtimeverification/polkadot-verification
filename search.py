@@ -19,7 +19,7 @@ function_names = [ '$pallet_balances::Module<T_I>::set_free_balance::h143784e943
 
 function_name = function_names[0]
 
-wasm_push   = lambda type, value: KApply('(_)_WASM-TEXT_FoldedInstr_PlainInstr', [KApply('_.const__WASM_PlainInstr_IValType_Int', [KConstant(type + '_WASM-DATA_IValType'), value])])
+wasm_push   = lambda type, value: KApply('(_)_WASM-TEXT_FoldedInstr_PlainInstr', [KApply('_.const__WASM_PlainInstr_IValType_WasmInt', [KConstant(type + '_WASM-DATA_IValType'), value])])
 wasm_call   = lambda fname: KApply('(_)_WASM-TEXT_FoldedInstr_PlainInstr', [KApply('call__WASM_PlainInstr_Index', [KToken(fname, 'IdentifierToken')])])
 wasm_invoke = lambda fid: KApply('(invoke_)_WASM_Instr_Int', [KToken(str(fid), 'Int')])
 
