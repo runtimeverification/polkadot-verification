@@ -7,6 +7,8 @@ import sys
 from pykWasm import *
 from pykWasm import _fatal, _notif, _warning
 
+from mergeRules import *
+
 sys.setrecursionlimit(1500000000)
 
 function_names = [ '$pallet_balances::Module<T_I>::set_free_balance::h143784e9433faed6'
@@ -53,22 +55,30 @@ invoking_steps = [ wasm_push('i32', KVariable('V1'))
                  , wasm_call(function_name)
                  ]
 
-invokingSubstitution = { 'V1' : KToken(str(random.randint(0, 2 ** 32)), 'Int')
-                       , 'V2' : KToken(str(random.randint(0, 2 ** 64)), 'Int')
-                       , 'V3' : KToken(str(random.randint(0, 2 ** 64)), 'Int')
-                       }
+numExec = int(sys.argv[1])
+ruleSeqs = set([])
+for i in range(numExec):
+    invokingSubstitution = { 'V1' : KToken(str(random.randint(0, 2 ** 32)), 'Int')
+                           , 'V2' : KToken(str(random.randint(0, 2 ** 64)), 'Int')
+                           , 'V3' : KToken(str(random.randint(0, 2 ** 64)), 'Int')
+                           }
+    init_subst['K_CELL'] = pyk.substitute(KSequence(invoking_steps), invokingSubstitution)
+    # print(pyk.prettyPrintKast(init_subst['K_CELL'], WASM_symbols_llvm_no_coverage))
+    init_config = pyk.substitute(symbolic_config, init_subst)
+    coverageFile = krunCoverage({ 'format' : 'KAST' , 'version': 1, 'term': init_config }, '--term')
+    ruleSeq = pyk.translateCoverageFromPaths(WASM_definition_llvm_coverage_dir + '/' + WASM_definition_main_file + '-kompiled', WASM_definition_haskell_no_coverage_dir + '/' + WASM_definition_main_file + '-kompiled', coverageFile)
+    ruleSeqs.add('|'.join(ruleSeq))
 
-init_subst['K_CELL'] = pyk.substitute(KSequence(invoking_steps), invokingSubstitution)
-print(pyk.prettyPrintKast(init_subst['K_CELL'], WASM_symbols_llvm_no_coverage))
-init_config = pyk.substitute(symbolic_config, init_subst)
-
-(_, final_state, _) = krun({ 'format' : 'KAST' , 'version': 1, 'term': init_config }, '--term', '--debug')
-sys.stdout.flush()
-sys.stderr.flush()
-(final_config, final_subst) = pyk.splitConfigFrom(final_state)
-
-final_subst['MEMS_CELL'] = KToken('OMITTED', 'MemsCell')
-final_state = pyk.substitute(final_config, final_subst)
-print(pyk.prettyPrintKast(final_state, WASM_symbols_llvm_no_coverage))
+ruleSeqs = [ ruleSeq.split('|') for ruleSeq in ruleSeqs ]
+ruleMerges = merge_rules_max_productivity(ruleSeqs, min_merged_success_rate = 0.25, min_occurance_rate = 0.05)
+mergedRules = tryMergeRules(WASM_definition_haskell_no_coverage_dir, WASM_definition_main_file, WASM_definition_main_module, ruleMerges)
+print('Found ' + str(len(ruleSeqs)) + ' unique executions.')
+print()
+for mr in mergedRules:
+    print('Merged Rule:')
+    print('============')
+    print()
+    print(prettyPrintRule(mr, WASM_symbols_haskell_no_coverage))
+print()
 sys.stdout.flush()
 sys.stderr.flush()
