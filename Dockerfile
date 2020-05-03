@@ -20,6 +20,7 @@ USER user:user
 WORKDIR /home/user
 
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-2020-04-21 --target wasm32-unknown-unknown
+RUN cargo install --git https://github.com/alexcrichton/wasm-gc --branch wasm-gc-api-0.1.11
 
 ENV LD_LIBRARY_PATH=/usr/local/lib
 ENV PATH=/home/user/wabt/build:/home/user/.local/bin:/home/user/.cargo/bin:$PATH
