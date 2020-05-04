@@ -1,10 +1,11 @@
 ARG K_COMMIT
 FROM runtimeverificationinc/kframework-k:ubuntu-bionic-${K_COMMIT}
 
-RUN    apt-get update          \
-    && apt-get upgrade --yes   \
-    && apt-get install --yes   \
-                        cmake  \
+RUN    apt-get update           \
+    && apt-get upgrade --yes    \
+    && apt-get install --yes    \
+                        cmake   \
+                        curl    \
                         pandoc
 
 ARG USER_ID=1000
