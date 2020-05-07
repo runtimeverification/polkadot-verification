@@ -21,7 +21,6 @@ module SET-BALANCE
         <creationFee> 0 </creationFee>
         <transferFee> 0 </transferFee>
         <totalIssuance> 0 </totalIssuance>
-        <accountSet> .Set </accountSet>
         <accounts>
           <account multiplicity="*" type="Map">
             <accountID> .AccountId:AccountId </accountID>
@@ -221,7 +220,6 @@ A `Result` is considered an `Action`, as is an `EntryAction`.
     syntax Action ::= "create_account" "(" AccountId ")"
  // ----------------------------------------------------
     rule <k> create_account(WHO) => . ... </k>
-         <accountSet> ... (.Set => SetItem(WHO)) </accountSet>
          <accounts> ( .Bag => <account> <accountID> WHO </accountID> ... </account> ) ... </accounts>
 ```
 
@@ -267,7 +265,6 @@ A `Result` is considered an `Action`, as is an `EntryAction`.
          <events> ... (.List => ListItem(DustEvent(FREE_BALANCE))) </events>
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
          <totalIssuance> TOTAL_ISSUANCE => TOTAL_ISSUANCE -Int BALANCE </totalIssuance>
-         <accountSet> ... (SetItem(WHO) => .Set) ... </accountSet>
          <accounts>
            ( <account>
                <accountID> WHO </accountID>
@@ -323,7 +320,6 @@ A `Result` is considered an `Action`, as is an `EntryAction`.
          <k> set_reserved_balance(WHO, BALANCE) => . ... </k>
          <events> ... (.List => ListItem(DustEvent(RESERVED_BALANCE))) </events>
          <totalIssuance> TOTAL_ISSUANCE => TOTAL_ISSUANCE -Int BALANCE </totalIssuance>
-         <accountSet> ... (SetItem(WHO) => .Set) ... </accountSet>
          <accounts>
            ( <account>
                <accountID> WHO </accountID>
