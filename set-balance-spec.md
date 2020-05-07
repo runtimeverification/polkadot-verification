@@ -44,7 +44,7 @@ module SET-BALANCE-SPEC
 
 ### No Zero-Balance Accounts Exist
 
-```k
+```
     rule <k> set_balance(_, _, _, _) => . ... </k>
          <now> _ => ?_ </now>
          <events> _ => ?_ </events>
@@ -66,10 +66,11 @@ This property shows that `set_balance` will not result in a zero-balance attack.
 **TODO**: Generalize to any EntryAction.
 **TODO**: Assertions about log events.
 
-```
+```k
     rule <k> set_balance(Root, WHO, FREE_BALANCE', RESERVED_BALANCE') => . ... </k>
          <totalIssuance> TOTAL_ISSUANCE => TOTAL_ISSUANCE +Int ( FREE_BALANCE' -Int FREE_BALANCE ) +Int ( RESERVED_BALANCE' -Int RESERVED_BALANCE ) </totalIssuance>
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
+         <accountSet> SetItem(WHO) REST </accountSet>
          <account>
            <accountID> WHO </accountID>
            <freeBalance> FREE_BALANCE => FREE_BALANCE' </freeBalance>
