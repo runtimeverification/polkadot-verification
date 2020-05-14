@@ -31,9 +31,18 @@ module VERIFICATION
    syntax Int ::= freeBalance ( AccountId , AccountsCell ) [function, functional]
    rule freeBalance(WHO, <accounts> <account> <accountID> WHO </accountID> <freeBalance> FB </freeBalance> ... </account> ... </accounts>) => FB
    rule freeBalance(_, _) => 0 [owise]
-   
+
    syntax Bool ::= balanceOK ( Int , Int ) [function, functional]
    rule balanceOK(I, ED) => I ==Int 0 orBool I >=Int ED
+
+   syntax KItem ::= checkBalance( AccountId )
+   rule <k> checkBalance( WHO ) => . ... </k>
+        <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
+
+     requires balanceOK( free_balance( WHO ),     EXISTENTIAL_DEPOSIT )
+      andBool balanceOK( reserved_balance( WHO ), EXISTENTIAL_DEPOSIT )
+
+
 endmodule
 
 module SET-BALANCE-SPEC
@@ -75,20 +84,17 @@ This property shows that `set_balance` will not result in a zero-balance attack.
 **TODO**: Assertions about log events.
 
 ```k
-    rule <k> set_balance(Root, WHO, FREE_BALANCE', RESERVED_BALANCE') => . ... </k>
-         <totalIssuance> TOTAL_ISSUANCE => TOTAL_ISSUANCE +Int ( FREE_BALANCE' -Int FREE_BALANCE ) +Int ( RESERVED_BALANCE' -Int RESERVED_BALANCE ) </totalIssuance>
+    rule <k> set_balance(Root, WHO, FREE_BALANCE', RESERVED_BALANCE') ~> checkBalance( WHO ) => . ... </k>
+         <totalIssuance> TOTAL_ISSUANCE => TOTAL_ISSUANCE +Int ( FREE_BALANCE' -Int free_balance(WHO) ) +Int ( RESERVED_BALANCE' -Int reserved_balance(WHO) ) </totalIssuance>
          <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
-         <account>
-           <accountID> WHO </accountID>
-           <freeBalance> FREE_BALANCE => FREE_BALANCE' </freeBalance>
-           <reservedBalance> RESERVED_BALANCE => RESERVED_BALANCE' </reservedBalance>
-           ...
-         </account>
-      requires #inWidth(96, TOTAL_ISSUANCE +Int (FREE_BALANCE' -Int FREE_BALANCE))
-       andBool #inWidth(96, TOTAL_ISSUANCE +Int (FREE_BALANCE' -Int FREE_BALANCE) +Int (RESERVED_BALANCE' -Int RESERVED_BALANCE))
-       andBool ( (balanceOK(FREE_BALANCE, EXISTENTIAL_DEPOSIT) andBool balanceOK(RESERVED_BALANCE, EXISTENTIAL_DEPOSIT))
+
+      requires #inWidth(96, TOTAL_ISSUANCE +Int (FREE_BALANCE' -Int free_balance( WHO )))
+       andBool #inWidth(96, TOTAL_ISSUANCE +Int (FREE_BALANCE' -Int free_balance( WHO )) +Int (RESERVED_BALANCE' -Int reserved_balance( WHO )))
+       andBool ( (balanceOK(free_balance( WHO ), EXISTENTIAL_DEPOSIT) andBool balanceOK(reserved_balance( WHO ), EXISTENTIAL_DEPOSIT))
      impliesBool (balanceOK(FREE_BALANCE', EXISTENTIAL_DEPOSIT) andBool balanceOK(RESERVED_BALANCE', EXISTENTIAL_DEPOSIT))
                )
+       andBool ( FREE_BALANCE'     >=Int EXISTENTIAL_DEPOSIT )
+       andBool ( RESERVED_BALANCE' >=Int EXISTENTIAL_DEPOSIT )
 ```
 
 ```
