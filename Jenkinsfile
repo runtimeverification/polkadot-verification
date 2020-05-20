@@ -9,14 +9,14 @@ pipeline {
     stage('Dependencies') {
       parallel {
         stage('KWasm')    { steps { sh 'make deps'          } }
-        stage('Polkadot') { steps { sh 'make deps-polkadot' } }
+        // stage('Polkadot') { steps { sh 'make deps-polkadot' } }
       }
     }
     stage('Build') {
       parallel {
         stage('KWasm (normal)')   { steps { sh 'make build SUBDEFN=kwasm -j4'                               } }
         stage('KWasm (coverage)') { steps { sh 'make build SUBDEFN=coverage -j4 KOMPILE_OPTIONS=--coverage' } }
-        stage('Polkadot')         { steps { sh 'make polkadot-runtime-source'                               } }
+        // stage('Polkadot')         { steps { sh 'make polkadot-runtime-source'                               } }
       }
     }
     stage('Test') {
