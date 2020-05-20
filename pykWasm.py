@@ -56,8 +56,6 @@ def mergeRulesKoreExec(definition_dir, ruleList, kArgs = [], teeOutput = True, k
     with tempfile.NamedTemporaryFile(mode = 'w') as tempf:
         tempf.write('\n'.join(ruleList))
         tempf.flush()
-        sys.stdout.write('\n'.join(ruleList))
-        sys.stdout.flush()
         return _runK2('kore-exec', definition_dir, kArgs = ['--merge-rules', tempf.name] + kArgs, teeOutput = teeOutput, kRelease = kRelease)
 
 def mergeRules(definition_dir, main_defn_file, main_module, subsequence, symbolTable = None, definition = None):

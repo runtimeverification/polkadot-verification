@@ -3,6 +3,7 @@
 import pyk
 import random
 import sys
+import time
 
 from pykWasm import *
 from pykWasm import _fatal, _notif, _warning
@@ -70,17 +71,84 @@ for i in range(numExec):
     ruleSeqs.add('|'.join(ruleSeq))
 
 [ ruleSeq ] = [ ruleSeq.split('|') for ruleSeq in ruleSeqs ]
-ruleSeqs = [ ruleSeq[0:i] for i in range(50,70,5) ]
-# ruleMerges = merge_rules_max_productivity(ruleSeqs, min_merged_success_rate = 0.25, min_occurance_rate = 0.05)
-ruleMerges = ruleSeqs
-mergedRules = tryMergeRules(WASM_definition_haskell_no_coverage_dir, WASM_definition_main_file, WASM_definition_main_module, ruleMerges)
-print('Found ' + str(len(ruleSeqs)) + ' unique executions.')
-print()
-for mr in mergedRules:
-    print('Merged Rule:')
-    print('============')
+
+#checkRuleSeqs = [ ruleSeq[114:144] # 10.876354694366455
+#                , ruleSeq[203:233] # 10.688526630401611
+#                , ruleSeq[266:296] # 11.039204359054565
+#                , ruleSeq[355:385] # 13.242290735244751
+#                ]
+#mergedRules = tryMergeRules(WASM_definition_haskell_no_coverage_dir, WASM_definition_main_file, WASM_definition_main_module, checkRuleSeqs)
+#for mr in mergedRules:
+#    print('Merged Rule:')
+#    print('============')
+#    print(prettyPrintRule(mr, WASM_symbols_haskell_no_coverage))
+#    print()
+#    sys.stdout.flush()
+
+merge_length = 30
+merge_step = 1
+ruleSeqs0 = [ (i, i+merge_length) for i in range(0,len(ruleSeq) - merge_length,merge_step) ]
+ruleSeqs = ruleSeqs0 + ruleSeqs0 + ruleSeqs0
+merge_stats = []
+for (i, (start, end)) in enumerate(ruleSeqs):
+    rS = ruleSeq[start:end]
+    start_time = time.time()
     print()
-    print(prettyPrintRule(mr, WASM_symbols_haskell_no_coverage))
+    print('Trying ' + str(i) + '/' + str(len(ruleSeqs)) + ': ' + str(start) + ' - ' + str(end))
+    print("==================================================================================")
+    print('\n'.join(rS))
+    sys.stdout.flush()
+    mergedRules = tryMergeRules(WASM_definition_haskell_no_coverage_dir, WASM_definition_main_file, WASM_definition_main_module, [rS])
+    if len(mergedRules) > 0:
+        print('SUCCESS')
+        #for mr in mergedRules:
+        #    print('Merged Rule:')
+        #    print('============')
+        #    print()
+        #    print(prettyPrintRule(mr, WASM_symbols_haskell_no_coverage))
+    else:
+        print('FAILURE')
+    sys.stdout.flush()
+    end_time = time.time()
+    merge_stats.append((start, end, end_time - start_time))
+
+sorted_merge_stats = sorted(merge_stats, key = lambda ms: ms[2])
+print('\n'.join([str(sms) for sms in sorted_merge_stats]))
 print()
 sys.stdout.flush()
-sys.stderr.flush()
+
+#failed_lengths  = [ 113 , 150 , 600 , 1200 ]
+#success_lengths = [ 0 , 75 , 94 , 104 ]
+#current_length = 109
+#while current_length not in (success_lengths + failed_lengths):
+#    print()
+#    print('trying length: ' + str(current_length))
+#    ruleSeqs = [ ruleSeq[0:current_length] ]
+#    ruleMerges = ruleSeqs
+#    mergedRules = tryMergeRules(WASM_definition_haskell_no_coverage_dir, WASM_definition_main_file, WASM_definition_main_module, ruleMerges)
+#    print()
+#    if len(mergedRules) == 1:
+#        success_lengths.append(current_length)
+#        print('length succeeded: ' + str(current_length))
+#    else:
+#        failed_lengths.insert(0, current_length)
+#        print('length failed: ' + str(current_length))
+#    print()
+#    sys.stdout.flush()
+#    current_length = int(((success_lengths[-1] + 1) + failed_lengths[0]) / 2)
+#print()
+#print('success_lengths: ' + str(success_lengths))
+#print('failed_lengths: ' + str(failed_lengths))
+#sys.stdout.flush()
+
+#
+#print('Found ' + str(len(ruleSeqs)) + ' unique executions.')
+#print()
+#for mr in mergedRules:
+#    print('Merged Rule:')
+#    print('============')
+#    print()
+#    print(prettyPrintRule(mr, WASM_symbols_haskell_no_coverage))
+#print()
+#sys.stdout.flush()
+#sys.stderr.flush()
