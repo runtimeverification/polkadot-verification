@@ -6,12 +6,7 @@ pipeline {
       when { changeRequest() }
       steps { script { currentBuild.displayName = "PR ${env.CHANGE_ID}: ${env.CHANGE_TITLE}" } }
     }
-    stage('Dependencies') {
-      parallel {
-        stage('KWasm')    { steps { sh 'make deps'          } }
-        // stage('Polkadot') { steps { sh 'make deps-polkadot' } }
-      }
-    }
+    stage('KWasm Dependencies') { steps { sh 'make deps' } }
     stage('Build') {
       parallel {
         stage('KWasm (normal)')   { steps { sh 'make build SUBDEFN=kwasm -j4'                               } }
