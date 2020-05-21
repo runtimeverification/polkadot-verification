@@ -11,7 +11,7 @@ pipeline {
       parallel {
         stage('KWasm (normal)')   { steps { sh 'make build SUBDEFN=kwasm -j4'                               } }
         stage('KWasm (coverage)') { steps { sh 'make build SUBDEFN=coverage -j4 KOMPILE_OPTIONS=--coverage' } }
-        // stage('Polkadot')         { steps { sh 'make polkadot-runtime-source'                               } }
+        stage('Polkadot')         { steps { sh 'make polkadot-runtime-source'                               } }
       }
     }
     stage('Test') {
