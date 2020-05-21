@@ -47,7 +47,6 @@ distclean: clean
 	rm -rf $(BUILD_DIR)
 
 deps:
-	git submodule update --init --recursive -- $(KWASM_SUBMODULE)
 	$(KWASM_MAKE) deps
 
 # Polkadot Setup
@@ -111,7 +110,6 @@ src/polkadot-runtime.wat: $(POLKADOT_RUNTIME_WASM)
 	wasm2wat $< > $@
 
 $(POLKADOT_RUNTIME_WASM):
-	git submodule update --init --recursive -- $(POLKADOT_SUBMODULE)
 	cd $(POLKADOT_SUBMODULE) && cargo build --package node-template --release
 
 # Generate Execution Traces
