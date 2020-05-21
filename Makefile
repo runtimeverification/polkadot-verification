@@ -56,11 +56,6 @@ deps:
 POLKADOT_SUBMODULE    := $(DEPS_DIR)/substrate
 POLKADOT_RUNTIME_WASM := $(POLKADOT_SUBMODULE)/target/release/wbuild/node-template-runtime/node_template_runtime.compact.wasm
 
-deps-polkadot:
-	rustup update nightly
-	rustup target add wasm32-unknown-unknown --toolchain nightly
-	cargo install --git https://github.com/alexcrichton/wasm-gc
-
 # Useful Builds
 # -------------
 
