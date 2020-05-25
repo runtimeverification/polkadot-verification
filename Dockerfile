@@ -16,7 +16,7 @@ USER user:user
 WORKDIR /home/user
 
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-2020-04-21 --target wasm32-unknown-unknown
-RUN cargo install --git https://github.com/alexcrichton/wasm-gc --branch wasm-gc-api-0.1.11
+RUN cargo install --git https://github.com/alexcrichton/wasm-gc --tag wasm-gc-api-0.1.11
 
 RUN    git clone 'https://github.com/WebAssembly/wabt' --branch 1.0.13 wabt \
     && cd wabt                                                              \
