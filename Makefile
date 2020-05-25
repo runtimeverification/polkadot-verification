@@ -114,7 +114,7 @@ src/polkadot-runtime.wat.json: src/polkadot-runtime.env.wat src/polkadot-runtime
 
 src/polkadot-runtime.wat: $(POLKADOT_RUNTIME_WASM)
 	@mkdir -p src
-	wasm2wat $< > $@
+	wasm2wat $< | sed 's/(elem/;; (elem/' > $@
 
 $(POLKADOT_RUNTIME_WASM):
 	cd $(POLKADOT_SUBMODULE) && cargo build --package node-template --release
