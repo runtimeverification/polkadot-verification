@@ -164,20 +164,6 @@ accounts, except when the balances module is executing.
          <totalIssuance> TOTAL_ISSUANCE </totalIssuance>
 ```
 
-### `minimum_balance`
-
-Retrieves the minimum balance, also known as the existential deposit.
-
-Other than when this module is executing, no account will ever have a balance
-strictly between this and zero.
-
-```k
-    syntax Int ::= "minimum_balance" [function, functional]
- // -------------------------------------------------------
-    rule [[ minimum_balance => EXISTENTIAL_DEPOSIT ]]
-         <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
-```
-
 ### `issue`
 
 Issues currency, creating an imbalance.
@@ -319,6 +305,7 @@ A `Result` is considered an `Action`, as is an `EntryAction`.
     rule [reserved-account-reaped]:
          <k> set_reserved_balance(WHO, BALANCE) => . ... </k>
          <events> ... (.List => ListItem(DustEvent(RESERVED_BALANCE))) </events>
+         <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
          <totalIssuance> TOTAL_ISSUANCE => TOTAL_ISSUANCE -Int BALANCE </totalIssuance>
          <accounts>
            ( <account>
@@ -331,7 +318,7 @@ A `Result` is considered an `Action`, as is an `EntryAction`.
            )
            ...
          </accounts>
-      requires BALANCE <Int minimum_balance
+      requires BALANCE <Int EXISTENTIAL_DEPOSIT
 ```
 
 ### `set_balance`
@@ -421,6 +408,7 @@ The dispatch origin for this call must be `Signed` by the transactor.
          ...
          </k>
          <totalIssuance> ISSUANCE => ISSUANCE -Int FEE </totalIssuance>
+         <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
          <transferFee> FEE </transferFee>
          <accounts>
            <account>
@@ -438,7 +426,7 @@ The dispatch origin for this call must be `Signed` by the transactor.
        andBool DESTINATION_BALANCE >Int 0
        andBool SOURCE_BALANCE >=Int (AMOUNT +Int FEE)
        andBool ensure_can_withdraw(ORIGIN, Transfer, SOURCE_BALANCE -Int AMOUNT -Int FEE)
-       andBool (EXISTENCE_REQUIREMENT ==K AllowDeath orBool SOURCE_BALANCE -Int AMOUNT -Int FEE >Int minimum_balance)
+       andBool (EXISTENCE_REQUIREMENT ==K AllowDeath orBool SOURCE_BALANCE -Int AMOUNT -Int FEE >Int EXISTENTIAL_DEPOSIT)
 
     rule [transfer-create-account]:
          <k> rawTransfer(ORIGIN:AccountId, DESTINATION, AMOUNT, EXISTENCE_REQUIREMENT)
@@ -502,9 +490,10 @@ Withdraw funds from an account.
          ...
          </k>
          <totalIssuance> ISSUANCE => ISSUANCE -Int AMOUNT </totalIssuance>
+         <existentialDeposit> EXISTENTIAL_DEPOSIT </existentialDeposit>
       requires NEW_BALANCE >=Int 0
        andBool ensure_can_withdraw(WHO, REASON, NEW_BALANCE)
-       andBool (EXISTENCE_REQUIREMENT ==K AllowDeath orBool NEW_BALANCE >=Int minimum_balance)
+       andBool (EXISTENCE_REQUIREMENT ==K AllowDeath orBool NEW_BALANCE >=Int EXISTENTIAL_DEPOSIT)
 ```
 
 Call Frames
