@@ -103,21 +103,26 @@ $(DEFN_DIR)/$(SUBDEFN)/haskell/%.k: %.md $(TANGLER)
 CONCRETE_BACKEND := llvm
 SYMBOLIC_BACKEND := haskell
 
-polkadot-runtime-source: src/polkadot-runtime.wat
-polkadot-runtime-loaded: src/polkadot-runtime.loaded.json
+POLKADOT_RUNTIME_WAT         := src/polkadot-runtime.wat
+POLKADOT_RUNTIME_ENV_WAT     := src/polkadot-runtime.env.wat
+POLKADOT_RUNTIME_JSON        := src/polkadot-runtime.wat.json
+POLKADOT_RUNTIME_LOADED_JSON := src/polkadot-runtime.loaded.json
 
-src/polkadot-runtime.loaded.json: src/polkadot-runtime.wat.json
-	$(KPOL) run --backend $(CONCRETE_BACKEND) $< --parser cat --output json > $@
-
-src/polkadot-runtime.wat.json: src/polkadot-runtime.env.wat src/polkadot-runtime.wat
-	cat $^ | $(KPOL) kast --backend $(CONCRETE_BACKEND) - json > $@
-
-src/polkadot-runtime.wat: $(POLKADOT_RUNTIME_WASM)
-	@mkdir -p src
-	wasm2wat $< | sed 's/(elem/;; (elem/' > $@
+polkadot-runtime-source: $(POLKADOT_RUNTIME_WAT)
+polkadot-runtime-loaded: $(POLKADOT_RUNTIME_LOADED_JSON)
 
 $(POLKADOT_RUNTIME_WASM):
 	cd $(POLKADOT_SUBMODULE) && cargo build --package node-template --release
+
+$(POLKADOT_RUNTIME_WAT): $(POLKADOT_RUNTIME_WASM)
+	@mkdir -p src
+	wasm2wat $< | sed 's/(elem/;; (elem/' > $@
+
+$(POLKADOT_RUNTIME_LOADED_JSON): $(POLKADOT_RUNTIME_JSON)
+	$(KPOL) run --backend $(CONCRETE_BACKEND) $< --parser cat --output json > $@
+
+$(POLKADOT_RUNTIME_JSON): $(POLKADOT_RUNTIME_ENV_WAT) $(POLKADOT_RUNTIME_WAT)
+	cat $^ | $(KPOL) kast --backend $(CONCRETE_BACKEND) - json > $@
 
 # Generate Execution Traces
 # -------------------------
