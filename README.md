@@ -35,3 +35,28 @@ Then try merging rules for a given test:
 ```sh
 make test-merge-rules -j8
 ```
+
+### Updating Source Files
+
+Several files are too large to re-generate every time, so they are committed under the `src/` directory.
+They depend on the version of Substrate committed at `deps/substrate`.
+The files are:
+
+-   `src/polkadot-runtime.wat`: Wasm sources of Substrate, modified to work with the KWasm parser.
+-   `src/polkadot-runtime.env.wat`: Type signatures of Polkadot Host in a module named `"env"` (extracted from Substrate sources).
+-   `src/polkadot-runtime.wat.json`: K JSON parse AST of Wasm sources of Substrate (including the Polkadot Host Wasm module).
+-   `src/polkadot-runtime.loaded.json`: K JSON AST of Polkadot-Wasm configuration with Substrate sources loaded into memory (and empty `<k>` cell).
+
+When updating the Substrate submodule, you need to update the files under `src/` which the Makefile can assist with.
+**NO GUARANTEES** that the procedure using by the `Makefile` correctly builds the needed source files.
+To build just the `src/polkadot-runtime.wat` file that will be used as the Substrate source, run:
+
+```sh
+make polkadot-runtime-source
+```
+
+To build all the `src/` files, run:
+
+```sh
+make polkadot-runtime-loaded
+```
