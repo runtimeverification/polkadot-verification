@@ -113,6 +113,7 @@ src/polkadot-runtime.wat.json: src/polkadot-runtime.env.wat src/polkadot-runtime
 	cat $^ | $(KPOL) kast --backend $(CONCRETE_BACKEND) - json > $@
 
 src/polkadot-runtime.wat: $(POLKADOT_RUNTIME_WASM)
+	@mkdir -p src
 	wasm2wat $< > $@
 
 $(POLKADOT_RUNTIME_WASM):
