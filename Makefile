@@ -118,6 +118,9 @@ $(POLKADOT_RUNTIME_WAT): $(POLKADOT_RUNTIME_WASM)
 	@mkdir -p src
 	wasm2wat $< | sed 's/(elem/;; (elem/' > $@
 
+$(POLKADOT_RUNTIME_ENV_WAT): $(POLKADOT_RUNTIME_WAT)
+	./build-runtime-host.sh $< > $@
+
 $(POLKADOT_RUNTIME_LOADED_JSON): $(POLKADOT_RUNTIME_JSON)
 	$(KPOL) run --backend $(CONCRETE_BACKEND) $< --parser cat --output json > $@
 
