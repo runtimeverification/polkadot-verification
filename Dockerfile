@@ -32,7 +32,7 @@ RUN    cd /home/user                                                            
     && mkdir build && cd build                                                       \
     && cmake .. && cmake --build .
 
-RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-2020-04-21 --target wasm32-unknown-unknown
 
 ENV LD_LIBRARY_PATH=/usr/local/lib
 ENV PATH=/home/user/wabt/build:/home/user/.local/bin:/home/user/.cargo/bin:$PATH
