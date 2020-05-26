@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-
+# This script reads in a Pwasm module and tries to automatically construct a module that models all the host functions.
+# It does so by extracting all types and all function imports from the `"env"` input module and declaring corresponding functions in the new module.
+# The process relies on each type and import being declared on a separate, single line.
 set -euo pipefail
 
 input_wat="$1" ; shift
