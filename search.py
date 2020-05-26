@@ -2,6 +2,7 @@
 
 import pyk
 import random
+import resource
 import sys
 
 from pykWasm import *
@@ -10,6 +11,7 @@ from pykWasm import _fatal, _notif, _warning
 from mergeRules import *
 
 sys.setrecursionlimit(1500000000)
+resource.setrlimit(resource.RLIMIT_STACK, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
 
 function_names = [ '$pallet_balances::Module<T_I>::set_free_balance::h143784e9433faed6'
                  , '$pallet_balances::Module<T_I>::call_functions::h5c8befb10787dea0'
