@@ -13,10 +13,8 @@ from mergeRules import *
 sys.setrecursionlimit(1500000000)
 resource.setrlimit(resource.RLIMIT_STACK, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
 
-function_names = [ '$pallet_balances::Module<T_I>::set_free_balance::h143784e9433faed6'
-                 , '$pallet_balances::Module<T_I>::call_functions::h5c8befb10787dea0'
-                 , '$pallet_balances::Module<T_I>::storage_metadata::h082815e2817e5c19'
-                 , '$pallet_balances::Module<T_I>::module_constants_metadata::h487a5f31fed8642e'
+function_names = [ '$pallet_balances::Module<T_I>::set_free_balance::h434213974d3b5886'
+                 , '$pallet_balances::Module<T_I>::set_reserved_balance::h96655d728b3851f9'
                  ]
 
 function_name = function_names[0]
