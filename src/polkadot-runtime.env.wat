@@ -32,7 +32,7 @@
   (type (;30;) (func (param i64 i64) (result i64)))
   (type (;31;) (func (param i32 i64 i64 i64 i64 i32)))
   (type (;32;) (func (param i32 i64 i64 i32)))
-  (import "env" "memory" (memory (;0;) 17))
+  (memory (export "memory") 17)
   (func $ext_hashing_twox_128_version_1 (export "ext_hashing_twox_128_version_1") (type 5) (phost . $ext_hashing_twox_128_version_1))
   (func $ext_hashing_blake2_256_version_1 (export "ext_hashing_blake2_256_version_1") (type 5) (phost . $ext_hashing_blake2_256_version_1))
   (func $ext_storage_set_version_1 (export "ext_storage_set_version_1") (type 6) (phost . $ext_storage_set_version_1))
