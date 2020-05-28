@@ -13,13 +13,14 @@ from mergeRules import *
 sys.setrecursionlimit(1500000000)
 resource.setrlimit(resource.RLIMIT_STACK, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
 
-function_names = [ '$pallet_balances::Module<T_I>::set_free_balance::h143784e9433faed6'
-                 , '$pallet_balances::Module<T_I>::call_functions::h5c8befb10787dea0'
-                 , '$pallet_balances::Module<T_I>::storage_metadata::h082815e2817e5c19'
-                 , '$pallet_balances::Module<T_I>::module_constants_metadata::h487a5f31fed8642e'
-                 ]
+function_names = []
+with open('src/polkadot-runtime.wat', 'r') as src:
+    for line in src:
+        if 'func $pallet_balances' in line:
+            function_names.append(line.split()[1])
 
-function_name = function_names[0]
+set_free_balance_function_name = [ fname for fname in function_names if 'set_free_balance' in fname ][0]
+print('Function name: ' + set_free_balance_function_name)
 
 wasm_push   = lambda type, value: KApply('(_)_WASM-TEXT_FoldedInstr_PlainInstr', [KApply('_.const__WASM_PlainInstr_IValType_WasmInt', [KConstant(type + '_WASM-DATA_IValType'), value])])
 wasm_call   = lambda fname: KApply('(_)_WASM-TEXT_FoldedInstr_PlainInstr', [KApply('call__WASM_PlainInstr_Index', [KToken(fname, 'IdentifierToken')])])
@@ -54,7 +55,7 @@ loaded_program = pyk.readKastTerm('src/polkadot-runtime.loaded.json')
 invoking_steps = [ wasm_push('i32', KVariable('V1'))
                  , wasm_push('i64', KVariable('V2'))
                  , wasm_push('i64', KVariable('V3'))
-                 , wasm_call(function_name)
+                 , wasm_call(set_free_balance_function_name)
                  ]
 
 numExec = int(sys.argv[1])

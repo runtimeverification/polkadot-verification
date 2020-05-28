@@ -64,7 +64,7 @@ MAIN_MODULE        := KWASM-POLKADOT-HOST
 MAIN_SYNTAX_MODULE := KWASM-POLKADOT-HOST-SYNTAX
 MAIN_DEFN_FILE     := kwasm-polkadot-host
 
-ifneq (coverage,$(BUILD))
+ifeq (coverage,$(BUILD))
     KOMPILE_OPTIONS += --coverage
     SUBDEFN         := coverage
 else
