@@ -38,6 +38,10 @@ make test-merge-rules -j8
 
 ### Updating Source Files
 
+Dependencies:
+
+-   [WABT](https://github.com/WebAssembly/wabt).
+
 Several files are too large to re-generate every time, so they are committed under the `src/` directory.
 They depend on the version of Substrate committed at `deps/substrate`.
 The files are:
@@ -60,3 +64,4 @@ To build all the `src/` files, run:
 ```sh
 make polkadot-runtime-loaded
 ```
+
