@@ -185,14 +185,7 @@ CHECK := git --no-pager diff --no-index --ignore-all-space
 test: test-merge-rules prove-specs test-python-config test-search
 
 all_simple_tests := $(wildcard $(KWASM_SUBMODULE)/tests/simple/*.wast)
-bad_simple_tests := $(KWASM_SUBMODULE)/tests/simple/arithmetic.wast     \
-                    $(KWASM_SUBMODULE)/tests/simple/bitwise.wast        \
-                    $(KWASM_SUBMODULE)/tests/simple/comparison.wast     \
-                    $(KWASM_SUBMODULE)/tests/simple/constants.wast      \
-                    $(KWASM_SUBMODULE)/tests/simple/control-flow.wast   \
-                    $(KWASM_SUBMODULE)/tests/simple/functions_call.wast \
-                    $(KWASM_SUBMODULE)/tests/simple/memory.wast         \
-                    $(KWASM_SUBMODULE)/tests/simple/polymorphic.wast
+bad_simple_tests := $(addprefix $(KWASM_SUBMODULE)/, $(shell cat $(KWASM_SUBMODULE)/tests/failing.simple))
 simple_tests     := $(filter-out $(bad_simple_tests), $(all_simple_tests))
 
 test-rule-lists: $(simple_tests:=.coverage-$(SYMBOLIC_BACKEND))

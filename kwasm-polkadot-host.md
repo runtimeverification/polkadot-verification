@@ -40,6 +40,8 @@ module KWASM-POLKADOT-HOST
            ...
          </funcDef>
 
+    rule #t2aInstr<_>(phost . HOSTCALL) => phost . HOSTCALL
+
     syntax KItem ::= #push ( ValStack )
  // -----------------------------------
     rule <k> #push(.ValStack) => .              ... </k>
