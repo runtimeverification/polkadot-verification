@@ -13,15 +13,20 @@ BUILD_DIR       := .build
 DEPS_DIR        := deps
 DEFN_DIR        := $(BUILD_DIR)/defn
 KWASM_SUBMODULE := $(DEPS_DIR)/wasm-semantics
+K_SUBMODULE     := $(KWASM_SUBMODULE)/deps/k
 
-K_RELEASE := $(KWASM_SUBMODULE)/deps/k/k-distribution/target/release/k
-K_BIN     := $(K_RELEASE)/bin
-K_LIB     := $(K_RELEASE)/lib
+ifneq (,$(wildcard $(K_SUBMODULE)/k-distribution/target/release/k/bin/*))
+    K_RELEASE ?= $(abspath $(K_SUBMODULE)/k-distribution/target/release/k)
+else
+    K_RELEASE ?= $(dir $(shell which kompile))..
+endif
+K_BIN := $(K_RELEASE)/bin
+K_LIB := $(K_RELEASE)/lib/kframework
+export K_RELEASE
 
 KWASM_DIR  := .
-KWASM_MAKE := make --directory $(KWASM_SUBMODULE) BUILD_DIR=../../$(BUILD_DIR) K_RELEASE=../../$(K_RELEASE)
+KWASM_MAKE := make --directory $(KWASM_SUBMODULE) BUILD_DIR=../../$(BUILD_DIR)
 
-export K_RELEASE
 export KWASM_DIR
 
 PATH := $(CURDIR)/$(KWASM_SUBMODULE):$(CURDIR)/$(K_BIN):$(PATH)
