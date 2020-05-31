@@ -20,11 +20,11 @@ RUN curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-202
 ENV PATH=/home/user/.cargo/bin:$PATH
 RUN cargo install --git https://github.com/alexcrichton/wasm-gc --tag wasm-gc-api-0.1.11
 
-RUN    git clone 'https://github.com/WebAssembly/wabt' --branch 1.0.13 wabt \
-    && cd wabt                                                              \
-    && mkdir build                                                          \
-    && cd build                                                             \
-    && cmake ..                                                             \
+RUN    git clone 'https://github.com/WebAssembly/wabt' --branch 1.0.13 --recurse-submodules wabt \
+    && cd wabt                                                                                   \
+    && mkdir build                                                                               \
+    && cd build                                                                                  \
+    && cmake ..                                                                                  \
     && cmake --build .
 
 ENV LD_LIBRARY_PATH=/usr/local/lib
