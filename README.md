@@ -19,7 +19,7 @@ Then the following (roughly) is what you need to do to build KWasm for this repo
 ```sh
 git submodule update --init --recursive
 make deps
-make build -j2 KOMPILE_OPTIONS='--coverage' SUBDEFN=coverage
+make build -j2 BUILD=coverage
 make build -j2
 ```
 
