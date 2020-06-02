@@ -27,7 +27,7 @@ Setup `PATH` and `PYTHONPATH`:
 
 ```sh
 export PATH=./deps/wasm-semantics/deps/k/k-distribution/target/release/k/bin:$PATH
-export PYTHONPATH=./deps/wasm-semantics/deps/k/k-distribution/target/release/k/lib
+export PYTHONPATH=./deps/wasm-semantics/deps/k/k-distribution/target/release/k/lib/kframework
 ```
 
 Then try merging rules for a given test:
