@@ -60,11 +60,11 @@ invoking_steps = [ wasm_push('i32', KVariable('V1'))
                  ]
 
 searchArgs = argparse.ArgumentParser()
+searchArgs.add_argument('-n', '--num-runs', type = int, default = 1, help = 'Number of random runs to use as input.')
 
 searchCommandParsers = searchArgs.add_subparsers(dest = 'command')
 
 summaryArgs = searchCommandParsers.add_parser('summary', help = 'Try to produce summaries of the executions.')
-summaryArgs.add_argument('-n', '--num-runs', type = int, default = '1', help = 'Number of random runs to do to produce summaries.')
 
 args = vars(searchArgs.parse_args())
 
