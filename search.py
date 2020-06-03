@@ -135,12 +135,14 @@ if args['command'] == 'profile':
         delta_time = end_time - start_time
         print('Time: ' + str(delta_time))
         mergeStats.append((delta_time, ruleSeq, mergedRules))
-    mergeTimes     = [ t for (t, _, _) in mergeStats ]
-    mergeTimeMean  = stat.mean(mergeTimes)
-    mergeTimeStdev = stat.stdev(mergeTimes)
-    mergeTimeMax   = mergeTimeMean + (mergeDeviation * mergeTimeStdev)
-    slow_rule_merges = [ (t, s, r) for (t, s, r) in mergeStats if t > mergeTimeMax ]
-    for (t, s, r) in slow_rule_merges:
+    mergeTimes      = [ t for (t, _, _) in mergeStats ]
+    mergeTimeMean   = stat.mean(mergeTimes)
+    mergeTimeStdev  = stat.stdev(mergeTimes)
+    mergeTimeMin    = min(mergeTimes)
+    mergeTimeMax    = max(mergeTimes)
+    mergeTimeThresh = mergeTimeMean + (mergeDeviation * mergeTimeStdev)
+    slow_rule_merges = [ (t, s, r) for (t, s, r) in mergeStats if t >= mergeTimeThresh ]
+    for (t, s, rs) in slow_rule_merges:
         print()
         print('Slow Rule Merge')
         print('---------------')
@@ -150,8 +152,9 @@ if args['command'] == 'profile':
         print('\n'.join(s))
         print()
         print('### Merged')
-        print()
-        print(prettyPrintRule(r, WASM_symbols_haskell_no_coverage))
+        for r in rs:
+            print()
+            print(prettyPrintRule(r, WASM_symbols_haskell_no_coverage))
         print()
         print('### Time')
         print()
@@ -160,6 +163,9 @@ if args['command'] == 'profile':
     print('Stats')
     print('-----')
     print()
-    print('mean time:    ' + str(mergeTimeMean))
-    print('std dev time: ' + str(mergeTimeStdev))
+    print('mean:   ' + str(mergeTimeMean))
+    print('stdev:  ' + str(mergeTimeStdev))
+    print('min:    ' + str(mergeTimeMin))
+    print('max:    ' + str(mergeTimeMax))
+    print('thresh: ' + str(mergeTimeThresh))
     sys.stdout.flush()
