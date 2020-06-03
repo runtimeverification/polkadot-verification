@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import argparse
 import pyk
 import random
 import resource
@@ -58,30 +59,40 @@ invoking_steps = [ wasm_push('i32', KVariable('V1'))
                  , wasm_call(set_free_balance_function_name)
                  ]
 
-numExec = int(sys.argv[1])
-ruleSeqs = set([])
-for i in range(numExec):
-    invokingSubstitution = { 'V1' : KToken(str(random.randint(0, 2 ** 32)), 'Int')
-                           , 'V2' : KToken(str(random.randint(0, 2 ** 64)), 'Int')
-                           , 'V3' : KToken(str(random.randint(0, 2 ** 64)), 'Int')
-                           }
-    init_subst['K_CELL'] = pyk.substitute(KSequence(invoking_steps), invokingSubstitution)
-    # print(pyk.prettyPrintKast(init_subst['K_CELL'], WASM_symbols_llvm_no_coverage))
-    init_config = pyk.substitute(symbolic_config, init_subst)
-    coverageFile = krunCoverage({ 'format' : 'KAST' , 'version': 1, 'term': init_config }, '--term')
-    ruleSeq = pyk.translateCoverageFromPaths(WASM_definition_llvm_coverage_dir + '/' + WASM_definition_main_file + '-kompiled', WASM_definition_haskell_no_coverage_dir + '/' + WASM_definition_main_file + '-kompiled', coverageFile)
-    ruleSeqs.add('|'.join(ruleSeq))
+searchArgs = argparse.ArgumentParser()
 
-ruleSeqs = [ ruleSeq.split('|') for ruleSeq in ruleSeqs ]
-ruleMerges = merge_rules_max_productivity(ruleSeqs, min_merged_success_rate = 0.25, min_occurance_rate = 0.05)
-mergedRules = tryMergeRules(WASM_definition_haskell_no_coverage_dir, WASM_definition_main_file, WASM_definition_main_module, ruleMerges)
-print('Found ' + str(len(ruleSeqs)) + ' unique executions.')
-print()
-for mr in mergedRules:
-    print('Merged Rule:')
-    print('============')
+searchCommandParsers = searchArgs.add_subparsers(dest = 'command')
+
+summaryArgs = searchCommandParsers.add_parser('summary', help = 'Try to produce summaries of the executions.')
+summaryArgs.add_argument('-n', '--num-runs', type = int, default = '1', help = 'Number of random runs to do to produce summaries.')
+
+args = vars(searchArgs.parse_args())
+
+if args['command'] == 'summary':
+    numExec = args['num_runs']
+    ruleSeqs = set([])
+    for i in range(numExec):
+        invokingSubstitution = { 'V1' : KToken(str(random.randint(0, 2 ** 32)), 'Int')
+                               , 'V2' : KToken(str(random.randint(0, 2 ** 64)), 'Int')
+                               , 'V3' : KToken(str(random.randint(0, 2 ** 64)), 'Int')
+                               }
+        init_subst['K_CELL'] = pyk.substitute(KSequence(invoking_steps), invokingSubstitution)
+        # print(pyk.prettyPrintKast(init_subst['K_CELL'], WASM_symbols_llvm_no_coverage))
+        init_config = pyk.substitute(symbolic_config, init_subst)
+        coverageFile = krunCoverage({ 'format' : 'KAST' , 'version': 1, 'term': init_config }, '--term')
+        ruleSeq = pyk.translateCoverageFromPaths(WASM_definition_llvm_coverage_dir + '/' + WASM_definition_main_file + '-kompiled', WASM_definition_haskell_no_coverage_dir + '/' + WASM_definition_main_file + '-kompiled', coverageFile)
+        ruleSeqs.add('|'.join(ruleSeq))
+
+    ruleSeqs = [ ruleSeq.split('|') for ruleSeq in ruleSeqs ]
+    ruleMerges = merge_rules_max_productivity(ruleSeqs, min_merged_success_rate = 0.25, min_occurance_rate = 0.05)
+    mergedRules = tryMergeRules(WASM_definition_haskell_no_coverage_dir, WASM_definition_main_file, WASM_definition_main_module, ruleMerges)
+    print('Found ' + str(len(ruleSeqs)) + ' unique executions.')
     print()
-    print(prettyPrintRule(mr, WASM_symbols_haskell_no_coverage))
-print()
-sys.stdout.flush()
-sys.stderr.flush()
+    for mr in mergedRules:
+        print('Merged Rule:')
+        print('============')
+        print()
+        print(prettyPrintRule(mr, WASM_symbols_haskell_no_coverage))
+    print()
+    sys.stdout.flush()
+    sys.stderr.flush()

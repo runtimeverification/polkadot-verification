@@ -204,7 +204,7 @@ $(KWASM_SUBMODULE)/tests/simple/merge-all-rules: $(simple_tests:=.coverage-$(SYM
 # -------------------------
 
 test-search:
-	python3 search.py 1
+	python3 search.py summary --num-runs 1
 
 # Python Configuration Build
 # --------------------------
