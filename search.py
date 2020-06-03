@@ -62,13 +62,14 @@ invoking_steps = [ wasm_push('i32', KVariable('V1'))
                  ]
 
 searchArgs = argparse.ArgumentParser()
-searchArgs.add_argument('-n', '--num-runs', type = int, default = 1, help = 'Number of random runs to use as input.')
 
 searchCommandParsers = searchArgs.add_subparsers(dest = 'command')
 
 summaryArgs = searchCommandParsers.add_parser('summary', help = 'Try to produce summaries of the executions.')
+summaryArgs.add_argument('-n', '--num-runs', type = int, default = 1, help = 'Number of random runs to use as input.')
 
 profileArgs = searchCommandParsers.add_parser('profile', help = 'Profile short runs of rule merges to slow KWasm rule merges.')
+profileArgs.add_argument('-n', '--num-runs'   , type = int   , default = 1   , help = 'Number of random runs to use as input.')
 profileArgs.add_argument('-w' , '--width'     , type = int   , default = 5   , help = 'Window width to do rule merging over.')
 profileArgs.add_argument('-s' , '--step'      , type = int   , default = 1   , help = 'How much to increment window start point by each run.')
 profileArgs.add_argument('-r' , '--repeat'    , type = int   , default = 3   , help = 'How many times to repeat each rule merge (to make statistical analysis more relevant.')
