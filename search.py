@@ -73,7 +73,7 @@ profileArgs.add_argument('-n', '--num-runs'   , type = int   , default = 1   , h
 profileArgs.add_argument('-w' , '--width'     , type = int   , default = 5   , help = 'Window width to do rule merging over.')
 profileArgs.add_argument('-s' , '--step'      , type = int   , default = 1   , help = 'How much to increment window start point by each run.')
 profileArgs.add_argument('-r' , '--repeat'    , type = int   , default = 3   , help = 'How many times to repeat each rule merge (to make statistical analysis more relevant.')
-profileArgs.add_argument('-d' , '--deviation' , type = float , default = 1.5 , help = 'Min number of standard deviations away from mean to consider a given rule merge "slow".')
+profileArgs.add_argument('-d' , '--deviation' , type = float , default = 0.8 , help = 'Min number of standard deviations away from mean to consider a given rule merge "slow".')
 
 args = vars(searchArgs.parse_args())
 
