@@ -134,12 +134,12 @@ if args['command'] == 'profile':
             print('FAILURE')
         delta_time = end_time - start_time
         print('Time: ' + str(delta_time))
-        merge_stats.append((delta_time, ruleSeq, mergedRules))
-    merge_times    = [ t for (t, _, _) in merge_stats ]
-    mergeTimeAvg   = stat.mean(merge_times)
-    mergeTimeStdev = stat.stdev(merge_times)
+        mergeStats.append((delta_time, ruleSeq, mergedRules))
+    mergeTimes     = [ t for (t, _, _) in mergeStats ]
+    mergeTimeAvg   = stat.mean(mergeTimes)
+    mergeTimeStdev = stat.stdev(mergeTimes)
     mergeTimeMax   = mergeTimeAvg + (mergeDeviation * mergeTimeStdev)
-    slow_rule_merges = [ (t, s, r) for (t, s, r) in merge_stats if t > mergeTimeMax ]
+    slow_rule_merges = [ (t, s, r) for (t, s, r) in mergeStats if t > mergeTimeMax ]
     for (t, s, r) in slow_rule_merges:
         print()
         print('Slow Rule Merge:')
