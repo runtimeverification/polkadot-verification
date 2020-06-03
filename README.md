@@ -19,7 +19,7 @@ Then the following (roughly) is what you need to do to build KWasm for this repo
 ```sh
 git submodule update --init --recursive
 make deps
-make build -j2 KOMPILE_OPTIONS='--coverage' SUBDEFN=coverage
+make build -j2 BUILD=coverage
 make build -j2
 ```
 
@@ -27,7 +27,7 @@ Setup `PATH` and `PYTHONPATH`:
 
 ```sh
 export PATH=./deps/wasm-semantics/deps/k/k-distribution/target/release/k/bin:$PATH
-export PYTHONPATH=./deps/wasm-semantics/deps/k/k-distribution/target/release/k/lib
+export PYTHONPATH=./deps/wasm-semantics/deps/k/k-distribution/target/release/k/lib/kframework
 ```
 
 Then try merging rules for a given test:
