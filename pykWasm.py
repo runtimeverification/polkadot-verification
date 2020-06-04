@@ -13,6 +13,29 @@ from pyk.kast import KApply, KConstant, KRewrite, KSequence, KToken, KVariable, 
 # Should be Upstreamed                                                         #
 ################################################################################
 
+def flattenAnd(input):
+    if not (pyk.isKApply(input) and input['label'] == '#And'):
+        return [input]
+    output = []
+    work = [ arg for arg in input['args'] ]
+    while len(work) > 0:
+        first = work.pop(0)
+        if pyk.isKApply(first) and first['label'] == '#And':
+            work.extend(first['args'])
+        else:
+            output.append(first)
+    return output
+
+def extractTermAndConstraint(input):
+    term_and_constraints = flattenAnd(input)
+    term                 = [ r for r in term_and_constraints if      pyk.isKApply(r) and r['label'] == '<generatedTop>'  ][0]
+    constraints          = [ r for r in term_and_constraints if not (pyk.isKApply(r) and r['label'] == '<generatedTop>') ]
+
+    constraint = KConstant('#True')
+    for c in constraints:
+        constraint = KApply('#And', [c, constraint])
+    return (term, constraint)
+
 def prettyPrintRule(kRule, symbolTable):
     kRule['body'] = pyk.pushDownRewrites(kRule['body'])
     return pyk.prettyPrintKast(pyk.minimizeRule(kRule), symbolTable)
@@ -67,10 +90,9 @@ def mergeRules(definition_dir, main_defn_file, main_module, subsequence, symbolT
             tempf.flush()
             (_, stdout, stderr) = pyk.kast(definition_dir, tempf.name, kastArgs = ['--input', 'kore', '--output', 'json'])
             merged_rule = json.loads(stdout)['term']
-            rule_pattern = KRewrite(KApply('#And', [KVariable('#CONSTRAINT'), KVariable('#INITTERM')]), KVariable('#FINALTERM'))
-            rule_subst = pyk.match(rule_pattern, merged_rule)
-            rule_body = pyk.KRewrite(rule_subst['#INITTERM'], rule_subst['#FINALTERM'])
-            gen_rule = pyk.KRule(rule_body, requires = rule_subst['#CONSTRAINT'])
+            (lhs_term, lhs_constraint) = extractTermAndConstraint(merged_rule['lhs'])
+            (rhs_term, rhs_constraint) = extractTermAndConstraint(merged_rule['rhs'])
+            gen_rule = pyk.KRule(KRewrite(lhs_term, rhs_term), requires = lhs_constraint, ensures = rhs_constraint)
             if symbolTable is not None:
                 _notif('Merged rule:')
                 print(prettyPrintRule(gen_rule, symbolTable))
