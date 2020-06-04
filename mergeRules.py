@@ -182,5 +182,5 @@ if __name__ == '__main__':
     _notif('Merged rules!')
     for merged_rule in merged_rules:
         print()
-        print(pyk.prettyPrintKast(merged_rule, WASM_symbols_haskell_no_coverage))
+        print(prettyPrintRule(merged_rule, WASM_symbols_haskell_no_coverage))
         sys.stdout.flush()
