@@ -119,6 +119,7 @@ if args['command'] == 'profile':
             for i in range(0, len(ruleSeq) - mergeWidth, mergeStep):
                 ruleMerges.append(ruleSeq[i:i + mergeWidth])
     mergeStats = []
+    mergeFails = []
     for (i, ruleSeq) in enumerate(ruleMerges):
         start_time = time.time()
         print()
@@ -129,20 +130,23 @@ if args['command'] == 'profile':
         mergedRules = tryMergeRules(WASM_definition_haskell_no_coverage_dir, WASM_definition_main_file, WASM_definition_main_module, [ruleSeq])
         end_time = time.time()
         if len(mergedRules) > 0:
+            print()
             print('SUCCESS')
+            delta_time = end_time - start_time
+            print('Time: ' + str(delta_time))
+            mergeStats.append((delta_time, ruleSeq, mergedRules))
         else:
+            print()
             print('FAILURE')
-        delta_time = end_time - start_time
-        print('Time: ' + str(delta_time))
-        mergeStats.append((delta_time, ruleSeq, mergedRules))
+            mergeFails.append(ruleSeq)
     mergeTimes      = [ t for (t, _, _) in mergeStats ]
     mergeTimeMean   = stat.mean(mergeTimes)
     mergeTimeStdev  = stat.stdev(mergeTimes)
     mergeTimeMin    = min(mergeTimes)
     mergeTimeMax    = max(mergeTimes)
     mergeTimeThresh = mergeTimeMean + (mergeDeviation * mergeTimeStdev)
-    slow_rule_merges = [ (t, s, r) for (t, s, r) in mergeStats if t >= mergeTimeThresh ]
-    for (t, s, rs) in slow_rule_merges:
+    mergeSlow = [ (t, s, r) for (t, s, r) in mergeStats if t >= mergeTimeThresh ]
+    for (t, s, rs) in mergeSlow:
         print()
         print('Slow Rule Merge')
         print('---------------')
@@ -159,6 +163,14 @@ if args['command'] == 'profile':
         print('### Time')
         print()
         print(t)
+    for s in mergeFails:
+        print()
+        print('Failed Rule Merge')
+        print('-----------------')
+        print()
+        print('### Rules')
+        print()
+        print('\n'.join(s))
     print()
     print('Stats')
     print('-----')
