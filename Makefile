@@ -63,15 +63,15 @@ POLKADOT_RUNTIME_WASM := $(POLKADOT_SUBMODULE)/target/release/wbuild/node-templa
 # Useful Builds
 # -------------
 
-KOMPILE_OPTIONS := --emit-json
+KOMPILE_OPTS := --emit-json
 
 MAIN_MODULE        := KWASM-POLKADOT-HOST
 MAIN_SYNTAX_MODULE := KWASM-POLKADOT-HOST-SYNTAX
 MAIN_DEFN_FILE     := kwasm-polkadot-host
 
 ifeq (coverage,$(BUILD))
-    KOMPILE_OPTIONS += --coverage
-    SUBDEFN         := coverage
+    KOMPILE_OPTS += --coverage
+    SUBDEFN      := coverage
 else
     SUBDEFN := kwasm
 endif
@@ -86,10 +86,13 @@ build: build-llvm build-haskell
 build-%: $(DEFN_DIR)/$(SUBDEFN)/%/$(MAIN_DEFN_FILE).k
 	$(KWASM_MAKE) build-$*                               \
 	    DEFN_DIR=../../$(DEFN_DIR)/$(SUBDEFN)            \
-	    MAIN_MODULE=$(MAIN_MODULE)                       \
-	    MAIN_SYNTAX_MODULE=$(MAIN_SYNTAX_MODULE)         \
-	    MAIN_DEFN_FILE=$(MAIN_DEFN_FILE)                 \
-	    KOMPILE_OPTIONS="$(KOMPILE_OPTIONS)"
+	    llvm_main_module=$(MAIN_MODULE)                  \
+	    llvm_syntax_module=$(MAIN_SYNTAX_MODULE)         \
+	    llvm_main_file=$(MAIN_DEFN_FILE)                 \
+	    haskell_main_module=$(MAIN_MODULE)               \
+	    haskell_syntax_module=$(MAIN_SYNTAX_MODULE)      \
+	    haskell_main_file=$(MAIN_DEFN_FILE)              \
+	    KOMPILE_OPTS="$(KOMPILE_OPTS)"
 
 .SECONDARY: $(DEFN_DIR)/$(SUBDEFN)/llvm/$(MAIN_DEFN_FILE).k    \
             $(DEFN_DIR)/$(SUBDEFN)/haskell/$(MAIN_DEFN_FILE).k
