@@ -36,6 +36,25 @@ Then try merging rules for a given test:
 make test-merge-rules -j8
 ```
 
+### Performing Rule Merges
+
+Make sure you have `PATH` and `PYTHONPATH` set as above.
+
+You can get help with `./search.py --help`.
+
+You can try to do productivity rule merging on the input using:
+
+```sh
+./search.py summary
+```
+
+To profile which rule merges are slow, you can use the `profile` mode of `search.py`.
+For example, the following runs all batches of 10 rules 3 times each, and prints out the ones that are more than 0.8 standard deviations away from the mean merge time.
+
+```sh
+./search.py profile -n 1 -w 10 -r 3 -d 0.8 &> search_profile
+```
+
 ### Updating Source Files
 
 Dependencies:

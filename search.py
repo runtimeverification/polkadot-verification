@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 
+import argparse
 import pyk
 import random
 import resource
+import statistics as stat
 import sys
+import time
 
 from pykWasm import *
 from pykWasm import _fatal, _notif, _warning
@@ -58,7 +61,23 @@ invoking_steps = [ wasm_push('i32', KVariable('V1'))
                  , wasm_call(set_free_balance_function_name)
                  ]
 
-numExec = int(sys.argv[1])
+searchArgs = argparse.ArgumentParser()
+
+searchCommandParsers = searchArgs.add_subparsers(dest = 'command')
+
+summaryArgs = searchCommandParsers.add_parser('summary', help = 'Try to produce summaries of the executions.')
+summaryArgs.add_argument('-n', '--num-runs', type = int, default = 1, help = 'Number of random runs to use as input.')
+
+profileArgs = searchCommandParsers.add_parser('profile', help = 'Profile short runs of rule merges to slow KWasm rule merges.')
+profileArgs.add_argument('-n' , '--num-runs'  , type = int   , default = 1   , help = 'Number of random runs to use as input.')
+profileArgs.add_argument('-w' , '--width'     , type = int   , default = 5   , help = 'Window width to do rule merging over.')
+profileArgs.add_argument('-s' , '--step'      , type = int   , default = 1   , help = 'How much to increment window start point by each run.')
+profileArgs.add_argument('-r' , '--repeat'    , type = int   , default = 3   , help = 'How many times to repeat each rule merge (to make statistical analysis more relevant).')
+profileArgs.add_argument('-d' , '--deviation' , type = float , default = 0.8 , help = 'Min number of standard deviations away from mean to consider a given rule merge "slow".')
+
+args = vars(searchArgs.parse_args())
+
+numExec = args['num_runs']
 ruleSeqs = set([])
 for i in range(numExec):
     invokingSubstitution = { 'V1' : KToken(str(random.randint(0, 2 ** 32)), 'Int')
@@ -73,15 +92,92 @@ for i in range(numExec):
     ruleSeqs.add('|'.join(ruleSeq))
 
 ruleSeqs = [ ruleSeq.split('|') for ruleSeq in ruleSeqs ]
-ruleMerges = merge_rules_max_productivity(ruleSeqs, min_merged_success_rate = 0.25, min_occurance_rate = 0.05)
-mergedRules = tryMergeRules(WASM_definition_haskell_no_coverage_dir, WASM_definition_main_file, WASM_definition_main_module, ruleMerges)
 print('Found ' + str(len(ruleSeqs)) + ' unique executions.')
 print()
-for mr in mergedRules:
-    print('Merged Rule:')
-    print('============')
-    print()
-    print(prettyPrintRule(mr, WASM_symbols_haskell_no_coverage))
-print()
 sys.stdout.flush()
-sys.stderr.flush()
+
+if args['command'] == 'summary':
+    ruleMerges = merge_rules_max_productivity(ruleSeqs, min_merged_success_rate = 0.25, min_occurance_rate = 0.05)
+    mergedRules = tryMergeRules(WASM_definition_haskell_no_coverage_dir, WASM_definition_main_file, WASM_definition_main_module, ruleMerges)
+    for mr in mergedRules:
+        print('Merged Rule:')
+        print('============')
+        print()
+        print(prettyPrintRule(mr, WASM_symbols_haskell_no_coverage))
+    print()
+    sys.stdout.flush()
+    sys.stderr.flush()
+
+if args['command'] == 'profile':
+    mergeWidth     = args['width']
+    mergeStep      = args['step']
+    mergeRepeat    = args['repeat']
+    mergeDeviation = args['deviation']
+    ruleMerges = []
+    for i in range(mergeRepeat):
+        for ruleSeq in ruleSeqs:
+            for i in range(0, len(ruleSeq) - mergeWidth, mergeStep):
+                ruleMerges.append(ruleSeq[i:i + mergeWidth])
+    mergeStats = []
+    mergeFails = []
+    for (i, ruleSeq) in enumerate(ruleMerges):
+        start_time = time.time()
+        print()
+        print('Trying Rules:')
+        print('\n'.join(ruleSeq))
+        print()
+        sys.stdout.flush()
+        mergedRules = tryMergeRules(WASM_definition_haskell_no_coverage_dir, WASM_definition_main_file, WASM_definition_main_module, [ruleSeq])
+        end_time = time.time()
+        if len(mergedRules) > 0:
+            print()
+            print('SUCCESS')
+            delta_time = end_time - start_time
+            print('Time: ' + str(delta_time))
+            mergeStats.append((delta_time, ruleSeq, mergedRules))
+        else:
+            print()
+            print('FAILURE')
+            mergeFails.append(ruleSeq)
+    mergeTimes      = [ t for (t, _, _) in mergeStats ]
+    mergeTimeMean   = stat.mean(mergeTimes)
+    mergeTimeStdev  = stat.stdev(mergeTimes)
+    mergeTimeMin    = min(mergeTimes)
+    mergeTimeMax    = max(mergeTimes)
+    mergeTimeThresh = mergeTimeMean + (mergeDeviation * mergeTimeStdev)
+    mergeSlow = [ (t, s, r) for (t, s, r) in mergeStats if t >= mergeTimeThresh ]
+    for (t, s, rs) in mergeSlow:
+        print()
+        print('Slow Rule Merge')
+        print('---------------')
+        print()
+        print('### Rules')
+        print()
+        print('\n'.join(s))
+        print()
+        print('### Merged')
+        for r in rs:
+            print()
+            print(prettyPrintRule(r, WASM_symbols_haskell_no_coverage))
+        print()
+        print('### Time')
+        print()
+        print(t)
+    for s in mergeFails:
+        print()
+        print('Failed Rule Merge')
+        print('-----------------')
+        print()
+        print('### Rules')
+        print()
+        print('\n'.join(s))
+    print()
+    print('Stats')
+    print('-----')
+    print()
+    print('mean:   ' + str(mergeTimeMean))
+    print('stdev:  ' + str(mergeTimeStdev))
+    print('min:    ' + str(mergeTimeMin))
+    print('max:    ' + str(mergeTimeMax))
+    print('thresh: ' + str(mergeTimeThresh))
+    sys.stdout.flush()
