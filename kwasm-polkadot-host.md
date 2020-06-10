@@ -30,8 +30,11 @@ module KWASM-POLKADOT-HOST
          <moduleRegistry> ... #unparseWasmString("\"env\"") |-> MODID ... </moduleRegistry>
          <moduleInst>
            <modIdx> MODID </modIdx>
-           <funcIds> FIDS </funcIds>
            <funcAddrs> ... #ContextLookup(FIDS, HOSTCALL) |-> FADDR ... </funcAddrs>
+           <metadata>
+             <funcIds> FIDS </funcIds>
+             ...
+           </metadata>
            ...
          </moduleInst>
          <funcDef>
