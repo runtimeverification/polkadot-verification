@@ -25,13 +25,13 @@ module KWASM-POLKADOT-HOST
 
     syntax PlainInstr ::= "phost" "." Identifier
  // --------------------------------------------
-    rule <k> phost . HOSTCALL => #push(#revs(#zero(unnameValTypes(FRANGE)))) ... </k>
+    rule <k> phost . HOSTCALL => #push(#revs(#zero(FRANGE))) ... </k>
          <trace> ... (.List => ListItem(HOSTCALL)) </trace>
          <moduleRegistry> ... #unparseWasmString("\"env\"") |-> MODID ... </moduleRegistry>
          <moduleInst>
            <modIdx> MODID </modIdx>
-           <funcIds> FIDS </funcIds>
-           <funcAddrs> ... #ContextLookup(FIDS, HOSTCALL) |-> FADDR ... </funcAddrs>
+           <funcIds> ... HOSTCALL |-> FID ... </funcIds>
+           <funcAddrs> ... FID |-> FADDR ... </funcAddrs>
            ...
          </moduleInst>
          <funcDef>
@@ -46,5 +46,16 @@ module KWASM-POLKADOT-HOST
  // -----------------------------------
     rule <k> #push(.ValStack) => .              ... </k>
     rule <k> #push(V : VS)    => V ~> #push(VS) ... </k>
+
+    syntax Instr ::= "named_call" "." Identifier [klabel(named_call), symbol]
+ // -------------------------------------------------------------------------
+    rule <k> named_call . ID => call IDX ... </k>
+         <curModIdx> CUR </curModIdx>
+         <moduleInst>
+           <modIdx> CUR </modIdx>
+           <funcIds> ... ID |-> IDX:Int ... </funcIds>
+           ...
+        </moduleInst>
+
 endmodule
 ```

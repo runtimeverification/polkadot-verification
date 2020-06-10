@@ -25,7 +25,7 @@ K_LIB := $(K_RELEASE)/lib/kframework
 export K_RELEASE
 
 KWASM_DIR  := .
-KWASM_MAKE := make --directory $(KWASM_SUBMODULE) BUILD_DIR=../../$(BUILD_DIR)
+KWASM_MAKE := make --directory $(KWASM_SUBMODULE) BUILD_DIR=../../$(BUILD_DIR) RELEASE=$(RELEASE)
 
 export KWASM_DIR
 

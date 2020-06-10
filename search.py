@@ -25,9 +25,9 @@ with open('src/polkadot-runtime.wat', 'r') as src:
 set_free_balance_function_name = [ fname for fname in function_names if 'set_free_balance' in fname ][0]
 print('Function name: ' + set_free_balance_function_name)
 
-wasm_push   = lambda type, value: KApply('(_)_WASM-TEXT_FoldedInstr_PlainInstr', [KApply('_.const__WASM_PlainInstr_IValType_WasmInt', [KConstant(type + '_WASM-DATA_IValType'), value])])
-wasm_call   = lambda fname: KApply('(_)_WASM-TEXT_FoldedInstr_PlainInstr', [KApply('call__WASM_PlainInstr_Index', [KToken(fname, 'IdentifierToken')])])
-wasm_invoke = lambda fid: KApply('(invoke_)_WASM_Instr_Int', [KToken(str(fid), 'Int')])
+wasm_push      = lambda type, value: KApply('(_)_WASM-TEXT_FoldedInstr_PlainInstr', [KApply('_.const__WASM_PlainInstr_IValType_WasmInt', [KConstant(type + '_WASM-DATA_IValType'), value])])
+wasm_namedcall = lambda fname: KApply('named_call', [KToken(fname, 'IdentifierToken')])
+wasm_invoke    = lambda fid: KApply('(invoke_)_WASM_Instr_Int', [KToken(str(fid), 'Int')])
 
 def wasm_stmts_join(stmtType = 'Stmt'):
     return '___WASM_' + stmtType + 's_' + stmtType + '_' + stmtType + 's'
@@ -58,7 +58,7 @@ loaded_program = pyk.readKastTerm('src/polkadot-runtime.loaded.json')
 invoking_steps = [ wasm_push('i32', KVariable('V1'))
                  , wasm_push('i64', KVariable('V2'))
                  , wasm_push('i64', KVariable('V3'))
-                 , wasm_call(set_free_balance_function_name)
+                 , wasm_namedcall(set_free_balance_function_name)
                  ]
 
 searchArgs = argparse.ArgumentParser()
