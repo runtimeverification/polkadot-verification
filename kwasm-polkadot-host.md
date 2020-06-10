@@ -30,8 +30,8 @@ module KWASM-POLKADOT-HOST
          <moduleRegistry> ... #unparseWasmString("\"env\"") |-> MODID ... </moduleRegistry>
          <moduleInst>
            <modIdx> MODID </modIdx>
-           <funcIds> FIDS </funcIds>
-           <funcAddrs> ... FIDS [ HOSTCALL ] |-> FADDR ... </funcAddrs>
+           <funcIds> ... HOSTCALL |-> FID ... </funcIds>
+           <funcAddrs> ... FID |-> FADDR ... </funcAddrs>
            ...
          </moduleInst>
          <funcDef>
@@ -39,7 +39,6 @@ module KWASM-POLKADOT-HOST
            <fType> _ -> [ FRANGE ] </fType>
            ...
          </funcDef>
-      requires HOSTCALL in_keys(FIDS)
 
     rule #t2aInstr<_>(phost . HOSTCALL) => phost . HOSTCALL
 
