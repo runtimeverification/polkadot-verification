@@ -31,7 +31,7 @@ module KWASM-POLKADOT-HOST
          <moduleInst>
            <modIdx> MODID </modIdx>
            <funcIds> FIDS </funcIds>
-           <funcAddrs> ... #ContextLookup(FIDS, HOSTCALL) |-> FADDR ... </funcAddrs>
+           <funcAddrs> ... FIDS [ HOSTCALL ] |-> FADDR ... </funcAddrs>
            ...
          </moduleInst>
          <funcDef>
@@ -39,6 +39,7 @@ module KWASM-POLKADOT-HOST
            <fType> _ -> [ FRANGE ] </fType>
            ...
          </funcDef>
+      requires HOSTCALL in_keys(FIDS)
 
     rule #t2aInstr<_>(phost . HOSTCALL) => phost . HOSTCALL
 
