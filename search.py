@@ -26,7 +26,7 @@ set_free_balance_function_name = [ fname for fname in function_names if 'set_fre
 print('Function name: ' + set_free_balance_function_name)
 
 wasm_push      = lambda type, value: KApply('(_)_WASM-TEXT_FoldedInstr_PlainInstr', [KApply('_.const__WASM_PlainInstr_IValType_WasmInt', [KConstant(type + '_WASM-DATA_IValType'), value])])
-wasm_namedcall = lambda fname: KApply('named_call.__KWASM-POLKADOT-HOST_Instr_Identifier', [KToken(fname, 'IdentifierToken')])
+wasm_namedcall = lambda fname: KApply('named_call', [KToken(fname, 'IdentifierToken')])
 wasm_invoke    = lambda fid: KApply('(invoke_)_WASM_Instr_Int', [KToken(str(fid), 'Int')])
 
 def wasm_stmts_join(stmtType = 'Stmt'):
