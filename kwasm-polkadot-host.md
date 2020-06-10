@@ -25,7 +25,7 @@ module KWASM-POLKADOT-HOST
 
     syntax PlainInstr ::= "phost" "." Identifier
  // --------------------------------------------
-    rule <k> phost . HOSTCALL => #push(#revs(#zero(unnameValTypes(FRANGE)))) ... </k>
+    rule <k> phost . HOSTCALL => #push(#revs(#zero(FRANGE))) ... </k>
          <trace> ... (.List => ListItem(HOSTCALL)) </trace>
          <moduleRegistry> ... #unparseWasmString("\"env\"") |-> MODID ... </moduleRegistry>
          <moduleInst>
