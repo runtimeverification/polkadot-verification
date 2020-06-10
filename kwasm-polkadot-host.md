@@ -46,5 +46,16 @@ module KWASM-POLKADOT-HOST
  // -----------------------------------
     rule <k> #push(.ValStack) => .              ... </k>
     rule <k> #push(V : VS)    => V ~> #push(VS) ... </k>
+
+    syntax Instr ::= "named_call" "." Identifier
+ // --------------------------------------------
+    rule <k> named_call . ID => call IDX ... </k>
+         <curModIdx> CUR </curModIdx>
+         <moduleInst>
+           <modIdx> CUR </modIdx>
+           <funcIds> ... ID |-> IDX:Int ... </funcIds>
+           ...
+        </moduleInst>
+
 endmodule
 ```
