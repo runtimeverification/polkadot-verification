@@ -83,7 +83,7 @@ build: build-llvm build-haskell
 # Semantics Build
 # ---------------
 
-build-%: $(DEFN_DIR)/$(SUBDEFN)/%/$(MAIN_DEFN_FILE).k
+build-%: $(KWASM_SUBMODULE)/$(MAIN_DEFN_FILE).md
 	$(KWASM_MAKE) build-$*                               \
 	    DEFN_DIR=../../$(DEFN_DIR)/$(SUBDEFN)            \
 	    llvm_main_module=$(MAIN_MODULE)                  \
@@ -92,19 +92,11 @@ build-%: $(DEFN_DIR)/$(SUBDEFN)/%/$(MAIN_DEFN_FILE).k
 	    haskell_main_module=$(MAIN_MODULE)               \
 	    haskell_syntax_module=$(MAIN_SYNTAX_MODULE)      \
 	    haskell_main_file=$(MAIN_DEFN_FILE)              \
-	    EXTRA_SOURCE_FILES=$(abspath $<)                 \
+	    EXTRA_SOURCE_FILES=$(MAIN_DEFN_FILE).md          \
 	    KOMPILE_OPTS="$(KOMPILE_OPTS)"
 
-.SECONDARY: $(DEFN_DIR)/$(SUBDEFN)/llvm/$(MAIN_DEFN_FILE).k    \
-            $(DEFN_DIR)/$(SUBDEFN)/haskell/$(MAIN_DEFN_FILE).k
-
-$(DEFN_DIR)/$(SUBDEFN)/llvm/%.k: %.md $(TANGLER)
-	@mkdir -p $(dir $@)
-	pandoc --from markdown --to $(TANGLER) --metadata=code:".k" $< > $@
-
-$(DEFN_DIR)/$(SUBDEFN)/haskell/%.k: %.md $(TANGLER)
-	@mkdir -p $(dir $@)
-	pandoc --from markdown --to $(TANGLER) --metadata=code:".k" $< > $@
+$(KWASM_SUBMODULE)/$(MAIN_DEFN_FILE).md: $(MAIN_DEFN_FILE).md
+	cp $< $@
 
 # Verification Source Build
 # -------------------------
