@@ -156,7 +156,7 @@ $(KWASM_SUBMODULE)/tests/simple/%.wast.merged-rules: $(KWASM_SUBMODULE)/tests/si
 SPEC_NAMES := set-balance
 
 SPECS_DIR      := $(BUILD_DIR)/specs
-SPECS_SOURCE   := $(patsubst %, $(SPECS_DIR)/%.k, $(SPEC_NAMES))
+SPECS_SOURCE   := $(patsubst %, %.md, $(SPEC_NAMES))
 SPECS_PROOFS   := $(patsubst %, $(SPECS_DIR)/%-spec.k, $(SPEC_NAMES))
 SPECS_KOMPILED := $(patsubst %, $(SPECS_DIR)/%-kompiled/definition.kore, $(SPEC_NAMES))
 
@@ -164,19 +164,19 @@ defn-specs:    $(SPECS_SOURCE)
 kompile-specs: $(SPECS_KOMPILED)
 prove-specs:   $(SPECS_PROOFS:=.prove)
 
-$(SPECS_DIR)/%.k: %.md
-	@mkdir -p $(SPECS_DIR)
-	pandoc --from markdown --to $(TANGLER) --metadata=code:.k $< > $@
-
-$(SPECS_DIR)/%-kompiled/definition.kore: $(SPECS_DIR)/%.k
-	kompile --backend $(SYMBOLIC_BACKEND) -I $(SPECS_DIR)             \
+$(SPECS_DIR)/%-kompiled/definition.kore: %.md
+	kompile --backend $(SYMBOLIC_BACKEND) -I $(CURDIR)                \
 	    --main-module   $(shell echo $* | tr '[:lower:]' '[:upper:]') \
 	    --syntax-module $(shell echo $* | tr '[:lower:]' '[:upper:]') \
-	    -I $(K_RELEASE)/include/builtin                               \
+	    --directory $(SPECS_DIR)                                      \
 	    $<
 
 $(SPECS_DIR)/%-spec.k.prove: $(SPECS_DIR)/%-spec.k $(SPECS_DIR)/%-kompiled/definition.kore
-	kprove --directory $(SPECS_DIR) $< --def-module VERIFICATION
+	kprove --directory $(SPECS_DIR) $(SPECS_DIR)/$*-spec.k --def-module VERIFICATION
+
+$(SPECS_DIR)/%-spec.k: %-spec.md $(TANGLER)
+	@mkdir -p $(dir $@)
+	pandoc --from markdown --to $(TANGLER) --metadata=code:.k $< > $@
 
 # Testing
 # -------
