@@ -35,7 +35,7 @@ export PATH
 PYTHONPATH := $(K_LIB)
 export PYTHONPATH
 
-PANDOC_TANGLE_SUBMODULE := $(KWASM_SUBMODULE)/deps/pandoc-tangle
+PANDOC_TANGLE_SUBMODULE := $(abspath $(DEPS_DIR)/pandoc-tangle)
 TANGLER                 := $(PANDOC_TANGLE_SUBMODULE)/tangle.lua
 LUA_PATH                := $(PANDOC_TANGLE_SUBMODULE)/?.lua;;
 export TANGLER

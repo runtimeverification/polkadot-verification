@@ -6,3 +6,7 @@
 	path = deps/substrate
 	url = https://github.com/paritytech/substrate
 	ignore = untracked
+[submodule "deps/pandoc-tangle"]
+	path = deps/pandoc-tangle
+	url = https://github.com/ehildenb/pandoc-tangle
+	ignore = untracked
