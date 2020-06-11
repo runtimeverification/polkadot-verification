@@ -92,6 +92,7 @@ build-%: $(DEFN_DIR)/$(SUBDEFN)/%/$(MAIN_DEFN_FILE).k
 	    haskell_main_module=$(MAIN_MODULE)               \
 	    haskell_syntax_module=$(MAIN_SYNTAX_MODULE)      \
 	    haskell_main_file=$(MAIN_DEFN_FILE)              \
+	    EXTRA_SOURCE_FILES=$(abspath $<)                 \
 	    KOMPILE_OPTS="$(KOMPILE_OPTS)"
 
 .SECONDARY: $(DEFN_DIR)/$(SUBDEFN)/llvm/$(MAIN_DEFN_FILE).k    \
