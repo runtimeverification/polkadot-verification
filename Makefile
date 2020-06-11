@@ -35,7 +35,7 @@ export PATH
 PYTHONPATH := $(K_LIB)
 export PYTHONPATH
 
-PANDOC_TANGLE_SUBMODULE := $(KWASM_SUBMODULE)/deps/pandoc-tangle
+PANDOC_TANGLE_SUBMODULE := $(abspath $(DEPS_DIR)/pandoc-tangle)
 TANGLER                 := $(PANDOC_TANGLE_SUBMODULE)/tangle.lua
 LUA_PATH                := $(PANDOC_TANGLE_SUBMODULE)/?.lua;;
 export TANGLER
@@ -83,7 +83,7 @@ build: build-llvm build-haskell
 # Semantics Build
 # ---------------
 
-build-%: $(DEFN_DIR)/$(SUBDEFN)/%/$(MAIN_DEFN_FILE).k
+build-%: $(KWASM_SUBMODULE)/$(MAIN_DEFN_FILE).md
 	$(KWASM_MAKE) build-$*                               \
 	    DEFN_DIR=../../$(DEFN_DIR)/$(SUBDEFN)            \
 	    llvm_main_module=$(MAIN_MODULE)                  \
@@ -92,18 +92,11 @@ build-%: $(DEFN_DIR)/$(SUBDEFN)/%/$(MAIN_DEFN_FILE).k
 	    haskell_main_module=$(MAIN_MODULE)               \
 	    haskell_syntax_module=$(MAIN_SYNTAX_MODULE)      \
 	    haskell_main_file=$(MAIN_DEFN_FILE)              \
+	    EXTRA_SOURCE_FILES=$(MAIN_DEFN_FILE).md          \
 	    KOMPILE_OPTS="$(KOMPILE_OPTS)"
 
-.SECONDARY: $(DEFN_DIR)/$(SUBDEFN)/llvm/$(MAIN_DEFN_FILE).k    \
-            $(DEFN_DIR)/$(SUBDEFN)/haskell/$(MAIN_DEFN_FILE).k
-
-$(DEFN_DIR)/$(SUBDEFN)/llvm/%.k: %.md $(TANGLER)
-	@mkdir -p $(dir $@)
-	pandoc --from markdown --to $(TANGLER) --metadata=code:".k" $< > $@
-
-$(DEFN_DIR)/$(SUBDEFN)/haskell/%.k: %.md $(TANGLER)
-	@mkdir -p $(dir $@)
-	pandoc --from markdown --to $(TANGLER) --metadata=code:".k" $< > $@
+$(KWASM_SUBMODULE)/$(MAIN_DEFN_FILE).md: $(MAIN_DEFN_FILE).md
+	cp $< $@
 
 # Verification Source Build
 # -------------------------
@@ -163,7 +156,7 @@ $(KWASM_SUBMODULE)/tests/simple/%.wast.merged-rules: $(KWASM_SUBMODULE)/tests/si
 SPEC_NAMES := set-balance
 
 SPECS_DIR      := $(BUILD_DIR)/specs
-SPECS_SOURCE   := $(patsubst %, $(SPECS_DIR)/%.k, $(SPEC_NAMES))
+SPECS_SOURCE   := $(patsubst %, %.md, $(SPEC_NAMES))
 SPECS_PROOFS   := $(patsubst %, $(SPECS_DIR)/%-spec.k, $(SPEC_NAMES))
 SPECS_KOMPILED := $(patsubst %, $(SPECS_DIR)/%-kompiled/definition.kore, $(SPEC_NAMES))
 
@@ -171,19 +164,19 @@ defn-specs:    $(SPECS_SOURCE)
 kompile-specs: $(SPECS_KOMPILED)
 prove-specs:   $(SPECS_PROOFS:=.prove)
 
-$(SPECS_DIR)/%.k: %.md
-	@mkdir -p $(SPECS_DIR)
-	pandoc --from markdown --to $(TANGLER) --metadata=code:.k $< > $@
-
-$(SPECS_DIR)/%-kompiled/definition.kore: $(SPECS_DIR)/%.k
-	kompile --backend $(SYMBOLIC_BACKEND) -I $(SPECS_DIR)             \
+$(SPECS_DIR)/%-kompiled/definition.kore: %.md
+	kompile --backend $(SYMBOLIC_BACKEND) -I $(CURDIR)                \
 	    --main-module   $(shell echo $* | tr '[:lower:]' '[:upper:]') \
 	    --syntax-module $(shell echo $* | tr '[:lower:]' '[:upper:]') \
-	    -I $(K_RELEASE)/include/builtin                               \
+	    --directory $(SPECS_DIR)                                      \
 	    $<
 
 $(SPECS_DIR)/%-spec.k.prove: $(SPECS_DIR)/%-spec.k $(SPECS_DIR)/%-kompiled/definition.kore
-	kprove --directory $(SPECS_DIR) $< --def-module VERIFICATION
+	kprove --directory $(SPECS_DIR) $(SPECS_DIR)/$*-spec.k --def-module VERIFICATION
+
+$(SPECS_DIR)/%-spec.k: %-spec.md $(TANGLER)
+	@mkdir -p $(dir $@)
+	pandoc --from markdown --to $(TANGLER) --metadata=code:.k $< > $@
 
 # Testing
 # -------

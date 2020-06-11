@@ -4,8 +4,8 @@ KWasm with Polkadot Host
 This module enables calling Polkadot Host host functions from KWasm code.
 
 ```k
-requires "test.k"
-requires "kwasm-lemmas.k"
+requires "test.md"
+requires "kwasm-lemmas.md"
 
 module KWASM-POLKADOT-HOST-SYNTAX
     imports KWASM-POLKADOT-HOST

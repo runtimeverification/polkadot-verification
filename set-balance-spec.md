@@ -2,7 +2,7 @@ Balances Module Specifications
 ==============================
 
 ```k
-requires "set-balance.k"
+requires "set-balance.md"
 
 module VERIFICATION
     imports SET-BALANCE
