@@ -56,6 +56,245 @@ module KWASM-POLKADOT-HOST
            <funcIds> ... ID |-> IDX:Int ... </funcIds>
            ...
         </moduleInst>
+```
 
+Merged rules:
+=============
+
+General changes:
+-   Remove <generatedTop> cell
+-   Remove ellipsis inserted under that cell
+-   Remove ensures
+-   ~> DotVar\W* => ...
+
+Changes: Add types to
+-   `BOP` => `BOP:IBinOp`, 
+
+```k
+rule 
+       <polkadot-host>
+         <wasm>
+           <k>
+                 (     ITYPE0 .const VAL
+             ~> ITYPE0 . BOP:IBinOp SS =>     ITYPE0 . BOP C1 VAL modInt #pow( ITYPE0 )
+             ~> SS )
+             ...
+           </k>
+           <valstack>
+             ( < ITYPE0 > C1 : VALSTACK0 => VALSTACK0 )
+           </valstack>
+           ...
+         </wasm>
+         ...
+       </polkadot-host>
+  requires notBool SS ==K .EmptyStmts andBool false ==K #pow( ITYPE0 ) ==Int 0 andBool true
+```
+  
+Merged Rule:
+
+```
+rule 
+       <polkadot-host>
+         <wasm>
+           <k>
+                 (     #init N locals VALUE0 : VALUE2 : VALSTACK0 =>     #init N +Int 2 locals VALSTACK0 )
+             ...
+           </k>
+           <curFrame>
+             <locals>
+               ( LOCALS => LOCALS [ N <- VALUE0 ] [ N +Int 1 <- VALUE2 ] )
+             </locals>
+             ...
+           </curFrame>
+           ...
+         </wasm>
+         ...
+       </polkadot-host>
+     
+  requires true andBool true
+  
+```
+  
+Merged Rule:
+
+```
+rule 
+       <polkadot-host>
+         <wasm>
+           <k>
+                 (     ITYPE .const VAL
+             ~> S SS =>     S
+             ~> SS )
+             ...
+           </k>
+           <valstack>
+             ( VALSTACK => < ITYPE > VAL modInt #pow( ITYPE ) : VALSTACK )
+           </valstack>
+           ...
+         </wasm>
+         ...
+       </polkadot-host>
+     
+  requires notBool SS ==K .EmptyStmts andBool false ==K #pow( ITYPE ) ==Int 0 andBool true
+  
+```
+  
+Merged Rule:
+
+```
+rule 
+       <polkadot-host>
+         <wasm>
+           <k>
+                 (     local.get I S0 SS0 =>     S0
+             ~> SS0 )
+             ...
+           </k>
+           <valstack>
+             ( VALSTACK => VALUE : VALSTACK )
+           </valstack>
+           <curFrame>
+             <locals>
+               DotVar5 I |-> VALUE
+             </locals>
+             ...
+           </curFrame>
+           ...
+         </wasm>
+         ...
+       </polkadot-host>
+     
+  requires notBool SS0 ==K .EmptyStmts andBool #Forall x . #Ceil( DotVar5 #SemanticCastToInt ( I ) |-> x ) andBool true
+  
+```
+  
+Merged Rule:
+
+```
+rule 
+       <polkadot-host>
+         <wasm>
+           <k>
+                 (     #init N locals VALUE0 : VALSTACK =>     #init N +Int 1 locals VALSTACK )
+             ...
+           </k>
+           <curFrame>
+             <locals>
+               ( LOCALS => LOCALS [ N <- VALUE0 ] )
+             </locals>
+             ...
+           </curFrame>
+           ...
+         </wasm>
+         ...
+       </polkadot-host>
+     
+  requires true andBool true
+  
+```
+  
+Merged Rule:
+
+```
+rule 
+       <polkadot-host>
+         <wasm>
+           <k>
+                 (     ITYPE0 .const VAL ITYPE0 . BOP SS0 =>     ITYPE0 . BOP C1 VAL modInt #pow( ITYPE0 )
+             ~> SS0 )
+             ...
+           </k>
+           <valstack>
+             ( < ITYPE0 > C1 : VALSTACK0 => VALSTACK0 )
+           </valstack>
+           ...
+         </wasm>
+         ...
+       </polkadot-host>
+     
+  requires notBool SS0 ==K .EmptyStmts andBool false ==K #pow( ITYPE0 ) ==Int 0 andBool true
+  
+```
+  
+Merged Rule:
+
+```
+rule 
+       <polkadot-host>
+         <wasm>
+           <k>
+                 (     local.get I
+             ~> S SS =>     S
+             ~> SS )
+             ...
+           </k>
+           <valstack>
+             ( VALSTACK => VALUE : VALSTACK )
+           </valstack>
+           <curFrame>
+             <locals>
+               DotVar5 I |-> VALUE
+             </locals>
+             ...
+           </curFrame>
+           ...
+         </wasm>
+         ...
+       </polkadot-host>
+     
+  requires notBool SS ==K .EmptyStmts andBool #Forall x . #Ceil( DotVar5 #SemanticCastToInt ( I ) |-> x ) andBool true
+  
+```
+  
+Merged Rule:
+
+```
+rule 
+       <polkadot-host>
+         <wasm>
+           <k>
+                 (     local.get I ITYPE0 .const VAL ITYPE0 . BOP SS1 =>     ITYPE0 . BOP C1 VAL modInt #pow( ITYPE0 )
+             ~> SS1 )
+             ...
+           </k>
+           <curFrame>
+             <locals>
+               DotVar5 I |-> < ITYPE0 > C1
+             </locals>
+             ...
+           </curFrame>
+           ...
+         </wasm>
+         ...
+       </polkadot-host>
+     
+  requires notBool SS1 ==K .EmptyStmts andBool #Forall x . #Ceil( DotVar5 #SemanticCastToInt ( I ) |-> x ) andBool false ==K #pow( ITYPE0 ) ==Int 0 andBool true
+  
+```
+  
+Merged Rule:
+
+```
+rule 
+       <polkadot-host>
+         <wasm>
+           <k>
+                 (     V
+             ~> S SS =>     S
+             ~> SS )
+             ...
+           </k>
+           <valstack>
+             ( VALSTACK => V : VALSTACK )
+           </valstack>
+           ...
+         </wasm>
+         ...
+       </polkadot-host>
+     
+  requires notBool V ==K undefined andBool notBool SS ==K .EmptyStmts a
+```
+
+```k
 endmodule
 ```
