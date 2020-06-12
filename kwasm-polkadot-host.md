@@ -66,6 +66,9 @@ General changes:
 -   Remove ellipsis inserted under that cell
 -   Remove ensures
 -   ~> DotVar\W* => ...
+-   #init\([^l]\)locals => #init_locals \1
+
+
 
 Changes: Add types to
 -   `BOP` => `BOP:IBinOp`, 
@@ -88,16 +91,17 @@ rule
          ...
        </polkadot-host>
   requires notBool SS ==K .EmptyStmts andBool false ==K #pow( ITYPE0 ) ==Int 0 andBool true
+  [priority(25)]
 ```
   
 Merged Rule:
 
-```
+```k
 rule 
        <polkadot-host>
          <wasm>
            <k>
-                 (     #init N locals VALUE0 : VALUE2 : VALSTACK0 =>     #init N +Int 2 locals VALSTACK0 )
+                 (     #init_locals  N  VALUE0 : VALUE2 : VALSTACK0 =>     #init_locals  N +Int 2  VALSTACK0 )
              ...
            </k>
            <curFrame>
@@ -112,7 +116,7 @@ rule
        </polkadot-host>
      
   requires true andBool true
-  
+  [priority(25)]
 ```
   
 Merged Rule:
@@ -175,7 +179,7 @@ rule
        <polkadot-host>
          <wasm>
            <k>
-                 (     #init N locals VALUE0 : VALSTACK =>     #init N +Int 1 locals VALSTACK )
+                 (     #init_locals  N  VALUE0 : VALSTACK =>     #init_locals  N +Int 1  VALSTACK )
              ...
            </k>
            <curFrame>
