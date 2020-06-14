@@ -88,7 +88,11 @@ def mergeRules(definition_dir, main_defn_file, main_module, subsequence, symbolT
         with tempfile.NamedTemporaryFile(mode = 'w') as tempf:
             tempf.write(stdout)
             tempf.flush()
-            (_, stdout, stderr) = pyk.kast(definition_dir, tempf.name, kastArgs = ['--input', 'kore', '--output', 'json'])
+            (rc, stdout, stderr) = pyk.kast(definition_dir, tempf.name, kastArgs = ['--input', 'kore', '--output', 'json'])
+            if rc != 0:
+                print(stderr)
+                _warning('Cannot merge rules!')
+                return None
             merged_rule = json.loads(stdout)['term']
             (lhs_term, lhs_constraint) = extractTermAndConstraint(merged_rule['lhs'])
             (rhs_term, rhs_constraint) = extractTermAndConstraint(merged_rule['rhs'])
