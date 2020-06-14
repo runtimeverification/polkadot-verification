@@ -37,8 +37,14 @@ def extractTermAndConstraint(input):
     return (term, constraint)
 
 def prettyPrintRule(kRule, symbolTable):
-    kRule['body'] = pyk.pushDownRewrites(kRule['body'])
-    return pyk.prettyPrintKast(pyk.minimizeRule(kRule), symbolTable)
+    newRule = KRule(pyk.pushDownRewrites(kRule['body']), requires = kRule['requires'], ensures = kRule['ensures'], att = kRule['att'])
+    minRule = pyk.minimizeRule(newRule)
+    ruleBody = minRule['body']
+    if     pyk.isKApply(ruleBody)            and ruleBody['label'] == '<generatedTop>'              \
+       and pyk.isKApply(ruleBody['args'][0]) and ruleBody['args'][0]['label'] == '<polkadot-host>':
+        ruleBody = ruleBody['args'][0]
+    minRule['body'] = ruleBody
+    return pyk.prettyPrintKast(minRule, symbolTable)
 
 def kompile_definition(definition_dir, backend, main_defn_file, main_module, kompileArgs = [], teeOutput = True, kRelease = None):
     command = 'kompile'
