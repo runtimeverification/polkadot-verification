@@ -37,7 +37,7 @@ def extractTermAndConstraint(input):
     return (term, constraint)
 
 def prettyPrintRule(kRule, symbolTable):
-    newRule = KRule(pyk.pushDownRewrites(kRule['body']), requires = kRule['requires'], ensures = kRule['ensures'], att = kRule['att'])
+    newRule = pyk.KRule(pyk.pushDownRewrites(kRule['body']), requires = kRule['requires'], ensures = kRule['ensures'], att = kRule['att'])
     minRule = pyk.minimizeRule(newRule)
     ruleBody = minRule['body']
     if     pyk.isKApply(ruleBody)            and ruleBody['label'] == '<generatedTop>'              \
