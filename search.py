@@ -93,6 +93,8 @@ for i in range(numExec):
 
 ruleSeqs = [ ruleSeq.split('|') for ruleSeq in ruleSeqs ]
 print('Found ' + str(len(ruleSeqs)) + ' unique executions.')
+for rs in ruleSeqs:
+    print('    Execution length: ' + str(len(rs)))
 print()
 sys.stdout.flush()
 
