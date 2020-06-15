@@ -40,8 +40,7 @@ def prettyPrintRule(kRule, symbolTable):
     newRule = pyk.KRule(pyk.pushDownRewrites(kRule['body']), requires = kRule['requires'], ensures = kRule['ensures'], att = kRule['att'])
     minRule = pyk.minimizeRule(newRule)
     ruleBody = minRule['body']
-    if     pyk.isKApply(ruleBody)            and ruleBody['label'] == '<generatedTop>'              \
-       and pyk.isKApply(ruleBody['args'][0]) and ruleBody['args'][0]['label'] == '<polkadot-host>':
+    if pyk.isKApply(ruleBody) and ruleBody['label'] == '<generatedTop>':
         ruleBody = ruleBody['args'][0]
     minRule['body'] = ruleBody
     return pyk.prettyPrintKast(minRule, symbolTable)
