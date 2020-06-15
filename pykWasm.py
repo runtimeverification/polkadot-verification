@@ -142,6 +142,11 @@ WASM_symbols_llvm_coverage    = pyk.buildSymbolTable(WASM_definition_llvm_covera
 WASM_symbols_haskell_no_coverage = pyk.buildSymbolTable(WASM_definition_haskell_no_coverage)
 WASM_symbols_haskell_coverage    = pyk.buildSymbolTable(WASM_definition_haskell_coverage)
 
+for symbolTable in [WASM_symbols_llvm_no_coverage, WASM_symbols_llvm_coverage, WASM_symbols_haskell_no_coverage, WASM_symbols_haskell_coverage]:
+    symbolTable['#init_locals___WASM_Instr_Int_ValStack'] = lambda k, s: '#init_locals ' + k + ' ' + s
+    symbolTable['init_locals__WASM_Instr_ValStack']       = lambda s:    'init_locals ' + s
+    symbolTable['init_local___WASM_Instr_Val_ValStack']   = lambda k, v: 'init_local ' + k + ' ' + v
+
 ################################################################################
 # Runner Wrappers                                                              #
 ################################################################################
