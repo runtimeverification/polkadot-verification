@@ -36,15 +36,6 @@ def extractTermAndConstraint(input):
         constraint = KApply('#And', [c, constraint])
     return (term, constraint)
 
-def prettyPrintRule(kRule, symbolTable):
-    newRule = pyk.KRule(pyk.pushDownRewrites(kRule['body']), requires = kRule['requires'], ensures = kRule['ensures'], att = kRule['att'])
-    minRule = pyk.minimizeRule(newRule)
-    ruleBody = minRule['body']
-    if pyk.isKApply(ruleBody) and ruleBody['label'] == '<generatedTop>':
-        ruleBody = ruleBody['args'][0]
-    minRule['body'] = ruleBody
-    return pyk.prettyPrintKast(minRule, symbolTable)
-
 def kompile_definition(definition_dir, backend, main_defn_file, main_module, kompileArgs = [], teeOutput = True, kRelease = None):
     command = 'kompile'
     if kRelease is not None:
@@ -145,6 +136,25 @@ for symbolTable in [WASM_symbols_llvm_no_coverage, WASM_symbols_llvm_coverage, W
     symbolTable['#init_locals___WASM_Instr_Int_ValStack'] = lambda k, s: '#init_locals ' + k + ' ' + s
     symbolTable['init_locals__WASM_Instr_ValStack']       = lambda s:    'init_locals ' + s
     symbolTable['init_local___WASM_Instr_Val_ValStack']   = lambda k, v: 'init_local ' + k + ' ' + v
+
+    symbolTable['#dotsLeft']  = lambda k: '... ' + k
+    symbolTable['#dotsRight'] = lambda k:          k + ' ...'
+    symbolTable['#dotsBoth']  = lambda k: '... ' + k + ' ...'
+
+def insertDots(k):
+    (config, subst) = pyk.splitConfigFrom(k)
+    if pyk.isKSequence(subst['K_CELL']) and pyk.isKVariable(subst['K_CELL']['items'][-1]) and subst['K_CELL']['items'][-1]['name'].startswith('DotVar'):
+        subst['K_CELL'] = KApply('#dotsRight', [KSequence(subst['K_CELL']['items'][0:-1])])
+    return pyk.substitute(config, subst)
+
+def prettyPrintRule(kRule, symbolTable):
+    newRule = pyk.KRule(pyk.pushDownRewrites(kRule['body']), requires = kRule['requires'], ensures = kRule['ensures'], att = kRule['att'])
+    minRule = pyk.minimizeRule(newRule)
+    ruleBody = minRule['body']
+    if pyk.isKApply(ruleBody) and ruleBody['label'] == '<generatedTop>':
+        ruleBody = ruleBody['args'][0]
+    minRule['body'] = insertDots(ruleBody)
+    return pyk.prettyPrintKast(minRule, symbolTable)
 
 ################################################################################
 # Runner Wrappers                                                              #
