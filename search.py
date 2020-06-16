@@ -131,7 +131,7 @@ if args['command'] == 'profile':
         print('\n'.join(ruleSeq))
         print()
         sys.stdout.flush()
-        mergedRules = tryMergeRules(WASM_definition_haskell_no_coverage_dir, WASM_definition_main_file, WASM_definition_main_module, [ruleSeq], timeout = mergeTimeout)
+        mergedRules = tryMergeRules(WASM_definition_haskell_no_coverage_dir, WASM_definition_main_file, WASM_definition_main_module, [ruleSeq])
         end_time = time.time()
         if len(mergedRules) > 0:
             lastSucceeded = True
