@@ -93,6 +93,8 @@ for i in range(numExec):
 
 ruleSeqs = [ ruleSeq.split('|') for ruleSeq in ruleSeqs ]
 print('Found ' + str(len(ruleSeqs)) + ' unique executions.')
+for rs in ruleSeqs:
+    print('    Execution length: ' + str(len(rs)))
 print()
 sys.stdout.flush()
 
@@ -120,6 +122,8 @@ if args['command'] == 'profile':
                 ruleMerges.append(ruleSeq[i:i + mergeWidth])
     mergeStats = []
     mergeFails = []
+    lastSucceeded = True
+    badRules = []
     for (i, ruleSeq) in enumerate(ruleMerges):
         start_time = time.time()
         print()
@@ -130,12 +134,16 @@ if args['command'] == 'profile':
         mergedRules = tryMergeRules(WASM_definition_haskell_no_coverage_dir, WASM_definition_main_file, WASM_definition_main_module, [ruleSeq])
         end_time = time.time()
         if len(mergedRules) > 0:
+            lastSucceeded = True
             print()
             print('SUCCESS')
             delta_time = end_time - start_time
             print('Time: ' + str(delta_time))
             mergeStats.append((delta_time, ruleSeq, mergedRules))
         else:
+            if lastSucceeded:
+                badRules.append(ruleSeq[-1])
+            lastSucceeded = False
             print()
             print('FAILURE')
             mergeFails.append(ruleSeq)
@@ -171,6 +179,12 @@ if args['command'] == 'profile':
         print('### Rules')
         print()
         print('\n'.join(s))
+    if len(badRules) > 0:
+        print()
+        print('Potential Bad Rules')
+        print('-------------------')
+        print()
+        print('\n'.join(set(badRules)))
     print()
     print('Stats')
     print('-----')

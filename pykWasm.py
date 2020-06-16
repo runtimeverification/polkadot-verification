@@ -83,12 +83,16 @@ def mergeRulesKoreExec(definition_dir, ruleList, kArgs = [], teeOutput = True, k
         return _runK2('kore-exec', definition_dir, kArgs = ['--merge-rules', tempf.name] + kArgs, teeOutput = teeOutput, kRelease = kRelease)
 
 def mergeRules(definition_dir, main_defn_file, main_module, subsequence, symbolTable = None, definition = None):
-    (rc, stdout, stderr) = mergeRulesKoreExec(definition_dir + '/' + main_defn_file + '-kompiled/definition.kore', subsequence, kArgs = ['--module', main_module], symbolTable = symbolTable, definition = definition)
-    if rc == 0:
+    (returnCode, stdout, stderr) = mergeRulesKoreExec(definition_dir + '/' + main_defn_file + '-kompiled/definition.kore', subsequence, kArgs = ['--module', main_module], symbolTable = symbolTable, definition = definition)
+    if returnCode == 0:
         with tempfile.NamedTemporaryFile(mode = 'w') as tempf:
             tempf.write(stdout)
             tempf.flush()
-            (_, stdout, stderr) = pyk.kast(definition_dir, tempf.name, kastArgs = ['--input', 'kore', '--output', 'json'])
+            (returnCode, stdout, stderr) = pyk.kast(definition_dir, tempf.name, kastArgs = ['--input', 'kore', '--output', 'json'])
+            if returnCode != 0:
+                print(stderr)
+                _warning('Cannot merge rules!')
+                return None
             merged_rule = json.loads(stdout)['term']
             (lhs_term, lhs_constraint) = extractTermAndConstraint(merged_rule['lhs'])
             (rhs_term, rhs_constraint) = extractTermAndConstraint(merged_rule['rhs'])
