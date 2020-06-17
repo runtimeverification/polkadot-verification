@@ -146,7 +146,7 @@ rule
   
 Merged Rule:
 
-```
+```k
 rule 
        <polkadot-host>
          <wasm>
