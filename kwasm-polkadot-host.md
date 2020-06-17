@@ -68,9 +68,6 @@ General changes:
 -   ~> DotVar\W* => ...
 -   #init\([^l]\)locals => #init_locals \1
 -   S SS => S SS:Stmts
-
-
-Changes: Add types to
 -   `BOP` => `BOP:IBinOp`, 
 
 ```k
@@ -79,7 +76,7 @@ rule
          <wasm>
            <k>
                  (     ITYPE0 .const VAL
-             ~> ITYPE0 . BOP:IBinOp SS =>     ITYPE0 . BOP C1 VAL modInt #pow( ITYPE0 )
+             ~> ITYPE0 . BOP:IBinOp:IBinOp SS =>     ITYPE0 . BOP C1 VAL modInt #pow( ITYPE0 )
              ~> SS )
              ...
            </k>
@@ -210,7 +207,7 @@ rule
        <polkadot-host>
          <wasm>
            <k>
-                 (     ITYPE0 .const VAL ITYPE0 . BOP SS0 =>     ITYPE0 . BOP C1 VAL modInt #pow( ITYPE0 )
+                 (     ITYPE0 .const VAL ITYPE0 . BOP:IBinOp SS0 =>     ITYPE0 . BOP C1 VAL modInt #pow( ITYPE0 )
              ~> SS0 )
              ...
            </k>
@@ -264,12 +261,12 @@ rule
   
 Merged Rule:
 
-```
+```k
 rule 
        <polkadot-host>
          <wasm>
            <k>
-                 (     local.get I ITYPE0 .const VAL ITYPE0 . BOP SS1 =>     ITYPE0 . BOP C1 VAL modInt #pow( ITYPE0 )
+                 (     local.get I ITYPE0 .const VAL ITYPE0 . BOP:IBinOp SS1 =>     ITYPE0 . BOP C1 VAL modInt #pow( ITYPE0 )
              ~> SS1 )
              ...
            </k>
