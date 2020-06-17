@@ -67,7 +67,7 @@ General changes:
 -   Remove ensures
 -   ~> DotVar\W* => ...
 -   #init\([^l]\)locals => #init_locals \1
-
+-   S SS => S SS:Stmts
 
 
 Changes: Add types to
@@ -127,7 +127,7 @@ rule
          <wasm>
            <k>
                  (     ITYPE .const VAL
-             ~> S SS =>     S
+             ~> S SS:Stmts =>     S
              ~> SS )
              ...
            </k>
@@ -140,6 +140,7 @@ rule
        </polkadot-host>
      
   requires notBool SS ==K .EmptyStmts andBool false ==K #pow( ITYPE ) ==Int 0 andBool true
+  [priority(25)]
   
 ```
   
@@ -228,7 +229,7 @@ rule
          <wasm>
            <k>
                  (     local.get I
-             ~> S SS =>     S
+             ~> S SS:Stmts =>     S
              ~> SS )
              ...
            </k>
@@ -284,7 +285,7 @@ rule
          <wasm>
            <k>
                  (     V
-             ~> S SS =>     S
+             ~> S SS:Stmts =>     S
              ~> SS )
              ...
            </k>
