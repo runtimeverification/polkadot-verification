@@ -205,7 +205,7 @@ rule
   
 Merged Rule:
 
-```
+```k
 rule 
        <polkadot-host>
          <wasm>
@@ -223,17 +223,23 @@ rule
        </polkadot-host>
      
   requires notBool SS0 ==K .EmptyStmts andBool false ==K #pow( ITYPE0 ) ==Int 0 andBool true
-  
+  [priority(25)]
 ```
   
 Merged Rule:
 
-```
+Merged Rule:
+
+-   Remove `#Forall`
+-   Change #SemanticCastToInt to regular typeing
+-   Dotvar5 => ... on both sides
+
+```k
 rule 
        <polkadot-host>
          <wasm>
            <k>
-                 (     local.get I
+                 (     local.get I:Int
              ~> S SS:Stmts =>     S
              ~> SS )
              ...
@@ -243,7 +249,7 @@ rule
            </valstack>
            <curFrame>
              <locals>
-               DotVar5 I |-> VALUE
+               ... I |-> VALUE ...
              </locals>
              ...
            </curFrame>
@@ -252,8 +258,8 @@ rule
          ...
        </polkadot-host>
      
-  requires notBool SS ==K .EmptyStmts andBool #Forall x . #Ceil( DotVar5 #SemanticCastToInt ( I ) |-> x ) andBool true
-  
+  requires notBool SS ==K .EmptyStmts andBool true
+  [priority(25)]
 ```
   
 Merged Rule:
