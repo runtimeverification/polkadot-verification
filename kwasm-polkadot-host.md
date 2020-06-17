@@ -19,7 +19,7 @@ module KWASM-POLKADOT-HOST
 
     configuration
       <polkadot-host>
-        <wasm/>
+        <wasm-test/>
         <trace> .List </trace>
       </polkadot-host>
 
