@@ -146,12 +146,16 @@ rule
   
 Merged Rule:
 
+-   Remove `#Forall`
+-   Change #SemanticCastToInt to regular typeing
+-   Dotvar5 => ... on both sides
+
 ```k
 rule 
        <polkadot-host>
          <wasm>
            <k>
-                 (     local.get I S0 SS0 =>     S0
+                 (     local.get I:Int S0 SS0 =>     S0
              ~> SS0 )
              ...
            </k>
@@ -160,7 +164,7 @@ rule
            </valstack>
            <curFrame>
              <locals>
-               DotVar5 I |-> VALUE
+               ... I |-> VALUE ...
              </locals>
              ...
            </curFrame>
@@ -169,7 +173,8 @@ rule
          ...
        </polkadot-host>
      
-  requires notBool SS0 ==K .EmptyStmts andBool #Forall x . #Ceil( DotVar5 #SemanticCastToInt ( I ) |-> x ) andBool true
+  requires notBool SS0 ==K .EmptyStmts
+  andBool true
   
 ```
   
