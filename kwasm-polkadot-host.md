@@ -175,7 +175,7 @@ rule
      
   requires notBool SS0 ==K .EmptyStmts
   andBool true
-  
+  [priority(25)]
 ```
   
 Merged Rule:
@@ -200,7 +200,7 @@ rule
        </polkadot-host>
      
   requires true andBool true
-  
+  [priority(25)]
 ```
   
 Merged Rule:
