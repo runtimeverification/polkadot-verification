@@ -16,6 +16,7 @@ module KWASM-POLKADOT-HOST
     imports K-IO
     imports WASM-TEST
     imports KWASM-LEMMAS
+    imports MERGED-RULES
 
     configuration
       <polkadot-host>
@@ -56,6 +57,7 @@ module KWASM-POLKADOT-HOST
            <funcIds> ... ID |-> IDX:Int ... </funcIds>
            ...
         </moduleInst>
+endmodule
 ```
 
 Merged Rules
@@ -71,10 +73,13 @@ Most rules could not be used as they were printed, but had to be massaged in the
 -   #init\([^l]\)locals => #init_locals \1
 -   S SS => S SS:Stmts
 -   `BOP` => `BOP:IBinOp`,
+-   remove `<polkadot-host>`
 
 ```k
-    rule <polkadot-host>
-         <wasm>
+module MERGED-RULES
+    imports WASM-TEST
+    
+    rule <wasm>
            <k>
                  (     ITYPE0 .const VAL
              ~> ITYPE0 . BOP:IBinOp:IBinOp SS =>     ITYPE0 . BOP C1 VAL modInt #pow( ITYPE0 )
@@ -86,13 +91,10 @@ Most rules could not be used as they were printed, but had to be massaged in the
            </valstack>
            ...
          </wasm>
-         ...
-       </polkadot-host>
-  requires notBool SS ==K .EmptyStmts andBool false ==K #pow( ITYPE0 ) ==Int 0 andBool true
+         requires notBool SS ==K .EmptyStmts andBool false ==K #pow( ITYPE0 ) ==Int 0 andBool true
   [priority(25)]
 
-    rule <polkadot-host>
-         <wasm>
+    rule <wasm>
            <k>
                  (     #init_locals  N  VALUE0 : VALUE2 : VALSTACK0 =>     #init_locals  N +Int 2  VALSTACK0 )
              ...
@@ -105,14 +107,10 @@ Most rules could not be used as they were printed, but had to be massaged in the
            </curFrame>
            ...
          </wasm>
-         ...
-       </polkadot-host>
-
-  requires true andBool true
+         requires true andBool true
   [priority(25)]
 
-    rule <polkadot-host>
-         <wasm>
+    rule <wasm>
            <k>
                  (     ITYPE .const VAL
              ~> S SS:Stmts =>     S
@@ -124,14 +122,10 @@ Most rules could not be used as they were printed, but had to be massaged in the
            </valstack>
            ...
          </wasm>
-         ...
-       </polkadot-host>
-
-  requires notBool SS ==K .EmptyStmts andBool false ==K #pow( ITYPE ) ==Int 0 andBool true
+         requires notBool SS ==K .EmptyStmts andBool false ==K #pow( ITYPE ) ==Int 0 andBool true
   [priority(25)]
 
-    rule <polkadot-host>
-         <wasm>
+    rule <wasm>
            <k>
                  (     #init_locals  N  VALUE0 : VALSTACK =>     #init_locals  N +Int 1  VALSTACK )
              ...
@@ -144,14 +138,10 @@ Most rules could not be used as they were printed, but had to be massaged in the
            </curFrame>
            ...
          </wasm>
-         ...
-       </polkadot-host>
-
-  requires true andBool true
+         requires true andBool true
   [priority(25)]
 
-    rule <polkadot-host>
-         <wasm>
+    rule <wasm>
            <k>
                  (     ITYPE0 .const VAL ITYPE0 . BOP:IBinOp SS0 =>     ITYPE0 . BOP C1 VAL modInt #pow( ITYPE0 )
              ~> SS0 )
@@ -162,14 +152,10 @@ Most rules could not be used as they were printed, but had to be massaged in the
            </valstack>
            ...
          </wasm>
-         ...
-       </polkadot-host>
-
-  requires notBool SS0 ==K .EmptyStmts andBool false ==K #pow( ITYPE0 ) ==Int 0 andBool true
+         requires notBool SS0 ==K .EmptyStmts andBool false ==K #pow( ITYPE0 ) ==Int 0 andBool true
   [priority(25)]
 
-    rule <polkadot-host>
-         <wasm>
+    rule <wasm>
            <k>
                  (     V
              ~> S SS:Stmts =>     S
@@ -181,9 +167,7 @@ Most rules could not be used as they were printed, but had to be massaged in the
            </valstack>
            ...
          </wasm>
-         ...
-       </polkadot-host>
-  requires notBool V ==K undefined andBool notBool SS ==K .EmptyStmts
+         requires notBool V ==K undefined andBool notBool SS ==K .EmptyStmts
 ```
 
 The following rule required extra massaging:
@@ -193,8 +177,7 @@ The following rule required extra massaging:
 -   Dotvar5 in the `<locals>` cell => ... on both sides.
 
 ```k
-    rule <polkadot-host>
-         <wasm>
+    rule <wasm>
            <k>
                  (     local.get I:Int
              ~> S SS:Stmts =>     S
@@ -212,14 +195,10 @@ The following rule required extra massaging:
            </curFrame>
            ...
          </wasm>
-         ...
-       </polkadot-host>
-
-  requires notBool SS ==K .EmptyStmts andBool true
+         requires notBool SS ==K .EmptyStmts andBool true
   [priority(25)]
 
-    rule <polkadot-host>
-         <wasm>
+    rule <wasm>
            <k>
                  (     local.get I:Int S0 SS0 =>     S0
              ~> SS0 )
@@ -236,15 +215,11 @@ The following rule required extra massaging:
            </curFrame>
            ...
          </wasm>
-         ...
-       </polkadot-host>
-
-  requires notBool SS0 ==K .EmptyStmts
+         requires notBool SS0 ==K .EmptyStmts
   andBool true
   [priority(25)]
 
-    rule <polkadot-host>
-         <wasm>
+    rule <wasm>
            <k>
                  (     local.get I:Int ITYPE0 .const VAL ITYPE0 . BOP:IBinOp SS1 =>     ITYPE0 . BOP C1 VAL modInt #pow( ITYPE0 )
              ~> SS1 )
@@ -258,10 +233,7 @@ The following rule required extra massaging:
            </curFrame>
            ...
          </wasm>
-         ...
-       </polkadot-host>
-
-  requires notBool SS1 ==K .EmptyStmts andBool false ==K #pow( ITYPE0 ) ==Int 0 andBool true
+         requires notBool SS1 ==K .EmptyStmts andBool false ==K #pow( ITYPE0 ) ==Int 0 andBool true
 ```
 
 ```k
