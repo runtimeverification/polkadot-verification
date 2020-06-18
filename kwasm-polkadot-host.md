@@ -58,21 +58,22 @@ module KWASM-POLKADOT-HOST
         </moduleInst>
 ```
 
-Merged rules:
-=============
+Merged Rules
+============
 
-General changes:
+This is a set of rules created by identifying common sub-sequences of semantic steps during execution of the `set_free_balance` function.
+
+Most rules could not be used as they were printed, but had to be massaged in the following ways.
 -   Remove <generatedTop> cell
 -   Remove ellipsis inserted under that cell
 -   Remove ensures
 -   ~> DotVar\W* => ...
 -   #init\([^l]\)locals => #init_locals \1
 -   S SS => S SS:Stmts
--   `BOP` => `BOP:IBinOp`, 
+-   `BOP` => `BOP:IBinOp`,
 
 ```k
-rule 
-       <polkadot-host>
+    rule <polkadot-host>
          <wasm>
            <k>
                  (     ITYPE0 .const VAL
@@ -89,13 +90,8 @@ rule
        </polkadot-host>
   requires notBool SS ==K .EmptyStmts andBool false ==K #pow( ITYPE0 ) ==Int 0 andBool true
   [priority(25)]
-```
-  
-Merged Rule:
 
-```k
-rule 
-       <polkadot-host>
+    rule <polkadot-host>
          <wasm>
            <k>
                  (     #init_locals  N  VALUE0 : VALUE2 : VALSTACK0 =>     #init_locals  N +Int 2  VALSTACK0 )
@@ -111,16 +107,11 @@ rule
          </wasm>
          ...
        </polkadot-host>
-     
+
   requires true andBool true
   [priority(25)]
-```
-  
-Merged Rule:
 
-```k
-rule 
-       <polkadot-host>
+    rule <polkadot-host>
          <wasm>
            <k>
                  (     ITYPE .const VAL
@@ -135,51 +126,11 @@ rule
          </wasm>
          ...
        </polkadot-host>
-     
+
   requires notBool SS ==K .EmptyStmts andBool false ==K #pow( ITYPE ) ==Int 0 andBool true
   [priority(25)]
-  
-```
-  
-Merged Rule:
 
--   Remove `#Forall`
--   Change #SemanticCastToInt to regular typeing
--   Dotvar5 => ... on both sides
-
-```k
-rule 
-       <polkadot-host>
-         <wasm>
-           <k>
-                 (     local.get I:Int S0 SS0 =>     S0
-             ~> SS0 )
-             ...
-           </k>
-           <valstack>
-             ( VALSTACK => VALUE : VALSTACK )
-           </valstack>
-           <curFrame>
-             <locals>
-               ... I |-> VALUE ...
-             </locals>
-             ...
-           </curFrame>
-           ...
-         </wasm>
-         ...
-       </polkadot-host>
-     
-  requires notBool SS0 ==K .EmptyStmts
-  andBool true
-  [priority(25)]
-```
-  
-Merged Rule:
-
-```k
-rule 
-       <polkadot-host>
+    rule <polkadot-host>
          <wasm>
            <k>
                  (     #init_locals  N  VALUE0 : VALSTACK =>     #init_locals  N +Int 1  VALSTACK )
@@ -195,16 +146,11 @@ rule
          </wasm>
          ...
        </polkadot-host>
-     
+
   requires true andBool true
   [priority(25)]
-```
-  
-Merged Rule:
 
-```k
-rule 
-       <polkadot-host>
+    rule <polkadot-host>
          <wasm>
            <k>
                  (     ITYPE0 .const VAL ITYPE0 . BOP:IBinOp SS0 =>     ITYPE0 . BOP C1 VAL modInt #pow( ITYPE0 )
@@ -218,22 +164,36 @@ rule
          </wasm>
          ...
        </polkadot-host>
-     
+
   requires notBool SS0 ==K .EmptyStmts andBool false ==K #pow( ITYPE0 ) ==Int 0 andBool true
   [priority(25)]
+
+    rule <polkadot-host>
+         <wasm>
+           <k>
+                 (     V
+             ~> S SS:Stmts =>     S
+             ~> SS )
+             ...
+           </k>
+           <valstack>
+             ( VALSTACK => V : VALSTACK )
+           </valstack>
+           ...
+         </wasm>
+         ...
+       </polkadot-host>
+  requires notBool V ==K undefined andBool notBool SS ==K .EmptyStmts
 ```
-  
-Merged Rule:
 
-Merged Rule:
+The following rule required extra massaging:
 
--   Remove `#Forall`
--   Change #SemanticCastToInt to regular typeing
--   Dotvar5 => ... on both sides
+-   Remove `#Forall` side condition.
+-   Change #SemanticCastToInt to regular typing.
+-   Dotvar5 in the `<locals>` cell => ... on both sides.
 
 ```k
-rule 
-       <polkadot-host>
+    rule <polkadot-host>
          <wasm>
            <k>
                  (     local.get I:Int
@@ -254,25 +214,23 @@ rule
          </wasm>
          ...
        </polkadot-host>
-     
+
   requires notBool SS ==K .EmptyStmts andBool true
   [priority(25)]
-```
-  
-Merged Rule:
 
-```k
-rule 
-       <polkadot-host>
+    rule <polkadot-host>
          <wasm>
            <k>
-                 (     local.get I ITYPE0 .const VAL ITYPE0 . BOP:IBinOp SS1 =>     ITYPE0 . BOP C1 VAL modInt #pow( ITYPE0 )
-             ~> SS1 )
+                 (     local.get I:Int S0 SS0 =>     S0
+             ~> SS0 )
              ...
            </k>
+           <valstack>
+             ( VALSTACK => VALUE : VALSTACK )
+           </valstack>
            <curFrame>
              <locals>
-               DotVar5 I |-> < ITYPE0 > C1
+               ... I |-> VALUE ...
              </locals>
              ...
            </curFrame>
@@ -280,32 +238,30 @@ rule
          </wasm>
          ...
        </polkadot-host>
-     
-  requires notBool SS1 ==K .EmptyStmts andBool #Forall x . #Ceil( DotVar5 #SemanticCastToInt ( I ) |-> x ) andBool false ==K #pow( ITYPE0 ) ==Int 0 andBool true
-  
-```
-  
-Merged Rule:
 
-```
-rule 
-       <polkadot-host>
+  requires notBool SS0 ==K .EmptyStmts
+  andBool true
+  [priority(25)]
+
+    rule <polkadot-host>
          <wasm>
            <k>
-                 (     V
-             ~> S SS:Stmts =>     S
-             ~> SS )
+                 (     local.get I:Int ITYPE0 .const VAL ITYPE0 . BOP:IBinOp SS1 =>     ITYPE0 . BOP C1 VAL modInt #pow( ITYPE0 )
+             ~> SS1 )
              ...
            </k>
-           <valstack>
-             ( VALSTACK => V : VALSTACK )
-           </valstack>
+           <curFrame>
+             <locals>
+               ... I |-> < ITYPE0 > C1 ...
+             </locals>
+             ...
+           </curFrame>
            ...
          </wasm>
          ...
        </polkadot-host>
-     
-  requires notBool V ==K undefined andBool notBool SS ==K .EmptyStmts a
+
+  requires notBool SS1 ==K .EmptyStmts andBool false ==K #pow( ITYPE0 ) ==Int 0 andBool true
 ```
 
 ```k
