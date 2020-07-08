@@ -15,7 +15,7 @@ pipeline {
       parallel {
         stage('KWasm (normal)')   { steps { sh 'make build -j4'                } }
         stage('KWasm (coverage)') { steps { sh 'make build -j4 BUILD=coverage' } }
-        stage('Polkadot')         { steps { sh 'make polkadot-runtime-source'  } }
+        stage('Polkadot')         { steps { sh 'make polkadot-runtime-source ; git checkout src/ ;' } }
       }
     }
     stage('Test') {
