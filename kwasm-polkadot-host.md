@@ -60,6 +60,28 @@ module KWASM-POLKADOT-HOST
            <funcIds> ... ID |-> IDX:Int ... </funcIds>
            ...
         </moduleInst>
+```
 
+### Registering Modules
+
+We will reference modules by name in imports.
+`register` is the instruction that allows us to associate a name with a module.
+
+```k
+    syntax Stmt ::= "(" "register" WasmString       ")"
+                  | "(" "register" WasmString Index ")"
+ // ---------------------------------------------------
+    rule <instrs> ( register S ) => ( register S (NEXT -Int 1) ) ... </instrs> // Register last instantiated module.
+         <nextModuleIdx> NEXT </nextModuleIdx>
+      requires NEXT >Int 0
+
+    rule <instrs> ( register S ID:Identifier ) => ( register S IDX ) ... </instrs>
+         <moduleIds> ... ID |-> IDX ... </moduleIds>
+
+    rule <instrs> ( register S:WasmString IDX:Int ) => . ... </instrs>
+         <moduleRegistry> ... .Map => S |-> IDX ... </moduleRegistry>
+```
+
+```k
 endmodule
 ```
