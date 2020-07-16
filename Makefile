@@ -128,28 +128,6 @@ $(POLKADOT_RUNTIME_LOADED_JSON): $(POLKADOT_RUNTIME_JSON)
 $(POLKADOT_RUNTIME_JSON): $(POLKADOT_RUNTIME_ENV_WAT) $(POLKADOT_RUNTIME_WAT)
 	cat $^ | $(KPOL) kast --backend $(CONCRETE_BACKEND) - json > $@
 
-# Generate Execution Traces
-# -------------------------
-
-MERGE_RULES_TECHNIQUE := max-productivity
-
-# TODO: Hacky way for selecting coverage file.
-.SECONDARY: deps/wasm-semantics/tests/simple/integers.wast.coverage-llvm
-$(KWASM_SUBMODULE)/tests/simple/%.wast.coverage-$(CONCRETE_BACKEND): $(KWASM_SUBMODULE)/tests/simple/%.wast
-	rm -rf $@-dir
-	mkdir -p $@-dir
-	K_LOG_DIR=$@-dir SUBDEFN=coverage $(KPOL) run --backend $(CONCRETE_BACKEND) $<
-	mv $@-dir/*_coverage.txt $@
-	rm -rf $@-dir
-
-$(KWASM_SUBMODULE)/tests/simple/%.wast.coverage-$(SYMBOLIC_BACKEND): $(KWASM_SUBMODULE)/tests/simple/%.wast.coverage-$(CONCRETE_BACKEND)
-	./translateCoverage.py $(DEFN_DIR)/coverage/$(CONCRETE_BACKEND)/$(MAIN_DEFN_FILE)-kompiled \
-	                       $(DEFN_DIR)/kwasm/$(SYMBOLIC_BACKEND)/$(MAIN_DEFN_FILE)-kompiled    \
-	                       $< > $@
-
-$(KWASM_SUBMODULE)/tests/simple/%.wast.merged-rules: $(KWASM_SUBMODULE)/tests/simple/%.wast.coverage-$(SYMBOLIC_BACKEND)
-	./mergeRules.py $(MERGE_RULES_TECHNIQUE) $< > $@
-
 # Specification Build
 # -------------------
 
