@@ -9,19 +9,23 @@ requires "kwasm-lemmas.md"
 
 module KWASM-POLKADOT-HOST-SYNTAX
     imports KWASM-POLKADOT-HOST
-    imports WASM-TEST-SYNTAX
+    imports WASM-TEXT-SYNTAX
 endmodule
 
 module KWASM-POLKADOT-HOST
     imports K-IO
-    imports WASM-TEST
+    imports WASM-TEXT
     imports KWASM-LEMMAS
 
     configuration
       <polkadot-host>
-        <wasm-test/>
+        <wasm/>
+        <k> $PGM:Stmts </k>
         <trace> .List </trace>
       </polkadot-host>
+
+    rule <k> PGM => . </k>
+         <instrs> .K => sequenceStmts(text2abstract(PGM)) </instrs>
 
     syntax PlainInstr ::= "phost" "." Identifier
  // --------------------------------------------
