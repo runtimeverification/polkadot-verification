@@ -99,7 +99,7 @@ print()
 sys.stdout.flush()
 
 if args['command'] == 'summary':
-    ruleMerges = merge_rules_max_productivity(ruleSeqs, min_merged_success_rate = 0.25, min_occurance_rate = 0.05)
+    ruleMerges = merge_rules_max_productivity(ruleSeqs, min_merged_success_rate = 0.15, min_occurance_rate = 0.00)
     mergedRules = tryMergeRules(WASM_definition_haskell_no_coverage_dir, WASM_definition_main_file, WASM_definition_main_module, ruleMerges)
     for mr in mergedRules:
         print('Merged Rule:')
