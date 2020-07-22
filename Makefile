@@ -185,16 +185,22 @@ CHECK := git --no-pager diff --no-index --ignore-all-space
 
 test: test-merge-rules prove-specs test-python-config test-search
 
-all_simple_tests := $(wildcard $(KWASM_SUBMODULE)/tests/simple/*.wast)
-bad_simple_tests := $(addprefix $(KWASM_SUBMODULE)/, $(shell cat $(KWASM_SUBMODULE)/tests/failing.simple))
-simple_tests     := $(filter-out $(bad_simple_tests), $(all_simple_tests))
+# all_simple_tests := $(wildcard $(KWASM_SUBMODULE)/tests/simple/*.wast)
+# bad_simple_tests := $(addprefix $(KWASM_SUBMODULE)/, $(shell cat $(KWASM_SUBMODULE)/tests/failing.simple))
+# simple_tests     := $(filter-out $(bad_simple_tests), $(all_simple_tests))
 
 test-rule-lists: $(simple_tests:=.coverage-$(SYMBOLIC_BACKEND))
-test-merge-rules: $(simple_tests:=.merged-rules)
-test-merge-all-rules: $(KWASM_SUBMODULE)/tests/simple/merge-all-rules
+# test-merge-rules: $(simple_tests:=.merged-rules)
+# test-merge-all-rules: $(KWASM_SUBMODULE)/tests/simple/merge-all-rules
 
-$(KWASM_SUBMODULE)/tests/simple/merge-all-rules: $(simple_tests:=.coverage-$(SYMBOLIC_BACKEND))
-	./mergeRules.py $(MERGE_RULES_TECHNIQUE) $^ > $@
+# $(KWASM_SUBMODULE)/tests/simple/merge-all-rules: $(simple_tests:=.coverage-$(SYMBOLIC_BACKEND))
+# 	./mergeRules.py $(MERGE_RULES_TECHNIQUE) $^ > $@
+
+test-merge-rules:
+	@echo "Temporarily unsupported, see https://github.com/runtimeverification/polkadot-verification/issues/118"
+test-merge-all-rules:
+	@echo "Temporarily unsupported, see https://github.com/runtimeverification/polkadot-verification/issues/118"
+
 
 # Search Through Executions
 # -------------------------
