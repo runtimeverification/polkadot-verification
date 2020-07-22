@@ -29,7 +29,7 @@ module KWASM-POLKADOT-HOST
 
     syntax PlainInstr ::= "phost" "." Identifier
  // --------------------------------------------
-    rule <k> phost . HOSTCALL => #push(#revs(#zero(FRANGE))) ... </k>
+    rule <instrs> phost . HOSTCALL => #push(#revs(#zero(FRANGE))) ... </instrs>
          <trace> ... (.List => ListItem(HOSTCALL)) </trace>
          <moduleRegistry> ... #unparseWasmString("\"env\"") |-> MODID ... </moduleRegistry>
          <moduleInst>
@@ -48,12 +48,12 @@ module KWASM-POLKADOT-HOST
 
     syntax KItem ::= #push ( ValStack )
  // -----------------------------------
-    rule <k> #push(.ValStack) => .              ... </k>
-    rule <k> #push(V : VS)    => V ~> #push(VS) ... </k>
+    rule <instrs> #push(.ValStack) => .              ... </instrs>
+    rule <instrs> #push(V : VS)    => V ~> #push(VS) ... </instrs>
 
     syntax Instr ::= "named_call" "." Identifier [klabel(named_call), symbol]
  // -------------------------------------------------------------------------
-    rule <k> named_call . ID => call IDX ... </k>
+    rule <instrs> named_call . ID => call IDX ... </instrs>
          <curModIdx> CUR </curModIdx>
          <moduleInst>
            <modIdx> CUR </modIdx>

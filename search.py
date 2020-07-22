@@ -84,7 +84,7 @@ for i in range(numExec):
                            , 'V2' : KToken(str(random.randint(0, 2 ** 64)), 'Int')
                            , 'V3' : KToken(str(random.randint(0, 2 ** 64)), 'Int')
                            }
-    init_subst['K_CELL'] = pyk.substitute(KSequence(invoking_steps), invokingSubstitution)
+    init_subst['INSTRS_CELL'] = pyk.substitute(KSequence(invoking_steps), invokingSubstitution)
     # print(pyk.prettyPrintKast(init_subst['K_CELL'], WASM_symbols_llvm_no_coverage))
     init_config = pyk.substitute(symbolic_config, init_subst)
     coverageFile = krunCoverage({ 'format' : 'KAST' , 'version': 1, 'term': init_config }, '--term')
