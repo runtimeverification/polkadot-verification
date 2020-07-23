@@ -145,6 +145,8 @@ for symbolTable in [WASM_symbols_llvm_no_coverage, WASM_symbols_llvm_coverage, W
     symbolTable['#dotsRight'] = lambda k:          k + ' ...'
     symbolTable['#dotsBoth']  = lambda k: '... ' + k + ' ...'
 
+    symbolTable['_in_keys(_)_MAP_Bool_KItem_Map'] = lambda k, s: k + ' in_keys( ' + s + ' )'
+
 def insertDots(k):
     (config, subst) = pyk.splitConfigFrom(k)
     if pyk.isKSequence(subst['INSTRS_CELL']) and pyk.isKVariable(subst['INSTRS_CELL']['items'][-1]) and subst['INSTRS_CELL']['items'][-1]['name'].startswith('DotVar'):
