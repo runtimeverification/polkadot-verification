@@ -67,6 +67,8 @@ searchCommandParsers = searchArgs.add_subparsers(dest = 'command')
 
 summaryArgs = searchCommandParsers.add_parser('summary', help = 'Try to produce summaries of the executions.')
 summaryArgs.add_argument('-n', '--num-runs', type = int, default = 1, help = 'Number of random runs to use as input.')
+summaryArgs.add_argument('-o', '--output-merged', type = str, default = None, help = 'File to append merged rules to.')
+summaryArgs.add_argument('-p', '--priority-merged', type = int, default = 0, help = 'Priority to write to merged rules.')
 
 profileArgs = searchCommandParsers.add_parser('profile', help = 'Profile short runs of rule merges to slow KWasm rule merges.')
 profileArgs.add_argument('-n' , '--num-runs'  , type = int   , default = 1   , help = 'Number of random runs to use as input.')
@@ -105,7 +107,15 @@ if args['command'] == 'summary':
         print('Merged Rule:')
         print('============')
         print()
-        print(prettyPrintRule(mr, WASM_symbols_haskell_no_coverage))
+        pp = prettyPrintRule(mr, WASM_symbols_haskell_no_coverage)
+        print(pp)
+        if not args['output_merged'] is None:
+            with open(args['output_merged'], 'a') as f:
+                f.write('\n\n```\n')
+                f.write(pp)
+                if args['priority_merged'] > 0:
+                    f.write(' [priority(%d)]' % args['priority_merged'])
+                f.write('\n```')
     print()
     sys.stdout.flush()
     sys.stderr.flush()
