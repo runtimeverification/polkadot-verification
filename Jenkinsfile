@@ -23,7 +23,6 @@ pipeline {
       parallel {
         stage('Prove High Level Specs') { steps { sh 'make prove-specs -j6'      } }
         stage('Python Config')          { steps { sh 'make test-python-config'   } }
-        stage('Merge Rules')            { steps { sh 'make test-merge-rules -j8' } }
         stage('Run Search')             { steps { sh 'make test-search'          } }
       }
     }

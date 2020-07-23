@@ -25,7 +25,7 @@ with open('src/polkadot-runtime.wat', 'r') as src:
 set_free_balance_function_name = [ fname for fname in function_names if 'set_free_balance' in fname ][0]
 print('Function name: ' + set_free_balance_function_name)
 
-wasm_push      = lambda type, value: KApply('(_)_WASM-TEXT_FoldedInstr_PlainInstr', [KApply('_.const__WASM_PlainInstr_IValType_WasmInt', [KConstant(type + '_WASM-DATA_IValType'), value])])
+wasm_push      = lambda type, value: KApply('_.const__WASM_PlainInstr_IValType_WasmInt', [KConstant(type + '_WASM-DATA_IValType'), value])
 wasm_namedcall = lambda fname: KApply('named_call', [KToken(fname, 'IdentifierToken')])
 wasm_invoke    = lambda fid: KApply('(invoke_)_WASM_Instr_Int', [KToken(str(fid), 'Int')])
 
@@ -84,7 +84,7 @@ for i in range(numExec):
                            , 'V2' : KToken(str(random.randint(0, 2 ** 64)), 'Int')
                            , 'V3' : KToken(str(random.randint(0, 2 ** 64)), 'Int')
                            }
-    init_subst['K_CELL'] = pyk.substitute(KSequence(invoking_steps), invokingSubstitution)
+    init_subst['INSTRS_CELL'] = pyk.substitute(KSequence(invoking_steps), invokingSubstitution)
     # print(pyk.prettyPrintKast(init_subst['K_CELL'], WASM_symbols_llvm_no_coverage))
     init_config = pyk.substitute(symbolic_config, init_subst)
     coverageFile = krunCoverage({ 'format' : 'KAST' , 'version': 1, 'term': init_config }, '--term')

@@ -145,10 +145,12 @@ for symbolTable in [WASM_symbols_llvm_no_coverage, WASM_symbols_llvm_coverage, W
     symbolTable['#dotsRight'] = lambda k:          k + ' ...'
     symbolTable['#dotsBoth']  = lambda k: '... ' + k + ' ...'
 
+    symbolTable['_in_keys(_)_MAP_Bool_KItem_Map'] = lambda k, s: k + ' in_keys( ' + s + ' )'
+
 def insertDots(k):
     (config, subst) = pyk.splitConfigFrom(k)
-    if pyk.isKSequence(subst['K_CELL']) and pyk.isKVariable(subst['K_CELL']['items'][-1]) and subst['K_CELL']['items'][-1]['name'].startswith('DotVar'):
-        subst['K_CELL'] = KApply('#dotsRight', [KSequence(subst['K_CELL']['items'][0:-1])])
+    if pyk.isKSequence(subst['INSTRS_CELL']) and pyk.isKVariable(subst['INSTRS_CELL']['items'][-1]) and subst['INSTRS_CELL']['items'][-1]['name'].startswith('DotVar'):
+        subst['INSTRS_CELL'] = KApply('#dotsRight', [KSequence(subst['INSTRS_CELL']['items'][0:-1])])
     return pyk.substitute(config, subst)
 
 def prettyPrintRule(kRule, symbolTable):

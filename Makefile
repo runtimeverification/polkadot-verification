@@ -1,10 +1,9 @@
 
-.PHONY: all clean distclean deps deps-polkadot                   \
-        build                                                    \
-        polkadot-runtime-source polkadot-runtime-loaded          \
-        prove-specs defn-specs kompile-specs                     \
-        test test-python-config test-rule-lists test-merge-rules \
-        test-merge-all-rules test-search
+.PHONY: all clean distclean deps deps-polkadot          \
+        build                                           \
+        polkadot-runtime-source polkadot-runtime-loaded \
+        prove-specs defn-specs kompile-specs            \
+        test test-python-config test-search
 
 # Settings
 # --------
@@ -128,28 +127,6 @@ $(POLKADOT_RUNTIME_LOADED_JSON): $(POLKADOT_RUNTIME_JSON)
 $(POLKADOT_RUNTIME_JSON): $(POLKADOT_RUNTIME_ENV_WAT) $(POLKADOT_RUNTIME_WAT)
 	cat $^ | $(KPOL) kast --backend $(CONCRETE_BACKEND) - json > $@
 
-# Generate Execution Traces
-# -------------------------
-
-MERGE_RULES_TECHNIQUE := max-productivity
-
-# TODO: Hacky way for selecting coverage file.
-.SECONDARY: deps/wasm-semantics/tests/simple/integers.wast.coverage-llvm
-$(KWASM_SUBMODULE)/tests/simple/%.wast.coverage-$(CONCRETE_BACKEND): $(KWASM_SUBMODULE)/tests/simple/%.wast
-	rm -rf $@-dir
-	mkdir -p $@-dir
-	K_LOG_DIR=$@-dir SUBDEFN=coverage $(KPOL) run --backend $(CONCRETE_BACKEND) $<
-	mv $@-dir/*_coverage.txt $@
-	rm -rf $@-dir
-
-$(KWASM_SUBMODULE)/tests/simple/%.wast.coverage-$(SYMBOLIC_BACKEND): $(KWASM_SUBMODULE)/tests/simple/%.wast.coverage-$(CONCRETE_BACKEND)
-	./translateCoverage.py $(DEFN_DIR)/coverage/$(CONCRETE_BACKEND)/$(MAIN_DEFN_FILE)-kompiled \
-	                       $(DEFN_DIR)/kwasm/$(SYMBOLIC_BACKEND)/$(MAIN_DEFN_FILE)-kompiled    \
-	                       $< > $@
-
-$(KWASM_SUBMODULE)/tests/simple/%.wast.merged-rules: $(KWASM_SUBMODULE)/tests/simple/%.wast.coverage-$(SYMBOLIC_BACKEND)
-	./mergeRules.py $(MERGE_RULES_TECHNIQUE) $< > $@
-
 # Specification Build
 # -------------------
 
@@ -183,18 +160,7 @@ $(SPECS_DIR)/%-spec.k: %-spec.md $(TANGLER)
 
 CHECK := git --no-pager diff --no-index --ignore-all-space
 
-test: test-merge-rules prove-specs test-python-config test-search
-
-all_simple_tests := $(wildcard $(KWASM_SUBMODULE)/tests/simple/*.wast)
-bad_simple_tests := $(addprefix $(KWASM_SUBMODULE)/, $(shell cat $(KWASM_SUBMODULE)/tests/failing.simple))
-simple_tests     := $(filter-out $(bad_simple_tests), $(all_simple_tests))
-
-test-rule-lists: $(simple_tests:=.coverage-$(SYMBOLIC_BACKEND))
-test-merge-rules: $(simple_tests:=.merged-rules)
-test-merge-all-rules: $(KWASM_SUBMODULE)/tests/simple/merge-all-rules
-
-$(KWASM_SUBMODULE)/tests/simple/merge-all-rules: $(simple_tests:=.coverage-$(SYMBOLIC_BACKEND))
-	./mergeRules.py $(MERGE_RULES_TECHNIQUE) $^ > $@
+test: prove-specs test-python-config test-search
 
 # Search Through Executions
 # -------------------------
