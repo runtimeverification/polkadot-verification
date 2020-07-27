@@ -64,9 +64,10 @@ POLKADOT_RUNTIME_WASM := $(POLKADOT_SUBMODULE)/target/release/wbuild/node-templa
 
 KOMPILE_OPTS := --emit-json
 
-MAIN_MODULE        := KWASM-POLKADOT-HOST
+MAIN_MODULE        := MERGED
 MAIN_SYNTAX_MODULE := KWASM-POLKADOT-HOST-SYNTAX
-MAIN_DEFN_FILE     := kwasm-polkadot-host
+MAIN_DEFN_FILE     := merged
+EXTRA_FILES        := kwasm-polkadot-host
 
 ifeq (coverage,$(BUILD))
     KOMPILE_OPTS += --coverage
@@ -82,7 +83,7 @@ build: build-llvm build-haskell
 # Semantics Build
 # ---------------
 
-build-%: $(KWASM_SUBMODULE)/$(MAIN_DEFN_FILE).md
+build-%: $(patsubst %, $(KWASM_SUBMODULE)/%.md, $(MAIN_DEFN_FILE) $(EXTRA_FILES))
 	$(KWASM_MAKE) build-$*                               \
 	    DEFN_DIR=../../$(DEFN_DIR)/$(SUBDEFN)            \
 	    llvm_main_module=$(MAIN_MODULE)                  \
@@ -94,7 +95,7 @@ build-%: $(KWASM_SUBMODULE)/$(MAIN_DEFN_FILE).md
 	    EXTRA_SOURCE_FILES=$(MAIN_DEFN_FILE).md          \
 	    KOMPILE_OPTS="$(KOMPILE_OPTS)"
 
-$(KWASM_SUBMODULE)/$(MAIN_DEFN_FILE).md: $(MAIN_DEFN_FILE).md
+$(KWASM_SUBMODULE)/%.md: %.md
 	cp $< $@
 
 # Verification Source Build
