@@ -91,6 +91,7 @@ for i in range(numExec):
     init_config = pyk.substitute(symbolic_config, init_subst)
     coverageFile = krunCoverage({ 'format' : 'KAST' , 'version': 1, 'term': init_config }, '--term')
     ruleSeq = pyk.translateCoverageFromPaths(WASM_definition_llvm_coverage_dir + '/' + WASM_definition_main_file + '-kompiled', WASM_definition_haskell_no_coverage_dir + '/' + WASM_definition_main_file + '-kompiled', coverageFile)
+    print(ruleSeq)
     ruleSeqs.add('|'.join(ruleSeq))
 
 ruleSeqs = [ ruleSeq.split('|') for ruleSeq in ruleSeqs ]
