@@ -147,6 +147,8 @@ rule <polkadot-host>
    [priority(25)]
 ```
 
+-   Change priority.
+
 ```k
 rule <polkadot-host>
        <wasm>
@@ -165,11 +167,12 @@ rule <polkadot-host>
      </polkadot-host>
   
   
-   [priority(25)]
+   [priority(20)]
 ```
 
 -   Remove `#Ceil` side condition on binary operation (it goes away if the numeric functions are made total).
 -   Add `:IBinOp`.
+-   Change priority.
 
 ```k
 rule <polkadot-host>
@@ -187,7 +190,7 @@ rule <polkadot-host>
      </polkadot-host>
   requires ITYPE0 . BOP C1 VAL modInt #pow( ITYPE0 ) =/=K undefined andBool #pow( ITYPE0 ) =/=Int 0
   
-   [priority(25)]
+   [priority(20)]
 ```
 
 ```k
