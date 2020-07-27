@@ -168,17 +168,15 @@ rule <polkadot-host>
    [priority(25)]
 ```
 
+-   Remove `#Ceil` side condition on binary operation (it goes away if the numeric functions are made total).
+-   Add `:IBinOp`.
+
 ```k
-endmodule
-```
-
-
-```
 rule <polkadot-host>
        <wasm>
          <instrs>
                (     ITYPE0 .const VAL
-           ~> ITYPE0 . BOP => .K ) ...
+           ~> ITYPE0 . BOP:IBinOp => .K ) ...
          </instrs>
          <valstack>
            ( < ITYPE0 > C1 : VALSTACK1 => ITYPE0 . BOP C1 VAL modInt #pow( ITYPE0 ) : VALSTACK1 )
@@ -187,10 +185,16 @@ rule <polkadot-host>
        </wasm>
        ...
      </polkadot-host>
-  requires ITYPE0 . BOP C1 VAL modInt #pow( ITYPE0 ) =/=K undefined andBool #Ceil( ITYPE0 . BOP C1 VAL modInt #pow( ITYPE0 ) ) andBool #pow( ITYPE0 ) =/=Int 0
+  requires ITYPE0 . BOP C1 VAL modInt #pow( ITYPE0 ) =/=K undefined andBool #pow( ITYPE0 ) =/=Int 0
   
    [priority(25)]
 ```
+
+```k
+endmodule
+```
+
+
 
 ```
 rule <polkadot-host>
