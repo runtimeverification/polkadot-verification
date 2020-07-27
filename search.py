@@ -3,6 +3,7 @@
 import argparse
 import pyk
 import random
+import re
 import resource
 import statistics as stat
 import sys
@@ -77,6 +78,9 @@ profileArgs.add_argument('-s' , '--step'      , type = int   , default = 1   , h
 profileArgs.add_argument('-r' , '--repeat'    , type = int   , default = 3   , help = 'How many times to repeat each rule merge (to make statistical analysis more relevant).')
 profileArgs.add_argument('-d' , '--deviation' , type = float , default = 0.8 , help = 'Min number of standard deviations away from mean to consider a given rule merge "slow".')
 
+showArgs = searchCommandParsers.add_parser('show-merged', help = 'Show merged rules used in the trace.')
+showArgs.add_argument('-n' , '--num-runs'  , type = int   , default = 1   , help = 'Number of random runs to use as input.')
+
 args = vars(searchArgs.parse_args())
 
 numExec = args['num_runs']
@@ -91,7 +95,6 @@ for i in range(numExec):
     init_config = pyk.substitute(symbolic_config, init_subst)
     coverageFile = krunCoverage({ 'format' : 'KAST' , 'version': 1, 'term': init_config }, '--term')
     ruleSeq = pyk.translateCoverageFromPaths(WASM_definition_llvm_coverage_dir + '/' + WASM_definition_main_file + '-kompiled', WASM_definition_haskell_no_coverage_dir + '/' + WASM_definition_main_file + '-kompiled', coverageFile)
-    print(ruleSeq)
     ruleSeqs.add('|'.join(ruleSeq))
 
 ruleSeqs = [ ruleSeq.split('|') for ruleSeq in ruleSeqs ]
@@ -100,6 +103,22 @@ for rs in ruleSeqs:
     print('    Execution length: ' + str(len(rs)))
 print()
 sys.stdout.flush()
+
+if args['command'] == 'show-merged':
+    merged_file = "kwasm-polkadot-host.md"
+    start_line = 88
+    end_line = 99999999
+
+    def_file = WASM_definition_llvm_no_coverage_dir + '/' + WASM_definition_main_file + '-kompiled' + '/' + 'compiled.txt'
+    for ident in open(coverageFile):
+        ident = ident.strip()
+        for line in open(def_file):
+            if re.search(ident, line) and re.search(merged_file, line):
+                line_match = re.search(r"contentStartLine\(([0-9]+)\)", line)
+                line_nr = int(line_match.groups()[0])
+                if start_line <= line_nr <= end_line:
+                    print("Line: %d\t rule: %s" % (line_nr, ident) )
+
 
 if args['command'] == 'summary':
     ruleMerges = merge_rules_max_productivity(ruleSeqs, min_merged_success_rate = 0.25, min_occurance_rate = 0.05)
