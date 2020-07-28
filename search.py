@@ -109,6 +109,7 @@ if args['command'] == 'show-merged':
     start_line = 88
     end_line = 99999999
 
+    rules_used = set()
     def_file = WASM_definition_llvm_no_coverage_dir + '/' + WASM_definition_main_file + '-kompiled' + '/' + 'compiled.txt'
     for ident in open(coverageFile):
         ident = ident.strip()
@@ -118,6 +119,14 @@ if args['command'] == 'show-merged':
                 line_nr = int(line_match.groups()[0])
                 if start_line <= line_nr <= end_line:
                     print("Line: %d\t rule: %s" % (line_nr, ident) )
+                    rules_used.add((line_nr, ident))
+    print()
+    print("Rules used:")
+    rules_list = list(rules_used)
+    rules_list.sort()
+    for rule in rules_list:
+        print("Line: %d\t rule: %s" % rule)
+
 
 
 if args['command'] == 'summary':
