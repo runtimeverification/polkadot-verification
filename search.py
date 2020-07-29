@@ -93,7 +93,11 @@ for i in range(numExec):
     init_subst['INSTRS_CELL'] = pyk.substitute(KSequence(invoking_steps), invokingSubstitution)
     # print(pyk.prettyPrintKast(init_subst['K_CELL'], WASM_symbols_llvm_no_coverage))
     init_config = pyk.substitute(symbolic_config, init_subst)
-    coverageFile = krunCoverage({ 'format' : 'KAST' , 'version': 1, 'term': init_config }, '--term')
+    start = time.time()
+    for _i in range(10):
+        coverageFile = krunCoverage({ 'format' : 'KAST' , 'version': 1, 'term': init_config }, '--term')
+    end = time.time()
+    print("average time: %f" % (end - start)/ 10)
     ruleSeq = pyk.translateCoverageFromPaths(WASM_definition_llvm_coverage_dir + '/' + WASM_definition_main_file + '-kompiled', WASM_definition_haskell_no_coverage_dir + '/' + WASM_definition_main_file + '-kompiled', coverageFile)
     ruleSeqs.add('|'.join(ruleSeq))
 
