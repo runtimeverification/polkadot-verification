@@ -87,7 +87,7 @@ make polkadot-runtime-loaded
 ### Proving High-Level Specifications
 
 The `*-spec.md` files contain high-level specifications of the system behavior.
-The definition file containing the semantics for the proofs must be put in file with the same name but without `-spec.md`, i.e. the semantics used to prove `foo-spec.md` are placed in `foo.md`.
+The definition file containing the semantics for the proofs must be put in a file with the same name but without the `-spec` suffix; i.e. the semantics used to prove `foo-spec.md` are placed in `foo.md`.
 The `*-spec.md` file must contain a module called `VERIFICATION` which imports the semantics module.
 See the structure of `set-balance-spec.md` and `set-balance.md` for an example.
 
@@ -96,4 +96,3 @@ To run the prover on all specifications, run:
 ```
 make prove-specs
 ```
-
