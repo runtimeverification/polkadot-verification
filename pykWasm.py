@@ -170,7 +170,7 @@ def kast(inputJson, *kastArgs):
     return pyk.kastJSON(WASM_definition_llvm_no_coverage_dir, inputJson, kastArgs = list(kastArgs))
 
 def krun(inputJson, *krunArgs):
-    return pyk.krunJSON(WASM_definition_llvm_no_coverage_dir, inputJson, krunArgs = list(krunArgs))
+    return pyk.krunJSON(WASM_definition_haskell_no_coverage_dir, inputJson, krunArgs = list(krunArgs))
 
 def findCoverageFiles(path):
     files = os.listdir(path)
